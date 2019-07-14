@@ -1,0 +1,4 @@
+owner: ElectronNET
+repo: Electron.NET
+provider: github
+updaterCacheDirName: electron.net.host-updater

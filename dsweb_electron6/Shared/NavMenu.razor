@@ -1,0 +1,98 @@
+@using dsweb_electron6.Models
+@using System.ComponentModel
+@inject IComponentContext ComponentContext
+@inject ScanStateChange StateChange
+@inject StartUp  StartUp
+
+<div class="top-row pl-4 navbar navbar-dark">
+    <a class="navbar-brand" href="">dsweb_electron6</a>
+    <button class="navbar-toggler" @onclick="@ToggleNavMenu">
+        <span class="navbar-toggler-icon"></span>
+    </button>
+</div>
+
+<div class="@NavMenuCssClass" @onclick="@ToggleNavMenu">
+    <ul class="nav flex-column">
+        <li class="nav-item px-3">
+            <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
+                <span class="oi oi-home" aria-hidden="true"></span> Home
+            </NavLink>
+        </li>
+        @if (StartUp.FIRSTRUN == false)
+        {
+            <li class="nav-item px-3">
+                <NavLink class="nav-link" href="chart">
+                    <span class="oi oi-list-rich" aria-hidden="true"></span> Charts
+                </NavLink>
+            </li>
+            <li class="nav-item px-3">
+                <NavLink class="nav-link" href="builds">
+                    <span class="oi oi-list-rich" aria-hidden="true"></span> Builds
+                </NavLink>
+            </li>
+            <li class="nav-item px-3">
+                <NavLink class="nav-link" href="scan">
+                    <span class="oi oi-list-rich" aria-hidden="true"></span> Scan
+                </NavLink>
+                <div class="@ProgbarClass ml-2" id="div_progbar">
+                    <div class="progress">
+                        <div class="progress-bar progress-bar-striped" role="progressbar"
+                             style="width: @((int)Done)%" aria-valuenow=@Done
+                             aria-valuemin="0" aria-valuemax="100">
+                        </div>
+                    </div>
+                </div>
+            </li>
+            <li class="nav-item px-3">
+                <NavLink class="nav-link" href="config">
+                    <span class="oi oi-list-rich" aria-hidden="true"></span> Settings
+                </NavLink>
+            </li>
+            <li class="nav-item px-3">
+                <NavLink class="nav-link" href="upload">
+                    <span class="oi oi-list-rich" aria-hidden="true"></span> Upload
+                </NavLink>
+            </li>
+        }
+    </ul>
+</div>
+@code {
+bool collapseNavMenu = true;
+string ProgbarClass = "d-none";
+string NavMenuCssClass => collapseNavMenu ? "collapse" : null;
+double Done = 0;
+
+void ToggleNavMenu()
+{
+    collapseNavMenu = !collapseNavMenu;
+}
+
+protected override async Task OnInitAsync()
+{
+    StateChange.PropertyChanged += Update;
+}
+
+private async void Update(object sender, PropertyChangedEventArgs e)
+{
+    await InvokeAsync(() =>
+    {
+        if (StateChange.Scan.Running == true)
+        {
+            ProgbarClass = "";
+            Done = StateChange.Scan.Done;
+        }
+        else
+        {
+            ProgbarClass = "d-none";
+        }
+        StateHasChanged();
+        Task t = new Task(() => { });
+        return t;
+    });
+}
+
+public void Dispose()
+{
+    StateChange.PropertyChanged -= Update;
+}
+}

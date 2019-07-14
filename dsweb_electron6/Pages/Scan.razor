@@ -1,0 +1,108 @@
+@page "/scan"
+@using dsweb_electron6.Models
+@using System.Threading;
+@using System.ComponentModel
+@inject IComponentContext ComponentContext
+@inject StartUp StartUp
+@inject ScanStateChange StateChange
+@inject DSdataModel  DSdata
+@inject dsweb_electron6.Interfaces.IDSdata_cache IDSdata
+
+<h3>Scan</h3>
+
+<div class="jumbotron">
+    New replays found: @DSdata.Todo.Count <br />
+    Expected time needed: @(string.Format("{0:0.00}", (DSdata.Todo.Count * 7.2 / StartUp.Conf.Cores / 60 / 60))) h <br />
+    <br />
+    You can always quit the process, next time it will continue at the last position. <br />
+</div>
+<div class="form-group">
+    <label for="sel1">CPU Cores</label>
+    <select class="form-control w-auto" id="sel1" @bind="@StartUp.Conf.Cores">
+        @for (int i = 1; i <= Environment.ProcessorCount; i++)
+        {
+            if (i == 2)
+            {
+                <option selected="selected" value=@i>@i</option>
+            }
+            else
+            {
+                <option value=@i>@i</option>
+            }
+        }
+    </select>
+</div>
+<button class="btn btn-primary mb-2" @onclick="@ScanReps">Scan</button>
+<h6>@SCAN</h6>
+<h5>@INFO</h5>
+
+
+
+@code {
+int count = 0;
+string INFO = "";
+string SCAN = "";
+bool init = false;
+
+void ScanReps()
+{
+    if (StateChange.Scan.Running == false)
+    {
+        StateChange.Scan.Running = true;
+        SCAN = "Decoding replays ...";
+        Decode.Doit(DSdata, StateChange, StartUp.Conf.Cores);
+    }
+}
+
+private async void Update(object sender, PropertyChangedEventArgs e)
+{
+    await InvokeAsync(() =>
+    {
+        if (StateChange.Scan.Running == true)
+        {
+            SCAN = "Decoding replays ..";
+            INFO = StateChange.Scan.Info;
+        }
+        else
+        {
+            SCAN = "Jobs done.";
+            INFO = StateChange.Scan.Info;
+            INFO += " Elapsed time: " + Decode.Elapsed.ToString("c");
+        }
+        StateHasChanged();
+        Task t = new Task(() => { });
+        return t;
+    });
+}
+
+protected override async Task OnInitAsync()
+{
+    if (INFO.Length > 0) {
+        SCAN = "Decoding replays ...";
+        INFO = StateChange.Scan.Info;
+    }
+
+    await FindReps();
+
+    if (StartUp.Conf.Autoscan == true)
+    {
+        ScanReps();
+    }
+
+    StateChange.PropertyChanged += Update;
+}
+
+private async Task FindReps()
+{
+    await Task.Factory.StartNew(() => {
+        DSdata.NewReplays();
+        Invoke(() => StateHasChanged());
+    });
+}
+
+public void Dispose()
+{
+    //StateChange.PropertyChanged -= Update;
+}
+
+}

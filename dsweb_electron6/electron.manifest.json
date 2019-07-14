@@ -1,0 +1,33 @@
+{
+  "executable": "dsweb_electron6",
+  "splashscreen": {
+    "imageFile": "wwwroot/images/icon-512x512.png"
+  },
+  "singleInstance": false,
+  "build": {
+    "appId": "com.dsweb_electron6.app",
+    "productName": "dsweb_electron6",
+    "copyright": "Copyright © 2019",
+    "buildVersion": "1.0.0",
+    "compression": "maximum",
+    "directories": {
+      "output": "../../../bin/Desktop",
+      "buildResources": "../../../build"
+    },
+    "extraResources": [
+      {
+        "from": "./bin",
+        "to": "bin",
+        "filter": ["**/*"]
+      }
+    ],
+    "files": [
+      {
+        "from": "./ElectronHostHook/node_modules",
+        "to": "ElectronHostHook/node_modules",
+        "filter": ["**/*"]
+      },
+      "**/*"
+    ]
+  }
+}

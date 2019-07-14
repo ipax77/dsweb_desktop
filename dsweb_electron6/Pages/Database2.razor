@@ -1,0 +1,368 @@
+@page "/database"
+@using System.Linq;
+@using System.Globalization;
+@using System.ComponentModel
+@using Microsoft.AspNetCore.Http
+@using System.Reflection
+@using dsweb_electron6.Data
+@using dsweb_electron6.Pages
+@using dsweb_electron6.Models
+@inject IComponentContext ComponentContext
+@inject Interfaces.IDSdata_cache _DSdata
+@inject DSdyn_filteroptions  _options
+@inject ChartStateChange chartChanged
+@implements IDisposable
+
+<div class="container-fluid">
+    <div class="row">
+        <div>
+            <div class="row">
+                <p>
+                    <button class="btn btn-secondary" @onclick="@DatabaseClose">Close</button>
+                </p>
+                <h3> Database</h3>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="container-fluid">
+    <div class="row">
+        @if (database == true)
+        {
+            <div>
+                <div class="row">
+                    <div class="form-group mr-2">
+                        <label class="label label-default">
+                            Build
+                        </label>
+                        <select id="chb_mode" name="chb_mode" @bind="@_options.Build" class="browser-default custom-select">
+                            <option value="ALL" selected="selected">ALL</option>
+                            <option value="PAX">PAX</option>
+                            <option value="Feralan">Feralan</option>
+                            <option value="Panzerfaust">Panzerfaust</option>
+                        </select>
+
+                    </div>
+                    <!--
+                    <div class="custom-control custom-checkbox mr-2">
+                        <input type="checkbox" class="custom-control-input" name="Filter" id="cb_Filter" @bind="@_options.Filter" />
+                        <label class="custom-control-label" for="cb_Filter">Filter</label>
+                    </div>
+                    -->
+                    <button class="btn btn-primary" @onclick="@Filter">Filter</button>
+                    <button class="btn btn-primary" @onclick="@GameClose">Gameinfo</button>
+                    <button class="btn btn-primary" @onclick="@Chart">Chart</button>
+                </div>
+                <div class="row">
+                    <div class="custom-control custom-checkbox mr-2">
+                        <input type="checkbox" class="custom-control-input" name="Winner" id="cb_Winner" @bind="@dboptions.WINNER" />
+                        <label class="custom-control-label" for="cb_Winner">Winner</label>
+                    </div>
+                    <div class="custom-control custom-checkbox mr-2">
+                        <input type="checkbox" class="custom-control-input" name="Duration" id="cb_Duration" @bind="@dboptions.DURATION" />
+                        <label class="custom-control-label" for="cb_Duration">Duration</label>
+                    </div>
+                    <div class="custom-control custom-checkbox mr-2">
+                        <input type="checkbox" class="custom-control-input" name="MaxLeaver" id="cb_MaxLeaver" @bind="@dboptions.MAXLEAVER" />
+                        <label class="custom-control-label" for="cb_MaxLeaver">MaxLeaver</label>
+                    </div>
+                    <div class="custom-control custom-checkbox mr-2">
+                        <input type="checkbox" class="custom-control-input" name="MaxKillsum" id="cb_MaxKillsum" @bind="@dboptions.MAXKILLSUM" />
+                        <label class="custom-control-label" for="cb_MaxKillsum">MaxKillsum</label>
+                    </div>
+                </div>
+                <p><b>Replay (@total.Count) @skip-@(@skip + @take)</b></p>
+                <div class="row">
+                    <table class="table table-sm box-layout">
+                        <thead class="scroll-thead">
+                            <tr>
+                                <th><span class="sort-link" @onclick="@(() => SortReps("ID"))">ID</span></th>
+                                @foreach (var ent in DBcolumns)
+                                {
+                                    <th><span class="sort-link" @onclick="@(() => SortReps(ent))">@ent</span></th>
+                                }
+                                <th><span class="sort-link" @onclick="@(() => SortReps("GAMETIME"))">Gametime</span></th>
+                            </tr>
+                        </thead>
+                        <tbody class="scroll-tbody-y table-body">
+                            @foreach (dsreplay rep in replays)
+                            {
+                                <tr>
+                                    <td>
+                                        <span class="sort-link" @onclick="@(() => ShowGame(@rep.ID))">@rep.ID</span>
+                                    </td>
+                                    @foreach (var ent in DBcolumns)
+                                    {
+                                        @if (ent == "ID") { continue; }
+                                        else if (ent == "GAMETIME") { continue; }
+                                        else
+                                        {
+                                            <td>@rep.GetType().GetProperty(ent).GetValue(rep, null)</td>
+                                        }
+                                    }
+                                    <td>@rep.GAMETIME</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+                <div class="row">
+                    <button class="btn btn-sm" @onclick="@Skip">&lt&lt</button>
+                    <label class="label label-default" for="ip_goto">goto</label>
+                    <input style="width: 50px;" id="input" name="input" type="number" bind="@pos" @onclick="@Pos" @onchange="@Pos" />
+                    <button class="btn btn-sm" @onclick="@Take">&gt&gt</button>
+                    <button class="btn-sm btn-secondary ml-4" @onclick="@ShowCmdrs">Cmdrs played</button>
+
+                </div>
+                <br />
+            </div>
+        }
+        @if (_options.Filter == true)
+        {
+            <div class="ml-5">
+                <dsweb_electron6.Pages.Filter />
+            </div>
+        }
+        @if (@chart == true)
+        {
+            <div class="ml-5">
+                <Chart2 info="@filinfo" />
+            </div>
+        }
+        @if (@game && @gameid > 0)
+        {
+            <div class="ml-5">
+                <div>
+                    <Game replay="@replay" />
+                </div>
+            </div>
+        }
+        @if (@cmdrvis == true)
+        {
+            <div class="ml-5"></div>
+            <Cmdrs />
+        }
+        <div class="ml-5">@info</div>
+    </div>
+</div>
+
+
+
+@code {
+
+    private DSdyn_databaseoptions dboptions { get; set; } = new DSdyn_databaseoptions();
+    private IEnumerable<string> DBcolumns { get; set; }
+    private IEnumerable<dsreplay> replays { get; set; }
+    private List<dsreplay> total { get; set; }
+    private dsreplay replay { get; set; }
+    string build = "";
+    int skip = 0;
+    int take = 20;
+    int pos = 0;
+    string last = "";
+    int gameid = 0;
+    bool filter = false;
+    string filinfo = "";
+    bool database = true;
+    bool game = false;
+    string GlobalWinrate = "";
+    bool chart = false;
+    string info = "";
+    bool cmdrvis = false;
+
+    void GameClose()
+    {
+        if (game == true) { game = false; }
+        else
+        {
+            game = true;
+            if (gameid == 0)
+            {
+                if (replays.Any()) { ShowGame(replays.ElementAt(0).ID); }
+            }
+        }
+    }
+
+    void Chart()
+    {
+        if (chart == true) { chart = false; }
+        else
+        {
+            if (_options.Interest != "") { _options.Icons = 1; }
+            chart = true;
+        }
+    }
+
+    void ShowCmdrs()
+    {
+        cmdrvis = !cmdrvis;
+    }
+
+    void DatabaseClose()
+    {
+        if (database == true) { database = false; }
+        else { database = true; }
+    }
+
+    void Filter()
+    {
+        if (_options.Filter == true) { _options.Filter = false; }
+        else { _options.Filter = true; }
+    }
+
+
+    void Skip()
+    {
+        skip -= 20;
+        //take += 20;
+        if (skip < 0 || take < 0)
+        {
+            skip = 0;
+            take = 20;
+        }
+        replays = new List<dsreplay>(total.Skip(skip).Take(take));
+    }
+
+    void Take()
+    {
+        skip += 20;
+        //take += 20;
+        replays = new List<dsreplay>(total.Skip(skip).Take(take));
+    }
+
+    void Pos()
+    {
+        skip = pos;
+        take = 20;
+        replays = new List<dsreplay>(total.Skip(skip).Take(take));
+    }
+
+    protected override void OnInit()
+    {
+        gameid = 0;
+
+        List<string> temp = new List<string>();
+        DBcolumns = temp;
+
+
+        dboptions.PropertyChanged += DBOptionChanged;
+        if (_options == null)
+        {
+            _options = new DSdyn_filteroptions();
+            _options.Build = "ALL";
+            replays = new List<dsreplay>();
+            total = new List<dsreplay>(_DSdata.BUILD_REPLAYS[_options.Build].OrderByDescending(o => o.GAMETIME).ToList());
+            replays = total.Skip(skip).Take(take).ToList();
+            _options.PropertyChanged += FilOptionChanged;
+            _options.Filter = true;
+        }
+        else
+        {
+            replays = new List<dsreplay>();
+            total = new List<dsreplay>(_DSdata.BUILD_REPLAYS[_options.Build].OrderByDescending(o => o.GAMETIME).ToList());
+            replays = total.Skip(skip).Take(take).ToList();
+            _options.PropertyChanged += FilOptionChanged;
+            if (replays.Any()) { ShowGame(replays.ElementAt(0).ID); };
+        }
+        chartChanged.PropertyChanged += Update;
+    }
+
+    private async void Update(object sender, PropertyChangedEventArgs e)
+    {
+        FilOptionChanged(null, null);
+    }
+
+    protected override async Task OnAfterRenderAsync()
+    {
+        // TEMPORARY: Currently we need this guard to avoid making the interop
+        // call during prerendering. Soon this will be unnecessary because we
+        // will change OnAfterRenderAsync so that it won't run during the
+        // prerendering phase.
+        if (!ComponentContext.IsConnected)
+        {
+            return;
+        }
+
+    }
+
+    public async void ShowGame(int id)
+    {
+        game = false;
+
+        var temp = _DSdata.REPLAYS.Where(x => x.ID == id).ToList();
+        if (temp.Count > 0)
+        {
+            replay = new dsreplay();
+            replay = temp.ElementAt(0);
+        }
+
+        if (replay.PLAYERS.Count > 1)
+        {
+            info = "";
+            gameid = id;
+            game = true;
+        }
+        else
+        {
+            info = "No game info available for id " + id;
+        }
+    }
+
+    public async void SortReps(string id)
+    {
+        if (last == id)
+        {
+            total = total.OrderByDescending(o => o.GetType().GetProperty(id).GetValue(o, null)).ToList();
+            last = "";
+        }
+        else
+        {
+            total = total.OrderBy(o => o.GetType().GetProperty(id).GetValue(o, null)).ToList();
+            last = id;
+        }
+        replays = total.Skip(skip).Take(take).ToList();
+    }
+
+    private void DBOptionChanged(object sender, PropertyChangedEventArgs e)
+    {
+        List<string> temp = new List<string>();
+        temp = DBcolumns.ToList();
+        if (temp.Contains(e.PropertyName))
+        {
+            temp.Remove(e.PropertyName);
+        }
+        else
+        {
+            temp.Add(e.PropertyName);
+        }
+        DBcolumns = temp;
+    }
+
+    private void FilOptionChanged(object sender, PropertyChangedEventArgs e)
+    {
+        if (_options.DOIT == true)
+        {
+            List<dsreplay> temp = new List<dsreplay>();
+            temp = _DSdata.BUILD_REPLAYS[_options.Build].ToList();
+            temp = DBfilter.Filter(_DSdata.BUILD_REPLAYS[_options.Build].OrderByDescending(o => o.GAMETIME).ToList(), _options);
+            filinfo = _options.fil.Info();
+            filinfo += Environment.NewLine;
+            foreach (var ent in _options.fil.Cmdrs.OrderBy(o => o.Value))
+            {
+                filinfo += ent.Key + ": " + ent.Value + "; ";
+            }
+            GlobalWinrate = "Player winrate: " + _options.fil.WR.ToString() + "%";
+            total = temp;
+            skip = 0;
+            take = 20;
+            replays = total.Skip(skip).Take(take).ToList();
+            StateHasChanged();
+        }
+    }
+
+    public void Dispose()
+    {
+        _options.PropertyChanged -= FilOptionChanged;
+        dboptions.PropertyChanged -= DBOptionChanged;
+    }
+}
