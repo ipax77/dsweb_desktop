@@ -109,17 +109,31 @@ namespace dsweb_electron6.Models
             }
         }
 
-        public static void Deleteme(string name)
+        public static void Deleteme(StartUp _startUp)
         {
-            var restRequest = new RestRequest("/mm/deleteme/" + name, Method.GET);
-            restRequest.AddHeader("Authorization", "DSupload77");
-            try
+            DateTime d1 = DateTime.Now;
+            DateTime d2 = _startUp.Conf.MMDeleted;
+            TimeSpan diff1 = d1.Subtract(d2);
+            if (diff1.TotalDays > 3)
             {
-                var response = Client.Execute(restRequest);
+                _startUp.Conf.MMcredential = false;
+                _startUp.Conf.MMDeleted = d1;
             }
-            catch
+
+            foreach (var name in _startUp.Conf.Players)
             {
+
+                var restRequest = new RestRequest("/mm/deleteme/" + name, Method.GET);
+                restRequest.AddHeader("Authorization", "DSupload77");
+                try
+                {
+                    var response = Client.Execute(restRequest);
+                }
+                catch
+                {
+                }
             }
+            _startUp.Save();
         }
 
         public static MMgame Report(dsreplay rep, int id)
@@ -337,9 +351,9 @@ namespace dsweb_electron6.Models
     [Serializable]
     public class SEplayer : MMplayer
     {
-        public string Mode { get; set; }
-        public string Server { get; set; }
-        public string Mode2 { get; set; }
+        public string Mode { get; set; } = "Commander";
+        public string Server { get; set; } = "NA";
+        public string Mode2 { get; set; } = "3v3";
         public bool Random { get; set; } = false;
     }
 
@@ -371,11 +385,19 @@ namespace dsweb_electron6.Models
         public DateTime Gametime { get; set; } = DateTime.Now;
         public List<BasePlayer> Team1 { get; set; } = new List<BasePlayer>();
         public List<BasePlayer> Team2 { get; set; } = new List<BasePlayer>();
-        public string Hash { get; set; }
-        public double Quality { get; set; }
+        public string Hash { get; set; } = "";
+        public double Quality { get; set; } = 0;
         public string Server { get; set; } = "NA";
         public bool Accepted { get; set; } = false;
         public bool Declined { get; set; } = false;
+
+        public List<BasePlayer> Players ()
+        {
+            List<BasePlayer> ilist = new List<BasePlayer>();
+            ilist.AddRange(Team1);
+            ilist.AddRange(Team2);
+            return ilist;
+        }
     }
 
     [Serializable]

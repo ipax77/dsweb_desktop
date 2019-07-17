@@ -162,7 +162,7 @@
     </div>
 <br />
     <div class="form-group">
-        <label for="sel1">CPU Cores</label>
+        <label for="sel1">CPU Cores - used for decoding new replays</label>
         <select class="form-control w-auto" id="sel1" @bind="@StartUp.Conf.Cores">
             @for (int i = 1; i <= Environment.ProcessorCount; i++)
             {

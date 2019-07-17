@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
@@ -44,7 +45,8 @@ namespace dsweb_electron6.Models
                 **/
 
                 _config.Bind("Config", Conf);
-
+                string exedir = new FileInfo(Assembly.GetExecutingAssembly().Location).DirectoryName;
+                Conf.ExeDir = exedir;
                 Program.workdir = Conf.WorkDir;
                 Program.myJson_file = Conf.WorkDir + "/data.json";
                 Program.myScan_log = Conf.WorkDir + "/log.txt";

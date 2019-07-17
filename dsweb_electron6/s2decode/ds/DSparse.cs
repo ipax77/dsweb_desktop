@@ -87,7 +87,7 @@ namespace s2decode
             return replay;
         }
 
-        public static dsreplay GetTrackerevents(string replay_file, dynamic trackerevents_dec, dsreplay replay)
+        public static dsreplay GetTrackerevents(string replay_file, dynamic trackerevents_dec, dsreplay replay, StartUp _startUp)
         {
             string id = Path.GetFileNameWithoutExtension(replay_file);
             HashSet<string> bab = new HashSet<string>();
@@ -367,24 +367,37 @@ namespace s2decode
 
             // fail safe
             FixPos(replay);
-            FixWinner(replay);
+            FixWinner(replay, _startUp);
 
             foreach (dsplayer pl in replay.PLAYERS)
             {
-                pl.INCOME = Math.Round(pl.INCOME, 2);
                 if (track.UNITS.ContainsKey(pl.POS)) pl.UNITS = track.UNITS[pl.POS];
+
+                if (pl.UNITS != null && pl.UNITS.ContainsKey("ALL") && pl.UNITS["ALL"].ContainsKey("Mid"))
+                {
+                    if (pl.TEAM == replay.WINNER)
+                    {
+                        if (pl.UNITS["ALL"]["Mid"] > replay.MIDTEAMWINNER) replay.MIDTEAMWINNER = pl.UNITS["ALL"]["Mid"];
+                    }
+                    else
+                    {
+                        if (pl.UNITS["ALL"]["Mid"] > replay.MIDTEAMSECOND) replay.MIDTEAMSECOND = pl.UNITS["ALL"]["Mid"];
+                    }
+                }
+                pl.INCOME = Math.Round(pl.INCOME, 2);
+                
             }
 
             return replay;
         }
 
-        public static void FixWinner(dsreplay replay)
+        public static void FixWinner(dsreplay replay, StartUp _startUp)
         {
             bool player = false;
             foreach (dsplayer pl in replay.PLAYERS)
             {
                 //if (MW.player_list.Contains(pl.NAME))
-                if (pl.NAME == "player" || pl.NAME == "PAX")
+                if (_startUp.Conf.Players.Contains(pl.NAME))
                 {
                     player = true;
                     int oppteam;

@@ -7,7 +7,9 @@
 @inject IComponentContext ComponentContext
 @inject Interfaces.IDSdata_cache _DSdata
 @inject DSdyn_filteroptions  _options
+@inject StartUp  _startUp
 @implements IDisposable
+
 
 @if (@replay != null)
 {
@@ -37,7 +39,7 @@
                             {
                                 @SetColor(DSdata.color_plbg_def)
                                 @SetClass("table-dark");
-                                @if (pl.NAME == "player")
+                                @if (_startUp.Conf.Players.Contains(pl.NAME))
                                 {@SetColor(DSdata.color_plbg_player);
                                 @SetClass("table-primary");
                             }
@@ -114,6 +116,23 @@
                                 <thead>
                                     <tr><th>Unit</th><th>Count</th></tr>
                                 </thead>
+
+                                @if (SPECIAL.ContainsKey(ent))
+                                {
+                                    <tr>
+                                        <td>
+                                            <span class="badge badge-danger">
+                                                @foreach (var sp in SPECIAL[ent])
+                                                {
+                                                    <span class="badge badge-danger">
+                                                        @sp.Key:  @sp.Value
+                                                    </span>
+                                                }
+                                            </span>
+                                        </td>
+                                    </tr>
+                                }
+
                                 @foreach (var kent in BUILDS[ent].OrderByDescending(o => o.Value))
                                 {
                                     <tr><td>@kent.Key</td><td>@kent.Value</td></tr>
@@ -135,7 +154,7 @@
                             <tr><td>Winner:</td><td>Team @(@replay.WINNER + 1)</td></tr>
                             @try
                             {
-                                <tr><td>Player:</td><td>@replay.PLAYERS.Where(x => x.NAME == "player").ToList().ElementAt(0).REALPOS</td></tr>
+                                <tr><td>Player:</td><td>@replay.PLAYERS.Where(x => _startUp.Conf.Players.Contains(x.NAME)).ToList().ElementAt(0).REALPOS</td></tr>
                             }
                             catch { }
                             <tr><td>MVP:</td><td>@replay.PLAYERS.Where(x => x.KILLSUM == replay.MAXKILLSUM).ToList().ElementAt(0).REALPOS</td></tr>
@@ -182,6 +201,21 @@
                             @SetDiffColor(DSdata.color_diff2)
                         }
                         <tr class="table-primary"><td>@replay.GetIncome(0).ToString("N", CultureInfo.CreateSpecificCulture("en-US"))k</td><td><font color="@pldiffcolor">@replay.GetIncomeDiff()</font></td><td>@replay.GetIncome(1).ToString("N", CultureInfo.CreateSpecificCulture("en-US"))k</td></tr>
+                        <tr class="table-primary" style="line-height: 10px; "><th></th><th><font size="1">Middle</font></th><th></th></tr>
+                        @if (replay.WINNER == 0)
+                        {
+                    <tr class="table-primary">
+                        <td>@Math.Round((double)replay.MIDTEAMWINNER / (double)replay.DURATION * 100, 2) %</td>
+                        <td>&lt;=&gt;</td>
+                        <td>@Math.Round((double)replay.MIDTEAMSECOND / (double)replay.DURATION * 100, 2) %</td>
+                    </tr>
+                        }
+                        else
+                        {
+                            <tr class="table-primary"><td>@Math.Round((double)replay.MIDTEAMSECOND / (double)replay.DURATION * 100, 2) %</td>
+                            <td>&lt;=&gt;</td>
+                            <td>@Math.Round((double)replay.MIDTEAMWINNER / (double)replay.DURATION * 100, 2) %</td></tr>
+                        }
                     </table>
                 </div>
             </div>
@@ -192,51 +226,56 @@
 
 @code {
 
-    [Parameter]
-    private dsreplay replay { get; set; }
+[Parameter]
+private dsreplay replay { get; set; }
 
-    DSdyn_BuildChecked[] BuildCheck { get; set; }
-    //int gameid { get; set; } = 0;
-    int BreakPoint = 4;
-    int currentCount = 2;
-    string myclass = "table-primary";
+DSdyn_BuildChecked[] BuildCheck { get; set; }
+//int gameid { get; set; } = 0;
+int BreakPoint = 4;
+int currentCount = 2;
+string myclass = "table-primary";
+string Special = "";
 
+string plbgcolor = DSdata.color_plbg_def;
+string pldiffcolor = DSdata.color_null;
+Dictionary<string, IEnumerable<KeyValuePair<string, int>>> BUILDS;
+Dictionary<string, IEnumerable<KeyValuePair<string, double>>> SPECIAL = new Dictionary<string, IEnumerable<KeyValuePair<string, double>>>();
+Dictionary<int, Dictionary<string, List<KeyValuePair<string, int>>>> BUILDS_CACHE = new Dictionary<int, Dictionary<string, List<KeyValuePair<string, int>>>>();
+int replayid = 0;
 
-    string plbgcolor = DSdata.color_plbg_def;
-    string pldiffcolor = DSdata.color_null;
-    Dictionary<string, IEnumerable<KeyValuePair<string, int>>> BUILDS;
-    Dictionary<int, Dictionary<string, List<KeyValuePair<string, int>>>> BUILDS_CACHE = new Dictionary<int, Dictionary<string, List<KeyValuePair<string, int>>>>();
-    int replayid = 0;
+int MIN5 = 6720;
+int MIN10 = 13440;
+int MIN15 = 20160;
 
-    object NewReplay()
+object NewReplay()
+{
+    replayid = replay.ID;
+    ShowBuildHandler(new DSdyn_BuildChecked(true), null);
+    foreach (var ent in BuildCheck)
     {
-        replayid = replay.ID;
-        ShowBuildHandler(new DSdyn_BuildChecked(true), null);
-        foreach (var ent in BuildCheck)
-        {
-            ent.IsChecked = false;
-        }
-
-        dsplayer pl = new dsplayer();
-        try
-        {
-            pl = replay.PLAYERS.Where(x => x.NAME == "player").ElementAt(0);
-        }
-        catch { }
-        if (pl != null)
-        {
-            BuildCheck[pl.REALPOS].IsChecked = true;
-            BuildCheck[replay.GetOpp(pl.REALPOS).REALPOS].IsChecked = true;
-        }
-        return null;
+        ent.IsChecked = false;
     }
 
-    protected override void OnInit()
+    dsplayer pl = new dsplayer();
+    try
     {
-        CultureInfo.CurrentCulture = CultureInfo.CreateSpecificCulture("en-US");
-        BUILDS = new Dictionary<string, IEnumerable<KeyValuePair<string, int>>>();
-        BuildCheck = new DSdyn_BuildChecked[]
-        {
+        pl = replay.PLAYERS.Where(x => _startUp.Conf.Players.Contains(x.NAME)).ElementAt(0);
+    }
+    catch { }
+    if (pl != null)
+    {
+        BuildCheck[pl.REALPOS].IsChecked = true;
+        BuildCheck[replay.GetOpp(pl.REALPOS).REALPOS].IsChecked = true;
+    }
+    return null;
+}
+
+protected override void OnInit()
+{
+    CultureInfo.CurrentCulture = CultureInfo.CreateSpecificCulture("en-US");
+    BUILDS = new Dictionary<string, IEnumerable<KeyValuePair<string, int>>>();
+    BuildCheck = new DSdyn_BuildChecked[]
+    {
                 new DSdyn_BuildChecked(),
                 new DSdyn_BuildChecked(),
                 new DSdyn_BuildChecked(),
@@ -244,243 +283,337 @@
                 new DSdyn_BuildChecked(),
                 new DSdyn_BuildChecked(),
                 new DSdyn_BuildChecked()
-                    };
-        foreach (var ent in BuildCheck)
+                };
+    foreach (var ent in BuildCheck)
+    {
+        ent.PropertyChanged += ShowBuildHandler;
+    }
+
+}
+
+protected override async Task OnAfterRenderAsync()
+{
+    // TEMPORARY: Currently we need this guard to avoid making the interop
+    // call during prerendering. Soon this will be unnecessary because we
+    // will change OnAfterRenderAsync so that it won't run during the
+    // prerendering phase.
+    if (!ComponentContext.IsConnected)
+    {
+        return;
+    }
+
+
+}
+
+object SetColor(string mycolor)
+{
+    plbgcolor = mycolor;
+    return null;
+}
+object SetClass(string mycolor)
+{
+    myclass = mycolor;
+    return null;
+}
+
+object SetDiffColor(string mycolor)
+{
+    pldiffcolor = mycolor;
+    return null;
+}
+
+void GameClose()
+{
+    replay = null;
+    for (int i = 0; i < BuildCheck.Length; i++)
+    {
+        BuildCheck[i].IsChecked = false;
+    }
+    BUILDS.Clear();
+}
+
+void BuildsClose1()
+{
+    for (int i = 0; i < BuildCheck.Length; i++)
+    {
+        BuildCheck[i].IsChecked = false;
+    }
+    BUILDS.Clear();
+}
+
+object BuildsClose()
+{
+    for (int i = 0; i < BuildCheck.Length; i++)
+    {
+        BuildCheck[i].IsChecked = false;
+    }
+    BUILDS.Clear();
+    return null;
+}
+
+public void ChangeRep()
+{
+    for (int i = 0; i < BuildCheck.Length; i++)
+    {
+        BuildCheck[i].IsChecked = false;
+    }
+    BUILDS.Clear();
+}
+
+void ChangeBuild(int p, object checkedValue)
+{
+    BreakPoint = p;
+    string bp = "ALL";
+    if (BreakPoint == 1) { bp = "MIN5"; }
+    else if (BreakPoint == 2) { bp = "MIN10"; }
+    else if (BreakPoint == 3) { bp = "MIN15"; }
+    else if (BreakPoint == 4) { bp = "ALL"; }
+    foreach (string ent in BUILDS.Keys.ToArray())
+    {
+        dsplayer pl = new dsplayer();
+        int i = 1;
+        if (ent.EndsWith("1")) { i = 1; }
+        else if (ent.EndsWith("2")) { i = 2; }
+        else if (ent.EndsWith("3")) { i = 3; }
+        else if (ent.EndsWith("4")) { i = 4; }
+        else if (ent.EndsWith("5")) { i = 5; }
+        else if (ent.EndsWith("6")) { i = 6; }
+
+        pl = replay.PLAYERS.Where(x => x.REALPOS == i).ToList().ElementAt(0);
+
+        KeyValuePair<string, double> Gas = new KeyValuePair<string, double>();
+        KeyValuePair<string, double> Mid = new KeyValuePair<string, double>();
+        KeyValuePair<string, double> Upgrades = new KeyValuePair<string, double>();
+
+        List<KeyValuePair<string, int>> temp = new List<KeyValuePair<string, int>>();
+        List<KeyValuePair<string, double>> _special = new List<KeyValuePair<string, double>>();
+        foreach (string unit in pl.UNITS[bp].Keys)
         {
-            ent.PropertyChanged += ShowBuildHandler;
-        }
-
-    }
-
-    protected override async Task OnAfterRenderAsync()
-    {
-        // TEMPORARY: Currently we need this guard to avoid making the interop
-        // call during prerendering. Soon this will be unnecessary because we
-        // will change OnAfterRenderAsync so that it won't run during the
-        // prerendering phase.
-        if (!ComponentContext.IsConnected)
-        {
-            return;
-        }
-
-
-    }
-
-    object SetColor(string mycolor)
-    {
-        plbgcolor = mycolor;
-        return null;
-    }
-    object SetClass(string mycolor)
-    {
-        myclass = mycolor;
-        return null;
-    }
-
-    object SetDiffColor(string mycolor)
-    {
-        pldiffcolor = mycolor;
-        return null;
-    }
-
-    void GameClose()
-    {
-        replay = null;
-        for (int i = 0; i < BuildCheck.Length; i++)
-        {
-            BuildCheck[i].IsChecked = false;
-        }
-        BUILDS.Clear();
-    }
-
-    void BuildsClose1()
-    {
-        for (int i = 0; i < BuildCheck.Length; i++)
-        {
-            BuildCheck[i].IsChecked = false;
-        }
-        BUILDS.Clear();
-    }
-
-    object BuildsClose()
-    {
-        for (int i = 0; i < BuildCheck.Length; i++)
-        {
-            BuildCheck[i].IsChecked = false;
-        }
-        BUILDS.Clear();
-        return null;
-    }
-
-    public void ChangeRep()
-    {
-        for (int i = 0; i < BuildCheck.Length; i++)
-        {
-            BuildCheck[i].IsChecked = false;
-        }
-        BUILDS.Clear();
-    }
-
-    void ChangeBuild(int p, object checkedValue)
-    {
-        BreakPoint = p;
-        string bp = "ALL";
-        if (BreakPoint == 1) { bp = "MIN5"; }
-        else if (BreakPoint == 2) { bp = "MIN10"; }
-        else if (BreakPoint == 3) { bp = "MIN15"; }
-        else if (BreakPoint == 4) { bp = "ALL"; }
-        foreach (string ent in BUILDS.Keys.ToArray())
-        {
-            dsplayer pl = new dsplayer();
-            int i = 1;
-            if (ent.EndsWith("1")) { i = 1; }
-            else if (ent.EndsWith("2")) { i = 2; }
-            else if (ent.EndsWith("3")) { i = 3; }
-            else if (ent.EndsWith("4")) { i = 4; }
-            else if (ent.EndsWith("5")) { i = 5; }
-            else if (ent.EndsWith("6")) { i = 6; }
-
-            pl = replay.PLAYERS.Where(x => x.REALPOS == i).ToList().ElementAt(0);
-
-            List<KeyValuePair<string, int>> temp = new List<KeyValuePair<string, int>>();
-            foreach (string unit in pl.UNITS[bp].Keys)
+            if (unit == "Gas")
+            {
+                Gas = new KeyValuePair<string, double>(unit, pl.UNITS[bp][unit]);
+                _special.Add(Gas);
+            }
+            else if (unit == "Upgrades")
+            {
+                Upgrades = new KeyValuePair<string, double>(unit, pl.UNITS[bp][unit]);
+                _special.Add(Upgrades);
+            }
+            else if (unit == "Mid")
+            {
+                double mid = 0;
+                if (pl.UNITS[bp][unit] > 0)
+                {
+                    if (bp == "MIN5")
+                    {
+                        mid = (double)pl.UNITS[bp][unit] / (double)MIN5 * 100;
+                    } else if (bp == "MIN10")
+                    {
+                        mid = (double)pl.UNITS[bp][unit] / (double)MIN10 * 100;
+                    } else if (bp == "MIN15")
+                    {
+                        mid = (double)pl.UNITS[bp][unit] / (double)MIN15 * 100;
+                    } else if (bp == "ALL")
+                    {
+                        mid = (double)pl.UNITS[bp][unit] / (double)replay.DURATION * 100;
+                    }
+                }
+                Mid = new KeyValuePair<string, double>(unit, Math.Round(mid, 2));
+                _special.Add(Mid);
+            }
+            else
             {
                 temp.Add(new KeyValuePair<string, int>(unit, pl.UNITS[bp][unit]));
             }
-            BUILDS[ent] = temp;
         }
+        BUILDS[ent] = temp;
+        SPECIAL[ent] = _special;
     }
+}
 
-    void LoadBuild()
+void LoadBuild()
+{
+    if (replay != null)
     {
-        if (replay != null)
+        BUILDS_CACHE.Clear();
+        foreach (dsplayer pl in replay.PLAYERS)
         {
-            BUILDS_CACHE.Clear();
-            foreach (dsplayer pl in replay.PLAYERS)
+            BUILDS_CACHE.Add(pl.REALPOS, new Dictionary<string, List<KeyValuePair<string, int>>>());
+            foreach (string bp in DSdata.s_builds)
             {
-                BUILDS_CACHE.Add(pl.REALPOS, new Dictionary<string, List<KeyValuePair<string, int>>>());
-                foreach (string bp in DSdata.s_builds)
+                if (pl.UNITS.ContainsKey(bp))
                 {
-                    if (pl.UNITS.ContainsKey(bp))
-                    {
-                        BUILDS_CACHE[pl.REALPOS].Add(bp, new List<KeyValuePair<string, int>>());
-                        List<KeyValuePair<string, int>> temp = new List<KeyValuePair<string, int>>();
-                        foreach (string unit in pl.UNITS[bp].Keys)
-                        {
-                            temp.Add(new KeyValuePair<string, int>(unit, pl.UNITS[bp][unit]));
-                        }
-                        BUILDS_CACHE[pl.REALPOS][bp] = temp;
-                    }
-                    else
-                    {
-                        List<KeyValuePair<string, int>> temp = new List<KeyValuePair<string, int>>();
-                        temp.Add(new KeyValuePair<string, int>("No data.", 0));
-                        BUILDS_CACHE[pl.REALPOS].Add(bp, temp);
-                    }
-                }
-            }
-        }
-    }
-
-
-    void ShowBuildHandler(object sender, PropertyChangedEventArgs e)
-    {
-        DSdyn_BuildChecked ent = new DSdyn_BuildChecked();
-        ent = sender as DSdyn_BuildChecked;
-        BUILDS.Clear();
-        if (replay != null)
-        {
-            int j = 0;
-            int i = 1;
-            foreach (var pos in BuildCheck)
-            {
-                if (pos.IsChecked == true)
-                {
-                    i = j;
-
-
-                    string bp = "ALL";
-                    if (BreakPoint == 1) { bp = "MIN5"; }
-                    else if (BreakPoint == 2) { bp = "MIN10"; }
-                    else if (BreakPoint == 3) { bp = "MIN15"; }
-                    else if (BreakPoint == 4) { bp = "ALL"; }
-
-                    dsplayer pl = null;
-                    try
-                    {
-                        pl = replay.PLAYERS.Where(x => x.REALPOS == i).ToList().ElementAt(0);
-                    }
-                    catch { }
-                    if (pl != null && pl.UNITS.ContainsKey(bp))
-                    {
-                        if (!BUILDS.ContainsKey("Player" + i))
-                        {
-                            List<KeyValuePair<string, int>> temp = new List<KeyValuePair<string, int>>();
-                            foreach (string unit in pl.UNITS[bp].Keys)
-                            {
-                                temp.Add(new KeyValuePair<string, int>(unit, pl.UNITS[bp][unit]));
-                            }
-                            BUILDS.Add("Player" + i, temp);
-                        }
-                        else
-                        {
-                            //BUILDS.Remove("Player" + i);
-                        }
-                    }
-                }
-                j++;
-            }
-        }
-    }
-
-    void ShowBuild(int i, object checkedValue)
-    {
-        if (replay != null)
-        {
-            string bp = "ALL";
-            if (BreakPoint == 1) { bp = "MIN5"; }
-            else if (BreakPoint == 2) { bp = "MIN10"; }
-            else if (BreakPoint == 3) { bp = "MIN15"; }
-            else if (BreakPoint == 4) { bp = "ALL"; }
-
-
-            dsplayer pl = replay.PLAYERS.Where(x => x.REALPOS == i).ToList().ElementAt(0);
-            if (pl.UNITS.ContainsKey(bp))
-            {
-                if (!BUILDS.ContainsKey("Player" + i))
-                {
+                    BUILDS_CACHE[pl.REALPOS].Add(bp, new List<KeyValuePair<string, int>>());
                     List<KeyValuePair<string, int>> temp = new List<KeyValuePair<string, int>>();
                     foreach (string unit in pl.UNITS[bp].Keys)
                     {
                         temp.Add(new KeyValuePair<string, int>(unit, pl.UNITS[bp][unit]));
                     }
-                    BUILDS.Add("Player" + i, temp);
+                    BUILDS_CACHE[pl.REALPOS][bp] = temp;
                 }
                 else
                 {
-                    BUILDS.Remove("Player" + i);
+                    List<KeyValuePair<string, int>> temp = new List<KeyValuePair<string, int>>();
+                    temp.Add(new KeyValuePair<string, int>("No data.", 0));
+                    BUILDS_CACHE[pl.REALPOS].Add(bp, temp);
                 }
+            }
+        }
+    }
+}
+
+
+void ShowBuildHandler(object sender, PropertyChangedEventArgs e)
+{
+    DSdyn_BuildChecked ent = new DSdyn_BuildChecked();
+    ent = sender as DSdyn_BuildChecked;
+    BUILDS.Clear();
+    SPECIAL.Clear();
+    if (replay != null)
+    {
+        int j = 0;
+        int i = 1;
+        foreach (var pos in BuildCheck)
+        {
+            if (pos.IsChecked == true)
+            {
+                i = j;
+
+
+                string bp = "ALL";
+                if (BreakPoint == 1) { bp = "MIN5"; }
+                else if (BreakPoint == 2) { bp = "MIN10"; }
+                else if (BreakPoint == 3) { bp = "MIN15"; }
+                else if (BreakPoint == 4) { bp = "ALL"; }
+
+                dsplayer pl = null;
+                try
+                {
+                    pl = replay.PLAYERS.Where(x => x.REALPOS == i).ToList().ElementAt(0);
+                }
+                catch { }
+                if (pl != null && pl.UNITS.ContainsKey(bp))
+                {
+                    if (!BUILDS.ContainsKey("Player" + i))
+                    {
+                        KeyValuePair<string, double> Gas = new KeyValuePair<string, double>();
+                        KeyValuePair<string, double> Mid = new KeyValuePair<string, double>();
+                        KeyValuePair<string, double> Upgrades = new KeyValuePair<string, double>();
+
+                        List<KeyValuePair<string, int>> temp = new List<KeyValuePair<string, int>>();
+                        List<KeyValuePair<string, double>> _special = new List<KeyValuePair<string, double>>();
+                        foreach (string unit in pl.UNITS[bp].Keys)
+                        {
+
+                            if (unit == "Gas")
+                            {
+                                Gas = new KeyValuePair<string, double>(unit, pl.UNITS[bp][unit]);
+                                _special.Add(Gas);
+                            }
+                            else if (unit == "Upgrades")
+                            {
+                                Upgrades = new KeyValuePair<string, double>(unit, pl.UNITS[bp][unit]);
+                                _special.Add(Upgrades);
+                            }
+                            else if (unit == "Mid")
+                            {
+                                double mid = 0;
+                                if (pl.UNITS[bp][unit] > 0)
+                                {
+                                    if (bp == "MIN5")
+                                    {
+                                        mid = (double)pl.UNITS[bp][unit] / (double)MIN5 * 100;
+                                    } else if (bp == "MIN10")
+                                    {
+                                        mid = (double)pl.UNITS[bp][unit] / (double)MIN10 * 100;
+                                    } else if (bp == "MIN15")
+                                    {
+                                        mid = (double)pl.UNITS[bp][unit] / (double)MIN15 * 100;
+                                    } else if (bp == "ALL")
+                                    {
+                                        mid = (double)pl.UNITS[bp][unit] / (double)replay.DURATION * 100;
+                                    }
+                                }
+                                Mid = new KeyValuePair<string, double>(unit, Math.Round(mid, 2));
+                                _special.Add(Mid);
+                            }
+                            else
+                            {
+                                temp.Add(new KeyValuePair<string, int>(unit, pl.UNITS[bp][unit]));
+                            }
+                        }
+                        BUILDS.Add("Player" + i, temp);
+                        SPECIAL.Add("Player" + i, _special);
+                    }
+                    else
+                    {
+                        //BUILDS.Remove("Player" + i);
+                    }
+                }
+            }
+            j++;
+        }
+    }
+}
+
+void ShowBuild(int i, object checkedValue)
+{
+    if (replay != null)
+    {
+        string bp = "ALL";
+        if (BreakPoint == 1) { bp = "MIN5"; }
+        else if (BreakPoint == 2) { bp = "MIN10"; }
+        else if (BreakPoint == 3) { bp = "MIN15"; }
+        else if (BreakPoint == 4) { bp = "ALL"; }
+
+        KeyValuePair<string, double> Gas = new KeyValuePair<string, double>();
+        KeyValuePair<string, double> Mid = new KeyValuePair<string, double>();
+        KeyValuePair<string, double> Upgrades = new KeyValuePair<string, double>();
+
+        dsplayer pl = replay.PLAYERS.Where(x => x.REALPOS == i).ToList().ElementAt(0);
+        if (pl.UNITS.ContainsKey(bp))
+        {
+            if (!BUILDS.ContainsKey("Player" + i))
+            {
+                List<KeyValuePair<string, int>> temp = new List<KeyValuePair<string, int>>();
+                foreach (string unit in pl.UNITS[bp].Keys)
+                {
+                    if (unit == "Gas" || unit == "Upgrades" || unit == "Mid")
+                    {
+
+                    }
+                    else
+                    {
+                        temp.Add(new KeyValuePair<string, int>(unit, pl.UNITS[bp][unit]));
+                    }
+                }
+                BUILDS.Add("Player" + i, temp);
             }
             else
             {
-                List<KeyValuePair<string, int>> temp = new List<KeyValuePair<string, int>>();
-                temp.Add(new KeyValuePair<string, int>("No Build available", 0));
-                BUILDS.Add("Player" + i, temp);
+                BUILDS.Remove("Player" + i);
             }
         }
-    }
-
-    void IncrementCount()
-    {
-        currentCount++;
-    }
-
-    public void Dispose()
-    {
-        foreach (var ent in BuildCheck)
+        else
         {
-            ent.PropertyChanged -= ShowBuildHandler;
+            List<KeyValuePair<string, int>> temp = new List<KeyValuePair<string, int>>();
+            temp.Add(new KeyValuePair<string, int>("No Build available", 0));
+            BUILDS.Add("Player" + i, temp);
         }
     }
+}
+
+void IncrementCount()
+{
+    currentCount++;
+}
+
+public void Dispose()
+{
+    foreach (var ent in BuildCheck)
+    {
+        ent.PropertyChanged -= ShowBuildHandler;
+    }
+}
 
 }

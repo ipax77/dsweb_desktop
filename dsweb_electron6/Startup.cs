@@ -34,6 +34,8 @@ namespace dsweb_electron6
             services.AddSingleton<ScanStateChange>();
             services.AddSingleton<DSdataModel>();
             services.AddSingleton<IDSdata_cache, DSdata_cache>();
+            services.AddSingleton<MMservice>();
+            services.AddSingleton<dsotfng>();
             services.AddScoped<ChartService>();
             services.AddScoped<DSdyn>();
             services.AddScoped<ChartStateChange>();

@@ -23,7 +23,8 @@ namespace dsweb_electron6.Data
             {
                 for (int i = 0; i < chart.data.labels.Count(); i++)
                 {
-                    sortedItems.Add(new ChartJSsorthelper(chart.data.labels[i], chart.data.datasets[0].data[i]));
+                    if (chart.data.datasets[0].data.Count() > i)
+                        sortedItems.Add(new ChartJSsorthelper(chart.data.labels[i], chart.data.datasets[0].data[i]));
                 }
                 sortedItems = sortedItems.OrderBy(o => o.WR).ToList();
                 chart.data.labels = sortedItems.Select(x => x.CMDR).ToArray();
@@ -34,7 +35,8 @@ namespace dsweb_electron6.Data
                     for (int d = 1; d < datasets.Count(); d++)
                     {
                         List<ChartJSsorthelper> temp_sortedItems = new List<ChartJSsorthelper>();
-                        for (int i = 0; i < DSdata.s_races_cmdr.Count(); i++)
+                        //for (int i = 0; i < DSdata.s_races_cmdr.Count(); i++)
+                        for (int i = 0; i < chart.data.datasets[d].data.Count(); i++)
                         {
                             temp_sortedItems.Add(new ChartJSsorthelper(DSdata.s_races_cmdr[i], chart.data.datasets[d].data[i]));
                         }

@@ -567,6 +567,19 @@ private void OptionChanged(object sender, PropertyChangedEventArgs e)
     string build = _options.Build;
     List<KeyValuePair<string, double>> temp = new List<KeyValuePair<string, double>>();
     temp = _DSdata.BUILDCACHE[build][options.CMDR][options.CMDR_VS][bp].OrderByDescending(o => o.Value).ToList();
+
+    KeyValuePair<string, double> Gas = new KeyValuePair<string, double>();
+    KeyValuePair<string, double> Mid = new KeyValuePair<string, double>();
+    KeyValuePair<string, double> Upgrades = new KeyValuePair<string, double>();
+
+    Gas = temp.Where(o => o.Key == "Gas").FirstOrDefault();
+    Mid = temp.Where(o => o.Key == "Mid").FirstOrDefault();
+    Upgrades = temp.Where(o => o.Key == "Upgrades").FirstOrDefault();
+
+    temp.Remove(Gas);
+    temp.Remove(Mid);
+    temp.Remove(Upgrades);
+
     cmax1 = 100;
     cmax2 = 100;
     cmax3 = 100;
@@ -615,6 +628,7 @@ private void OptionChanged(object sender, PropertyChangedEventArgs e)
         vmax3 = 100;
         foreach (var ent in _DSdata.BUILDCACHE[build_vs][options.CMDR][options.CMDR_VS][bp].OrderByDescending(o => o.Value))
         {
+            if (ent.Key == "Gas" || ent.Key == "Mid" || ent.Key == "Upgrades") continue;
             i++;
             if (i == 1) { vmax1 = ent.Value; }
             if (i == 2) { vmax2 = ent.Value; }

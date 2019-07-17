@@ -29,6 +29,8 @@ namespace dsweb_electron6.Models
         public double MININCOME { get; set; }
         public int MAXLEAVER { get; set; }
         public int PLAYERCOUNT { get; set; }
+        public int MIDTEAMWINNER { get; set; } = 0;
+        public int MIDTEAMSECOND { get; set; } = 0;
         public string MMID { get; set; } = "0";
         public int REPORTED { get; set; } = 0;
         public bool ISBRAWL { get; set; } = false;
@@ -605,6 +607,7 @@ namespace dsweb_electron6.Models
                      "Kerrigan",
                      "Nova",
                      "Raynor",
+                     "Stetmann",
                      "Stukov",
                      "Swann",
                      "Tychus",
@@ -871,6 +874,7 @@ namespace dsweb_electron6.Models
                      "Kerrigan",
                      "Nova",
                      "Raynor",
+                     "Stetmann",
                      "Stukov",
                      "Swann",
                      "Tychus",

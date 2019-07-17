@@ -26,13 +26,16 @@ namespace dsweb_electron6.Models
             CORES = cores;
             Scan.Done = 0;
             Console.WriteLine("Engine start.");
-            s2dec.LoadEngine(Data.ID);
+            s2dec.LoadEngine(Data.ID, Data._startUp);
             s2dec.START = DateTime.UtcNow;
             int total = 0;
-            foreach (var ent in Data.Todo)
+            lock (Data.Todo)
             {
-                _jobs_decode.Add(ent);
-                total++;
+                foreach (var ent in Data.Todo)
+                {
+                    _jobs_decode.Add(ent);
+                    total++;
+                }
             }
             s2dec.TOTAL = total;
             Scan.Total = total;

@@ -1,8 +1,8 @@
 version: 1.0.2
 files:
   - url: dsweb_electron6-Setup-1.0.2.exe
-    sha512: qNrdYs7UpEdx9GSthiRe31tIWC4Itp5n3jrO36AxgqNFqT3a0FOXRK4mI/BW9kvpH4ew1m3P2fPs9eW/DQN5lQ==
-    size: 81256372
+    sha512: wFt97D2XdWDEzA0xLUyeTn6O9xg3G7z8DwszEwKrQk4xFDmxaApy4vPScXIsJgFNMC3rECT0Spw8qkoJog1ZJA==
+    size: 82194336
 path: dsweb_electron6-Setup-1.0.2.exe
-sha512: qNrdYs7UpEdx9GSthiRe31tIWC4Itp5n3jrO36AxgqNFqT3a0FOXRK4mI/BW9kvpH4ew1m3P2fPs9eW/DQN5lQ==
-releaseDate: '2019-07-14T08:53:58.205Z'
+sha512: wFt97D2XdWDEzA0xLUyeTn6O9xg3G7z8DwszEwKrQk4xFDmxaApy4vPScXIsJgFNMC3rECT0Spw8qkoJog1ZJA==
+releaseDate: '2019-07-17T09:49:31.739Z'

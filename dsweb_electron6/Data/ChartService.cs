@@ -232,15 +232,15 @@ namespace dsweb_electron6.Data
             {
                 foreach (string race in s_races_ordered)
                 {
-                    if (winrate.ContainsKey(race))
+                    if (winrate.ContainsKey(race) && winrate[race].Value > 0)
                     {
                         wr.Add(winrate[race].Key);
                         labels.Add(race + " (" + winrate[race].Value.ToString() + ")");
                     }
                     else
                     {
-                        wr.Add(0);
-                        labels.Add(race + " (0)");
+                        //wr.Add(0);
+                        //labels.Add(race + " (0)");
                     }
                 }
                 dataset.label = "global";
@@ -248,15 +248,15 @@ namespace dsweb_electron6.Data
             {
                 foreach (string race in s_races_ordered)
                 {
-                    if (winratevs[_options.Interest].ContainsKey(race))
+                    if (winratevs[_options.Interest].ContainsKey(race) && winratevs[_options.Interest][race].Value > 0)
                     {
                         wr.Add(winratevs[_options.Interest][race].Key);
                         labels.Add(race + " (" + winratevs[_options.Interest][race].Value.ToString() + ")");
                     }
                     else
                     {
-                        wr.Add(0);
-                        labels.Add(race + "(0)");
+                        //wr.Add(0);
+                        //labels.Add(race + "(0)");
                     }
                 }
                 dataset.label = _options.Interest;

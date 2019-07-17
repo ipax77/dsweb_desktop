@@ -7,6 +7,7 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using dsweb_electron6.Models;
 using Newtonsoft.Json;
+using dsweb_electron6;
 
 namespace dsweb_electron6.Data
 {
@@ -33,6 +34,7 @@ namespace dsweb_electron6.Data
                  "Kerrigan",
                  "Nova",
                  "Raynor",
+                 "Stetmann",
                  "Stukov",
                  "Swann",
                  "Tychus",
@@ -55,6 +57,7 @@ namespace dsweb_electron6.Data
                  "Kerrigan",
                  "Nova",
                  "Raynor",
+                 "Stetmann",
                  "Stukov",
                  "Swann",
                  "Tychus",
@@ -125,6 +128,7 @@ namespace dsweb_electron6.Data
             {     "Kerrigan", "#b021a1" },
             {     "Nova", "#f6f673" },
             {     "Raynor", "#dd7336" },
+            {     "Stetmann", "#ebeae8" },
             {     "Stukov", "#663b35" },
             {     "Swann", "#ab4f21" },
             {     "Tychus", "#150d9f" },
@@ -179,7 +183,8 @@ namespace dsweb_electron6.Data
         public Dictionary<string, List<Models.dsreplay>> BUILD_REPLAYS { get; private set; } = new Dictionary<string, List<dsreplay>>();
         StartUp _startUp;
 
-        public DSdata_cache() {
+        public DSdata_cache(StartUp startUp) {
+            _startUp = startUp;
         }
 
         public void Init(List<dsreplay> replays)
@@ -292,7 +297,8 @@ namespace dsweb_electron6.Data
                         dsplayer opp = rep.GetOpp(pl.REALPOS);
                         if (opp == null) continue;
 
-                        if (pl.NAME == "player")
+                        if (player == "player" && !_startUp.Conf.Players.Contains(pl.NAME)) continue;
+                        //if (pl.NAME == player)
                         {
                             if (bp == "ALL")
                             {
@@ -491,7 +497,7 @@ namespace dsweb_electron6.Data
             }
 
             List<dsreplay> replays = new List<dsreplay>();
-            replays = DBfilter.Filter(BUILD_REPLAYS[fil.Build].ToList(), fil);
+            replays = DBfilter.Filter(BUILD_REPLAYS[fil.Build].ToList(), fil, _startUp);
 
             if (fil.Mode == "Winrate")
             {
@@ -506,9 +512,9 @@ namespace dsweb_electron6.Data
                         if (fil.Player == true)
                         {
                             List<dsreplay> temp = new List<dsreplay>();
-                            temp = replays.Where(x => x.PLAYERS.Exists(y => y.NAME == "player" && y.RACE == cmdr)).ToList();
+                            temp = replays.Where(x => x.PLAYERS.Exists(y => _startUp.Conf.Players.Contains(y.NAME) && y.RACE == cmdr)).ToList();
                             games = temp.Count();
-                            wins = temp.Where(x => x.PLAYERS.Exists(y => y.NAME == "player" && y.TEAM == x.WINNER)).ToArray().Count();
+                            wins = temp.Where(x => x.PLAYERS.Exists(y => _startUp.Conf.Players.Contains(y.NAME) && y.TEAM == x.WINNER)).ToArray().Count();
                         }
                         else
                         {
@@ -543,9 +549,9 @@ namespace dsweb_electron6.Data
                         if (fil.Player == true)
                         {
                             List<dsreplay> temp = new List<dsreplay>();
-                            temp = replays.Where(x => x.PLAYERS.Exists(y => y.NAME == "player" && y.RACE == fil.Interest && x.GetOpp(y.REALPOS).RACE == cmdr)).ToList();
+                            temp = replays.Where(x => x.PLAYERS.Exists(y => _startUp.Conf.Players.Contains(y.NAME) && y.RACE == fil.Interest && x.GetOpp(y.REALPOS).RACE == cmdr)).ToList();
                             games = temp.Count();
-                            wins = temp.Where(x => x.PLAYERS.Exists(y => y.NAME == "player" && y.RACE == fil.Interest && x.GetOpp(y.REALPOS).RACE == cmdr && y.TEAM == x.WINNER)).ToArray().Count();
+                            wins = temp.Where(x => x.PLAYERS.Exists(y => _startUp.Conf.Players.Contains(y.NAME) && y.RACE == fil.Interest && x.GetOpp(y.REALPOS).RACE == cmdr && y.TEAM == x.WINNER)).ToArray().Count();
                         }
                         else
                         {
@@ -584,9 +590,9 @@ namespace dsweb_electron6.Data
                         if (fil.Player == true)
                         {
                             List<dsreplay> temp = new List<dsreplay>();
-                            temp = replays.Where(x => x.PLAYERS.Exists(y => y.NAME == "player" && y.RACE == cmdr)).ToList();
+                            temp = replays.Where(x => x.PLAYERS.Exists(y => _startUp.Conf.Players.Contains(y.NAME) && y.RACE == cmdr)).ToList();
                             games = temp.Count();
-                            wins = temp.Where(x => x.PLAYERS.Exists(y => y.NAME == "player" && y.KILLSUM == x.MAXKILLSUM)).ToArray().Count();
+                            wins = temp.Where(x => x.PLAYERS.Exists(y => _startUp.Conf.Players.Contains(y.NAME) && y.KILLSUM == x.MAXKILLSUM)).ToArray().Count();
                         }
                         else
                         {
@@ -622,9 +628,9 @@ namespace dsweb_electron6.Data
                         if (fil.Player == true)
                         {
                             List<dsreplay> temp = new List<dsreplay>();
-                            temp = replays.Where(x => x.PLAYERS.Exists(y => y.NAME == "player" && y.RACE == fil.Interest && x.GetOpp(y.REALPOS).RACE == cmdr)).ToList();
+                            temp = replays.Where(x => x.PLAYERS.Exists(y => _startUp.Conf.Players.Contains(y.NAME) && y.RACE == fil.Interest && x.GetOpp(y.REALPOS).RACE == cmdr)).ToList();
                             games = temp.Count();
-                            wins = temp.Where(x => x.PLAYERS.Exists(y => y.NAME == "player" && y.RACE == fil.Interest && x.GetOpp(y.REALPOS).RACE == cmdr && y.KILLSUM == x.MAXKILLSUM)).ToArray().Count();
+                            wins = temp.Where(x => x.PLAYERS.Exists(y => _startUp.Conf.Players.Contains(y.NAME) && y.RACE == fil.Interest && x.GetOpp(y.REALPOS).RACE == cmdr && y.KILLSUM == x.MAXKILLSUM)).ToArray().Count();
                         }
                         else
                         {
@@ -674,7 +680,7 @@ namespace dsweb_electron6.Data
                             {
                                 foreach (dsplayer pl in rep.PLAYERS)
                                 {
-                                    if (pl.NAME == "player" && pl.RACE == fil.Interest)
+                                    if (_startUp.Conf.Players.Contains(pl.NAME) && pl.RACE == fil.Interest)
                                     {
                                         foreach (var ent in rep.GetTeammates(pl).Where(x => x.RACE == cmdr))
                                         {
@@ -739,7 +745,7 @@ namespace dsweb_electron6.Data
                             {
                                 foreach (dsplayer pl in rep.PLAYERS)
                                 {
-                                    if (pl.NAME == "player" && pl.RACE == fil.Interest)
+                                    if (_startUp.Conf.Players.Contains(pl.NAME) && pl.RACE == fil.Interest)
                                     {
                                         foreach (var ent in rep.GetOpponents(pl).Where(x => x.RACE == cmdr))
                                         {
@@ -793,13 +799,13 @@ namespace dsweb_electron6.Data
                         if (fil.Player == true)
                         {
                             List<dsreplay> dpslist = new List<dsreplay>();
-                            dpslist = replays.Where(x => x.PLAYERS.Exists(y => y.NAME == "player" && y.RACE == cmdr)).ToList();
+                            dpslist = replays.Where(x => x.PLAYERS.Exists(y => _startUp.Conf.Players.Contains(y.NAME) && y.RACE == cmdr)).ToList();
                             games = dpslist.Count();
                             foreach (dsreplay rep in dpslist)
                             {
                                 foreach (dsplayer pl in rep.PLAYERS)
                                 {
-                                    if (pl.NAME == "player") wins += pl.GetDPV();
+                                    if (_startUp.Conf.Players.Contains(pl.NAME)) wins += pl.GetDPV();
                                 }
                             }
                         }
@@ -839,13 +845,13 @@ namespace dsweb_electron6.Data
                         if (fil.Player == true)
                         {
                             List<dsreplay> dpslist = new List<dsreplay>();
-                            dpslist = replays.Where(x => x.PLAYERS.Exists(y => y.NAME == "player" && y.RACE == fil.Interest && x.GetOpp(y.REALPOS).RACE == cmdr)).ToList();
+                            dpslist = replays.Where(x => x.PLAYERS.Exists(y => _startUp.Conf.Players.Contains(y.NAME) && y.RACE == fil.Interest && x.GetOpp(y.REALPOS).RACE == cmdr)).ToList();
                             games = dpslist.Count();
                             foreach (dsreplay rep in dpslist)
                             {
                                 foreach (dsplayer pl in rep.PLAYERS)
                                 {
-                                    if (pl.NAME == "player") wins += pl.GetDPV();
+                                    if (_startUp.Conf.Players.Contains(pl.NAME)) wins += pl.GetDPV();
                                 }
                             }
                         }
@@ -898,7 +904,7 @@ namespace dsweb_electron6.Data
                         breakpoint = breakpoint.AddDays(7);
                         tfil.Enddate = breakpoint.ToString("yyyy-MM-dd");
                         List<Models.dsreplay> treplays = new List<Models.dsreplay>();
-                        treplays = Models.DBfilter.Filter(replays.ToList(), tfil);
+                        treplays = Models.DBfilter.Filter(replays.ToList(), tfil, _startUp);
                         
 
                         double games = 0;
@@ -908,9 +914,9 @@ namespace dsweb_electron6.Data
                         if (fil.Player == true)
                         {
                             List<dsreplay> temp = new List<dsreplay>();
-                            temp = treplays.Where(x => x.PLAYERS.Exists(y => y.NAME == "player" && y.RACE == fil.Interest)).ToList();
+                            temp = treplays.Where(x => x.PLAYERS.Exists(y => _startUp.Conf.Players.Contains(y.NAME) && y.RACE == fil.Interest)).ToList();
                             games = temp.Count();
-                            wins = temp.Where(x => x.PLAYERS.Exists(y => y.NAME == "player" && y.TEAM == x.WINNER)).ToArray().Count();
+                            wins = temp.Where(x => x.PLAYERS.Exists(y => _startUp.Conf.Players.Contains(y.NAME) && y.TEAM == x.WINNER)).ToArray().Count();
                         }
                         else
                         {

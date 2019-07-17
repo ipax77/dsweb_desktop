@@ -39,70 +39,78 @@
 
 
 @code {
-int count = 0;
-string INFO = "";
-string SCAN = "";
-bool init = false;
+    int count = 0;
+    string INFO = "";
+    string SCAN = "";
+    bool init = false;
 
-void ScanReps()
-{
-    if (StateChange.Scan.Running == false)
+    void ScanReps()
     {
-        StateChange.Scan.Running = true;
-        SCAN = "Decoding replays ...";
-        Decode.Doit(DSdata, StateChange, StartUp.Conf.Cores);
-    }
-}
-
-private async void Update(object sender, PropertyChangedEventArgs e)
-{
-    await InvokeAsync(() =>
-    {
-        if (StateChange.Scan.Running == true)
+        FindReps();
+        if (DSdata.Todo.Count > 0)
         {
-            SCAN = "Decoding replays ..";
+            if (StateChange.Scan.Running == false)
+            {
+                StateChange.Scan.Running = true;
+                SCAN = "Decoding replays ...";
+                Decode.Doit(DSdata, StateChange, StartUp.Conf.Cores);
+            }
+        } else
+        {
+            SCAN = "No new replays found.";
+        }
+    }
+
+    private async void Update(object sender, PropertyChangedEventArgs e)
+    {
+        await InvokeAsync(() =>
+        {
+            if (StateChange.Scan.Running == true)
+            {
+                SCAN = "Decoding replays ..";
+                INFO = StateChange.Scan.Info;
+            }
+            else
+            {
+                SCAN = "Jobs done.";
+                INFO = StateChange.Scan.Info;
+                INFO += " Elapsed time: " + Decode.Elapsed.ToString("c");
+            }
+            StateHasChanged();
+            Task t = new Task(() => { });
+            return t;
+        });
+    }
+
+    protected override async Task OnInitAsync()
+    {
+        if (INFO.Length > 0) {
+            SCAN = "Decoding replays ...";
             INFO = StateChange.Scan.Info;
         }
-        else
+
+        if (StartUp.Conf.Autoscan == true)
         {
-            SCAN = "Jobs done.";
-            INFO = StateChange.Scan.Info;
-            INFO += " Elapsed time: " + Decode.Elapsed.ToString("c");
+            ScanReps();
+        } else
+        {
+            await FindReps();
         }
-        StateHasChanged();
-        Task t = new Task(() => { });
-        return t;
-    });
-}
 
-protected override async Task OnInitAsync()
-{
-    if (INFO.Length > 0) {
-        SCAN = "Decoding replays ...";
-        INFO = StateChange.Scan.Info;
+        StateChange.PropertyChanged += Update;
     }
 
-    await FindReps();
-
-    if (StartUp.Conf.Autoscan == true)
+    private async Task FindReps()
     {
-        ScanReps();
+        await Task.Factory.StartNew(() => {
+            DSdata.NewReplays();
+            Invoke(() => StateHasChanged());
+        });
     }
 
-    StateChange.PropertyChanged += Update;
-}
-
-private async Task FindReps()
-{
-    await Task.Factory.StartNew(() => {
-        DSdata.NewReplays();
-        Invoke(() => StateHasChanged());
-    });
-}
-
-public void Dispose()
-{
-    //StateChange.PropertyChanged -= Update;
-}
+    public void Dispose()
+    {
+        //StateChange.PropertyChanged -= Update;
+    }
 
 }

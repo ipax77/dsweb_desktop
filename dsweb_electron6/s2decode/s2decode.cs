@@ -23,6 +23,8 @@ namespace s2decode
         private ScriptEngine ENGINE { get; set; }
         public DateTime START { get; set; }
         public DateTime END { get; set; }
+        public StartUp _startUp { get; set; }
+
         private static string EXEDIR;
 
         static int THREADS = 0;
@@ -35,8 +37,9 @@ namespace s2decode
         ConcurrentDictionary<string, int> SKIP { get; set; } = new ConcurrentDictionary<string, int>();
         ConcurrentDictionary<string, int> REDO { get; set; } = new ConcurrentDictionary<string, int>();
 
-        public ScriptEngine LoadEngine(int ID)
+        public ScriptEngine LoadEngine(int ID, StartUp startUp)
         {
+            _startUp = startUp;
             Program.Log("Loading Engine ..", 3);
             REPID = ID + 1;
             string exedir = new FileInfo(Assembly.GetExecutingAssembly().Location).DirectoryName;
@@ -190,7 +193,7 @@ namespace s2decode
                 }
                 Program.Log("Loading s2protocol trackerevents finished", 3);
 
-                replay = DSparse.GetTrackerevents(rep, trackerevents_dec, replay);
+                replay = DSparse.GetTrackerevents(rep, trackerevents_dec, replay, _startUp);
                 //s2parse.GetTrackerevents(rep, protocol.decode_replay_tracker_events(trackerevents_enc));
 
                 Interlocked.Increment(ref REPID);

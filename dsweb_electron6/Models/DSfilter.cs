@@ -283,7 +283,7 @@ namespace dsweb_electron6.Models
     public static class DBfilter
     {
 
-        public static List<dsreplay> Filter (List<dsreplay> replays, Data.DSdyn_filteroptions opt)
+        public static List<dsreplay> Filter (List<dsreplay> replays, Data.DSdyn_filteroptions opt, StartUp _startUp)
         {
             dsfilter FIL = new dsfilter();
 
@@ -548,7 +548,7 @@ namespace dsweb_electron6.Models
                         tmprep = new List<dsreplay>(fil_replays.Where(x => x.PLAYERS.Exists(y => y.RACE == opt.Interest)).ToList());
                     } else
                     {
-                        tmprep = new List<dsreplay>(fil_replays.Where(x => x.PLAYERS.Exists(y => y.NAME == "player" && y.RACE == opt.Interest)).ToList());
+                        tmprep = new List<dsreplay>(fil_replays.Where(x => x.PLAYERS.Exists(y => _startUp.Conf.Players.Contains(y.NAME) && y.RACE == opt.Interest)).ToList());
                     }
                     fil_replays = new List<dsreplay>(tmprep);
                 }
@@ -564,7 +564,7 @@ namespace dsweb_electron6.Models
                     }
                     else
                     {
-                        tmprep = new List<dsreplay>(fil_replays.Where(x => x.PLAYERS.Exists(y => y.NAME == "player" && y.RACE == opt.Interest && x.GetOpp(y.REALPOS).RACE == opt.Vs)).ToList());
+                        tmprep = new List<dsreplay>(fil_replays.Where(x => x.PLAYERS.Exists(y => _startUp.Conf.Players.Contains(y.NAME) && y.RACE == opt.Interest && x.GetOpp(y.REALPOS).RACE == opt.Vs)).ToList());
                     }
                     fil_replays = new List<dsreplay>(tmprep);
 
@@ -586,7 +586,7 @@ namespace dsweb_electron6.Models
 
                 foreach (dsplayer pl in rep.PLAYERS)
                 {
-                    if (opt.Player == true && pl.NAME != "player") continue;
+                    if (opt.Player == true && !_startUp.Conf.Players.Contains(pl.NAME)) continue;
                     if (aduration.ContainsKey(pl.RACE)) aduration[pl.RACE]++;
                     else aduration.Add(pl.RACE, 1);
                     if (aduration_sum.ContainsKey(pl.RACE)) aduration_sum[pl.RACE] += rep.DURATION;
@@ -607,7 +607,7 @@ namespace dsweb_electron6.Models
             dur /= 22.4;
 
             FIL.Total = fil_replays.Count();
-            if (opt.Player == true) FIL.Total = fil_replays.Where(x => x.PLAYERS.Exists(y => y.NAME == "player")).ToArray().Count();
+            if (opt.Player == true) FIL.Total = fil_replays.Where(x => x.PLAYERS.Exists(y => _startUp.Conf.Players.Contains(y.NAME))).ToArray().Count();
             FIL.WR = 50;
             if (FIL.Total > 0 && opt.Player == true) FIL.WR = Math.Round(wins * 100 / (double)FIL.Total, 2);
             

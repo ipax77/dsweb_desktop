@@ -19,7 +19,7 @@ namespace dsweb_electron6.Models
         public HashSet<string> Todo = new HashSet<string>();
 
         public int ID { get; set; } = 0;
-        StartUp _startUp;
+        public StartUp _startUp;
         IDSdata_cache _dsdata;
 
         public DSdataModel(StartUp startUp, IDSdata_cache dsdata)
@@ -54,11 +54,11 @@ namespace dsweb_electron6.Models
                         if (rep != null)
                         {
                             rep.Init();
-                            foreach (var pl in rep.PLAYERS)
-                            {
-                                if (_startUp.Conf.Players.Contains(pl.NAME))
-                                    pl.NAME = "player";
-                            }
+                            //foreach (var pl in rep.PLAYERS)
+                            //{
+                            //    if (_startUp.Conf.Players.Contains(pl.NAME))
+                            //        pl.NAME = "player";
+                            //}
                             Replays.Add(rep);
                             if (rep.ID > maxid) maxid = rep.ID;
                         }
@@ -88,31 +88,34 @@ namespace dsweb_electron6.Models
 
         public void NewReplays()
         {
-            Todo.Clear();
-
-            HashSet<string> replist = new HashSet<string>();
-
-            foreach (dsreplay rep in Replays)
+            lock (Todo)
             {
-                replist.Add(rep.REPLAY);
-            }
+                Todo.Clear();
 
+                HashSet<string> replist = new HashSet<string>();
 
-            foreach (var dir in _startUp.Conf.Replays)
-            {
-                if (Directory.Exists(dir))
+                foreach (dsreplay rep in Replays)
                 {
-                    var plainTextBytes = Encoding.UTF8.GetBytes(dir);
-                    MD5 md5 = new MD5CryptoServiceProvider();
-                    string reppath_md5 = BitConverter.ToString(md5.ComputeHash(plainTextBytes));
+                    replist.Add(rep.REPLAY);
+                }
 
-                    foreach (var fileName in Directory.GetFiles(dir, "Direct Strike*.SC2Replay", SearchOption.AllDirectories))
+
+                foreach (var dir in _startUp.Conf.Replays)
+                {
+                    if (Directory.Exists(dir))
                     {
-                        string id = Path.GetFileNameWithoutExtension(fileName);
-                        string repid = reppath_md5 + "/" + id;
-                        if (Skip.Keys.Contains(repid) && Skip[repid] > 4) continue;
-                        if (replist.Contains(repid)) continue;
-                        Todo.Add(fileName);
+                        var plainTextBytes = Encoding.UTF8.GetBytes(dir);
+                        MD5 md5 = new MD5CryptoServiceProvider();
+                        string reppath_md5 = BitConverter.ToString(md5.ComputeHash(plainTextBytes));
+
+                        foreach (var fileName in Directory.GetFiles(dir, "Direct Strike*.SC2Replay", SearchOption.AllDirectories))
+                        {
+                            string id = Path.GetFileNameWithoutExtension(fileName);
+                            string repid = reppath_md5 + "/" + id;
+                            if (Skip.Keys.Contains(repid) && Skip[repid] > 4) continue;
+                            if (replist.Contains(repid)) continue;
+                            Todo.Add(fileName);
+                        }
                     }
                 }
             }
