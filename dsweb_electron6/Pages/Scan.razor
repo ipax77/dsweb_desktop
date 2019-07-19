@@ -46,6 +46,7 @@
 
     void ScanReps()
     {
+        if (StartUp.SAMPLEDATA == true) StartUp.SAMPLEDATA = false;
         FindReps();
         if (DSdata.Todo.Count > 0)
         {

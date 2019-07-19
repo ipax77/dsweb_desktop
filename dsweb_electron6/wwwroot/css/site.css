@@ -158,6 +158,7 @@ app {
     }
 }
 
+
 @media (min-width: 768px) {
     app {
         flex-direction: row;
@@ -181,11 +182,13 @@ app {
     }
 
     .navbar-toggler {
-        display: none;
+         display: none; 
     }
 
     .sidebar .collapse {
         /* Never collapse the sidebar for wide screens */
-        display: block;
+         display: block; 
     }
+
 }
+

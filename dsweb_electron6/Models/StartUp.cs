@@ -17,6 +17,7 @@ namespace dsweb_electron6.Models
         private IConfiguration _config;
         public UserConfig Conf { get; set; } = new UserConfig();
         public bool FIRSTRUN { get; set; } = false;
+        public bool SAMPLEDATA { get; set; } = false;
 
         public StartUp(IConfiguration config)
         {
@@ -49,6 +50,8 @@ namespace dsweb_electron6.Models
                 Conf.ExeDir = exedir;
                 Program.workdir = Conf.WorkDir;
                 Program.myJson_file = Conf.WorkDir + "/data.json";
+                if (!File.Exists(Program.myJson_file))
+                    File.Create(Program.myJson_file).Dispose();
                 Program.myScan_log = Conf.WorkDir + "/log.txt";
             }
 

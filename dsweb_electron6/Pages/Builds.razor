@@ -405,264 +405,265 @@
 
 
 @code {
-private DSdyn_buildoptions options { get; set; }
-private IEnumerable<KeyValuePair<string, double>> UNITS { get; set; }
-private IEnumerable<double> DIFF { get; set; }
-private IEnumerable<KeyValuePair<string, double>> UNITS_VS { get; set; }
-private Dictionary<string, double> INFO_CMDR { get; set; }
-private Dictionary<string, double> INFO_CMDR_VS { get; set; }
-private double INFO_DIFF = 0;
-private string DUR_CMDR = "";
-private string DUR_CMDR_VS = "";
-private string BUILD = "";
-private string CMDR = "";
-private string COMP = "";
-private string TEMPCOLOR = "";
-private double cmax1 = 0;
-private double cmax2 = 0;
-private double cmax3 = 0;
-private double vmax1 = 0;
-private double vmax2 = 0;
-private double vmax3 = 0;
-private DSdyn dyncmdr = new DSdyn();
-private DSdyn dynvs = new DSdyn();
-private bool database = false;
-private int id = 0;
-private string GameClass = "colapsed";
-private Models.dsreplay replay;
-int skip = 0;
-int skip_vs = 0;
-int take = 12;
+    private DSdyn_buildoptions options { get; set; }
+    private IEnumerable<KeyValuePair<string, double>> UNITS { get; set; }
+    private IEnumerable<double> DIFF { get; set; }
+    private IEnumerable<KeyValuePair<string, double>> UNITS_VS { get; set; }
+    private Dictionary<string, double> INFO_CMDR { get; set; }
+    private Dictionary<string, double> INFO_CMDR_VS { get; set; }
+    private double INFO_DIFF = 0;
+    private string DUR_CMDR = "";
+    private string DUR_CMDR_VS = "";
+    private string BUILD = "";
+    private string CMDR = "";
+    private string COMP = "";
+    private string TEMPCOLOR = "";
+    private double cmax1 = 0;
+    private double cmax2 = 0;
+    private double cmax3 = 0;
+    private double vmax1 = 0;
+    private double vmax2 = 0;
+    private double vmax3 = 0;
+    private DSdyn dyncmdr = new DSdyn();
+    private DSdyn dynvs = new DSdyn();
+    private bool database = false;
+    private int id = 0;
+    private string GameClass = "colapsed";
+    private Models.dsreplay replay;
+    int skip = 0;
+    int skip_vs = 0;
+    int take = 12;
 
-void ShowDatabase()
-{
-    chartChanged.Fil = _options.fil;
-    chartChanged.Update = !chartChanged.Update;
-    database = !database;
-}
-
-
-protected override void OnInit()
-{
-    CultureInfo.CurrentCulture = CultureInfo.CreateSpecificCulture("en-US");
-
-    List<KeyValuePair<string, double>> _UNITS = new List<KeyValuePair<string, double>>();
-    List<KeyValuePair<string, double>> _UNITS_VS = new List<KeyValuePair<string, double>>();
-    List<double> _DIFF = new List<double>();
-    UNITS = _UNITS;
-    DIFF = _DIFF;
-    UNITS_VS = _UNITS_VS;
-
-    INFO_CMDR = new Dictionary<string, double>();
-    INFO_CMDR.Add("Winrate", 0);
-    INFO_CMDR.Add("Games", 0);
-    INFO_CMDR.Add("Duration", 0);
-    INFO_CMDR_VS = new Dictionary<string, double>();
-    INFO_CMDR_VS.Add("Winrate", 0);
-    INFO_CMDR_VS.Add("Games", 0);
-    INFO_CMDR_VS.Add("Duration", 0);
-    INFO_DIFF = 0;
-    BUILD = "player";
-    DUR_CMDR = "";
-    DUR_CMDR_VS = "";
-    CMDR = "Abathur";
-    COMP = "";
-
-    options = new DSdyn_buildoptions();
-    options.BUILD = "player";
-    options.CMDR = "Abathur";
-    options.CMDR_VS = "ALL";
-    options.BUILD_COMPARE = "";
-    options.BREAKPOINT = "MIN10";
-
-    _options.DOIT = false;
-    _build.DefaultFilter();
-    _options.Player = true;
-    _options.Build = options.BUILD;
-    _options.Vs = options.CMDR_VS;
-    _options.DOIT = true;
-    _options.Interest = options.CMDR;
-
-
-    _options.PropertyChanged += FilOptionChanged;
-    options.PropertyChanged += OptionChanged;
-    OptionChanged(null, null);
-}
-
-protected override async Task OnAfterRenderAsync()
-{
-    // TEMPORARY: Currently we need this guard to avoid making the interop
-    // call during prerendering. Soon this will be unnecessary because we
-    // will change OnAfterRenderAsync so that it won't run during the
-    // prerendering phase.
-    if (!ComponentContext.IsConnected)
+    void ShowDatabase()
     {
-        return;
+        chartChanged.Fil = _options.fil;
+        chartChanged.Update = !chartChanged.Update;
+        database = !database;
     }
 
-}
 
-public void ShowGame(int repid) {
-    GameClass = "null";
-    replay = _DSdata.BUILDREPLAYSCACHE[_options.Build][options.CMDR][options.CMDR_VS].Where(x => x.ID == repid).ToArray()[0];
-}
-
-public void ShowGame_vs(int repid) {
-    GameClass = "null";
-    replay = _DSdata.BUILDREPLAYSCACHE[options.BUILD_COMPARE][options.CMDR][options.CMDR_VS].Where(x => x.ID == repid).ToArray()[0];
-}
-
-void Skip()
-{
-    skip -= 12;
-    if (skip < 0 || take < 0)
+    protected override void OnInit()
     {
-        skip = 0;
-        take = 12;
-    }
-}
+        CultureInfo.CurrentCulture = CultureInfo.CreateSpecificCulture("en-US");
 
-void Take()
-{
-    skip += 12;
-}
+        List<KeyValuePair<string, double>> _UNITS = new List<KeyValuePair<string, double>>();
+        List<KeyValuePair<string, double>> _UNITS_VS = new List<KeyValuePair<string, double>>();
+        List<double> _DIFF = new List<double>();
+        UNITS = _UNITS;
+        DIFF = _DIFF;
+        UNITS_VS = _UNITS_VS;
 
-void Skip_vs()
-{
-    skip_vs -= 12;
-    if (skip_vs < 0 || take < 0)
-    {
-        skip = 0;
-        take = 12;
-    }
-}
+        INFO_CMDR = new Dictionary<string, double>();
+        INFO_CMDR.Add("Winrate", 0);
+        INFO_CMDR.Add("Games", 0);
+        INFO_CMDR.Add("Duration", 0);
+        INFO_CMDR_VS = new Dictionary<string, double>();
+        INFO_CMDR_VS.Add("Winrate", 0);
+        INFO_CMDR_VS.Add("Games", 0);
+        INFO_CMDR_VS.Add("Duration", 0);
+        INFO_DIFF = 0;
+        BUILD = "player";
+        DUR_CMDR = "";
+        DUR_CMDR_VS = "";
+        CMDR = "Abathur";
+        COMP = "";
 
-void Take_vs()
-{
-    skip_vs += 12;
-}
+        options = new DSdyn_buildoptions();
+        options.BUILD = "player";
+        options.CMDR = "Abathur";
+        options.CMDR_VS = "ALL";
+        options.BUILD_COMPARE = "";
+        options.BREAKPOINT = "MIN10";
 
-public void OptionChange()
-{
-    OptionChanged(null, null);
-}
+        _options.DOIT = false;
+        _build.DefaultFilter();
+        _options.Player = true;
+        _options.Build = options.BUILD;
+        _options.Vs = options.CMDR_VS;
+        _options.DOIT = true;
+        _options.Interest = options.CMDR;
 
-private void FilOptionChanged(object sender, PropertyChangedEventArgs e)
-{
-    if (_options.DOIT == true && e.PropertyName == "Build")
-    {
-        options.BUILD = _options.Build;
-    }
-}
 
-private void OptionChanged(object sender, PropertyChangedEventArgs e)
-{
-    if (e != null && (e.PropertyName =="CMDR" || e.PropertyName == "CMDR_VS")) {
-        skip = 0;
-        skip_vs = 0;
+        _options.PropertyChanged += FilOptionChanged;
+        options.PropertyChanged += OptionChanged;
+        OptionChanged(null, null);
     }
 
-    CultureInfo.CurrentCulture = CultureInfo.CreateSpecificCulture("en-US");
-    string bp = options.BREAKPOINT;
-    string build = _options.Build;
-    List<KeyValuePair<string, double>> temp = new List<KeyValuePair<string, double>>();
-    temp = _DSdata.BUILDCACHE[build][options.CMDR][options.CMDR_VS][bp].OrderByDescending(o => o.Value).ToList();
-
-    KeyValuePair<string, double> Gas = new KeyValuePair<string, double>();
-    KeyValuePair<string, double> Mid = new KeyValuePair<string, double>();
-    KeyValuePair<string, double> Upgrades = new KeyValuePair<string, double>();
-
-    Gas = temp.Where(o => o.Key == "Gas").FirstOrDefault();
-    Mid = temp.Where(o => o.Key == "Mid").FirstOrDefault();
-    Upgrades = temp.Where(o => o.Key == "Upgrades").FirstOrDefault();
-
-    temp.Remove(Gas);
-    temp.Remove(Mid);
-    temp.Remove(Upgrades);
-
-    cmax1 = 100;
-    cmax2 = 100;
-    cmax3 = 100;
-    if (temp.Count > 3)
+    protected override async Task OnAfterRenderAsync()
     {
-        cmax1 = temp.ElementAt(0).Value;
-        cmax2 = temp.ElementAt(1).Value;
-        cmax3 = temp.ElementAt(2).Value;
-    }
-    UNITS = temp;
-
-    INFO_CMDR["Winrate"] = _DSdata.BUILDWRCACHE[build][options.CMDR][options.CMDR_VS][bp].Key;
-    INFO_CMDR["Games"] = _DSdata.BUILDWRCACHE[build][options.CMDR][options.CMDR_VS][bp].Value;
-    double dur = _DSdata.BUILDDURCACHE[build][options.CMDR][options.CMDR_VS][bp];
-    TimeSpan t = TimeSpan.FromSeconds(dur);
-    DUR_CMDR = '\u2300'.ToString() + " " + t.Minutes + ":" + t.Seconds.ToString("D2") + "min";
-    CMDR = options.CMDR;
-    if (options.CMDR_VS != "ALL") { CMDR += " vs " + options.CMDR_VS; }
-    BUILD = build;
-
-
-    if (options.BUILD_COMPARE != "")
-    {
-        List<double> diff = new List<double>();
-        Dictionary<string, double> units_vs = new Dictionary<string, double>();
-        string build_vs = options.BUILD_COMPARE;
-
-        COMP = "compared to " + build_vs;
-        foreach (var ent in UNITS)
+        // TEMPORARY: Currently we need this guard to avoid making the interop
+        // call during prerendering. Soon this will be unnecessary because we
+        // will change OnAfterRenderAsync so that it won't run during the
+        // prerendering phase.
+        if (!ComponentContext.IsConnected)
         {
-            if (_DSdata.BUILDCACHE[build_vs][options.CMDR][options.CMDR_VS][bp] != null)
+            return;
+        }
+
+    }
+
+    public void ShowGame(int repid) {
+        GameClass = "null";
+        replay = _DSdata.BUILDREPLAYSCACHE[_options.Build][options.CMDR][options.CMDR_VS].Where(x => x.ID == repid).ToArray()[0];
+    }
+
+    public void ShowGame_vs(int repid) {
+        GameClass = "null";
+        replay = _DSdata.BUILDREPLAYSCACHE[options.BUILD_COMPARE][options.CMDR][options.CMDR_VS].Where(x => x.ID == repid).ToArray()[0];
+    }
+
+    void Skip()
+    {
+        skip -= 12;
+        if (skip < 0 || take < 0)
+        {
+            skip = 0;
+            take = 12;
+        }
+    }
+
+    void Take()
+    {
+        skip += 12;
+    }
+
+    void Skip_vs()
+    {
+        skip_vs -= 12;
+        if (skip_vs < 0 || take < 0)
+        {
+            skip = 0;
+            take = 12;
+        }
+    }
+
+    void Take_vs()
+    {
+        skip_vs += 12;
+    }
+
+    public void OptionChange()
+    {
+        OptionChanged(null, null);
+    }
+
+    private void FilOptionChanged(object sender, PropertyChangedEventArgs e)
+    {
+        if (_options.DOIT == true && e.PropertyName == "Build")
+        {
+            options.BUILD = _options.Build;
+        }
+        StateHasChanged();
+    }
+
+    private void OptionChanged(object sender, PropertyChangedEventArgs e)
+    {
+        if (e != null && (e.PropertyName =="CMDR" || e.PropertyName == "CMDR_VS")) {
+            skip = 0;
+            skip_vs = 0;
+        }
+
+        CultureInfo.CurrentCulture = CultureInfo.CreateSpecificCulture("en-US");
+        string bp = options.BREAKPOINT;
+        string build = _options.Build;
+        List<KeyValuePair<string, double>> temp = new List<KeyValuePair<string, double>>();
+        temp = _DSdata.BUILDCACHE[build][options.CMDR][options.CMDR_VS][bp].OrderByDescending(o => o.Value).ToList();
+
+        KeyValuePair<string, double> Gas = new KeyValuePair<string, double>();
+        KeyValuePair<string, double> Mid = new KeyValuePair<string, double>();
+        KeyValuePair<string, double> Upgrades = new KeyValuePair<string, double>();
+
+        Gas = temp.Where(o => o.Key == "Gas").FirstOrDefault();
+        Mid = temp.Where(o => o.Key == "Mid").FirstOrDefault();
+        Upgrades = temp.Where(o => o.Key == "Upgrades").FirstOrDefault();
+
+        temp.Remove(Gas);
+        temp.Remove(Mid);
+        temp.Remove(Upgrades);
+
+        cmax1 = 100;
+        cmax2 = 100;
+        cmax3 = 100;
+        if (temp.Count > 3)
+        {
+            cmax1 = temp.ElementAt(0).Value;
+            cmax2 = temp.ElementAt(1).Value;
+            cmax3 = temp.ElementAt(2).Value;
+        }
+        UNITS = temp;
+
+        INFO_CMDR["Winrate"] = _DSdata.BUILDWRCACHE[build][options.CMDR][options.CMDR_VS][bp].Key;
+        INFO_CMDR["Games"] = _DSdata.BUILDWRCACHE[build][options.CMDR][options.CMDR_VS][bp].Value;
+        double dur = _DSdata.BUILDDURCACHE[build][options.CMDR][options.CMDR_VS][bp];
+        TimeSpan t = TimeSpan.FromSeconds(dur);
+        DUR_CMDR = '\u2300'.ToString() + " " + t.Minutes + ":" + t.Seconds.ToString("D2") + "min";
+        CMDR = options.CMDR;
+        if (options.CMDR_VS != "ALL") { CMDR += " vs " + options.CMDR_VS; }
+        BUILD = build;
+
+
+        if (options.BUILD_COMPARE != "")
+        {
+            List<double> diff = new List<double>();
+            Dictionary<string, double> units_vs = new Dictionary<string, double>();
+            string build_vs = options.BUILD_COMPARE;
+
+            COMP = "compared to " + build_vs;
+            foreach (var ent in UNITS)
             {
-                var uv = _DSdata.BUILDCACHE[build_vs][options.CMDR][options.CMDR_VS][bp].Where(w => w.Key == ent.Key).ToList();
+                if (_DSdata.BUILDCACHE[build_vs][options.CMDR][options.CMDR_VS][bp] != null)
+                {
+                    var uv = _DSdata.BUILDCACHE[build_vs][options.CMDR][options.CMDR_VS][bp].Where(w => w.Key == ent.Key).ToList();
+                    double c = 0;
+                    if (uv.Count > 0) { c = uv.ElementAt(0).Value; }
+                    units_vs.Add(ent.Key, c);
+                    diff.Add(ent.Value - c);
+                }
+            }
+
+            DIFF = diff;
+
+            int i = 0;
+            vmax1 = 100;
+            vmax2 = 100;
+            vmax3 = 100;
+            foreach (var ent in _DSdata.BUILDCACHE[build_vs][options.CMDR][options.CMDR_VS][bp].OrderByDescending(o => o.Value))
+            {
+                if (ent.Key == "Gas" || ent.Key == "Mid" || ent.Key == "Upgrades") continue;
+                i++;
+                if (i == 1) { vmax1 = ent.Value; }
+                if (i == 2) { vmax2 = ent.Value; }
+                if (i == 3) { vmax3 = ent.Value; }
+                var uv = _DSdata.BUILDCACHE[build][options.CMDR][options.CMDR_VS][bp].Where(w => w.Key == ent.Key).ToList();
                 double c = 0;
                 if (uv.Count > 0) { c = uv.ElementAt(0).Value; }
-                units_vs.Add(ent.Key, c);
-                diff.Add(ent.Value - c);
+                else
+                {
+                    units_vs.Add(ent.Key, ent.Value);
+                }
             }
+
+            UNITS_VS = units_vs;
+
+            INFO_CMDR_VS["Winrate"] = _DSdata.BUILDWRCACHE[build_vs][options.CMDR][options.CMDR_VS][bp].Key;
+            INFO_CMDR_VS["Games"] = _DSdata.BUILDWRCACHE[build_vs][options.CMDR][options.CMDR_VS][bp].Value;
+            double vdur = _DSdata.BUILDDURCACHE[build_vs][options.CMDR][options.CMDR_VS][bp];
+            TimeSpan vt = TimeSpan.FromSeconds(vdur);
+            DUR_CMDR_VS = '\u2300'.ToString() + " " + vt.Minutes + ":" + vt.Seconds.ToString("D2") + "min";
+            INFO_DIFF = INFO_CMDR["Winrate"] - INFO_CMDR_VS["Winrate"];
         }
+        _options.Build = build;
+        _options.Interest = options.CMDR;
+        _options.Vs = options.CMDR_VS;
 
-        DIFF = diff;
+        //chartChanged.Fil = _options.fil;
+        //chartChanged.Update = !chartChanged.Update;
 
-        int i = 0;
-        vmax1 = 100;
-        vmax2 = 100;
-        vmax3 = 100;
-        foreach (var ent in _DSdata.BUILDCACHE[build_vs][options.CMDR][options.CMDR_VS][bp].OrderByDescending(o => o.Value))
-        {
-            if (ent.Key == "Gas" || ent.Key == "Mid" || ent.Key == "Upgrades") continue;
-            i++;
-            if (i == 1) { vmax1 = ent.Value; }
-            if (i == 2) { vmax2 = ent.Value; }
-            if (i == 3) { vmax3 = ent.Value; }
-            var uv = _DSdata.BUILDCACHE[build][options.CMDR][options.CMDR_VS][bp].Where(w => w.Key == ent.Key).ToList();
-            double c = 0;
-            if (uv.Count > 0) { c = uv.ElementAt(0).Value; }
-            else
-            {
-                units_vs.Add(ent.Key, ent.Value);
-            }
-        }
-
-        UNITS_VS = units_vs;
-
-        INFO_CMDR_VS["Winrate"] = _DSdata.BUILDWRCACHE[build_vs][options.CMDR][options.CMDR_VS][bp].Key;
-        INFO_CMDR_VS["Games"] = _DSdata.BUILDWRCACHE[build_vs][options.CMDR][options.CMDR_VS][bp].Value;
-        double vdur = _DSdata.BUILDDURCACHE[build_vs][options.CMDR][options.CMDR_VS][bp];
-        TimeSpan vt = TimeSpan.FromSeconds(vdur);
-        DUR_CMDR_VS = '\u2300'.ToString() + " " + vt.Minutes + ":" + vt.Seconds.ToString("D2") + "min";
-        INFO_DIFF = INFO_CMDR["Winrate"] - INFO_CMDR_VS["Winrate"];
     }
-    _options.Build = build;
-    _options.Interest = options.CMDR;
-    _options.Vs = options.CMDR_VS;
 
-    //chartChanged.Fil = _options.fil;
-    //chartChanged.Update = !chartChanged.Update;
-
-}
-
-public void Dispose()
-{
-    _options.PropertyChanged -= FilOptionChanged;
-    options.PropertyChanged -= OptionChanged;
-}
+    public void Dispose()
+    {
+        _options.PropertyChanged -= FilOptionChanged;
+        options.PropertyChanged -= OptionChanged;
+    }
 }

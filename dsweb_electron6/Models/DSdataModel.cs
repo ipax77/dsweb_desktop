@@ -5,6 +5,8 @@ using System.Threading.Tasks;
 using dsweb_electron6;
 using System.IO;
 using Newtonsoft.Json;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Text;
 using dsweb_electron6.Models;
 using dsweb_electron6.Interfaces;
@@ -39,6 +41,14 @@ namespace dsweb_electron6.Models
         {
             if (File.Exists(Program.myJson_file))
             {
+                if (_startUp.SAMPLEDATA == true)
+                {
+                    _startUp.SAMPLEDATA = false;
+                    try
+                    {
+                        _startUp.Conf.Players.Remove("player");
+                    } catch { }
+                }
                 lock (Replays)
                 {
                     Replays.Clear();
@@ -70,6 +80,33 @@ namespace dsweb_electron6.Models
             }
         }
 
+        public void LoadSampleData()
+        {
+            string samplejson = _startUp.Conf.ExeDir + "/Json/sample.json";
+            if (File.Exists(samplejson))
+            {
+                lock (Replays)
+                {
+                    Replays.Clear();
+                    foreach (string fileContents in File.ReadLines(samplejson))
+                    {
+                        dsreplay rep = null;
+                        try
+                        {
+                            rep = System.Text.Json.Serialization.JsonSerializer.Parse<dsreplay>(fileContents);
+                            if (rep != null)
+                            {
+                                rep.Init();
+                                Replays.Add(rep);
+                            }
+                        } catch { }
+                    }
+                }
+                _startUp.Conf.Players.Add("player");
+                _dsdata.Init(Replays);
+            }
+        }
+
         public void LoadSkip()
         {
             if (File.Exists(Program.workdir + "/skip.json")) {
@@ -91,6 +128,8 @@ namespace dsweb_electron6.Models
             lock (Todo)
             {
                 Todo.Clear();
+
+                if (_startUp.SAMPLEDATA == true) return;
 
                 HashSet<string> replist = new HashSet<string>();
 
