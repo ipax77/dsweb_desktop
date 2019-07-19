@@ -16,7 +16,7 @@ namespace dsweb_electron6.Models
     {
         ConcurrentDictionary<Task, CancellationTokenSource> TASKS { get; set; } = new ConcurrentDictionary<Task, CancellationTokenSource>();
         ConcurrentDictionary<string, FileSystemWatcher> WATCHER { get; set; } = new ConcurrentDictionary<string, FileSystemWatcher>();
-        ObservableCollection<string> TODO { get; set; } = new ObservableCollection<string>();
+        ObservableCollection<string> TODO { get; set; }
         Regex rx_ds = new Regex(@"(Direct Strike.*)\.SC2Replay|(Desert Strike.*)\.SC2Replay", RegexOptions.Singleline);
 
         StartUp _startUp;
@@ -47,7 +47,6 @@ namespace dsweb_electron6.Models
                 {
                     CancellationTokenSource tokenSource = new CancellationTokenSource();
                     CancellationToken token = tokenSource.Token;
-
                     Task task = Task.Factory.StartNew(() =>
                     {
                         FileSystemWatcher fsw = null;
@@ -66,8 +65,6 @@ namespace dsweb_electron6.Models
                     TASKS.TryAdd(task, tokenSource);
                 }
             }
-
-
         }
         public void Stop()
         {
@@ -113,11 +110,14 @@ namespace dsweb_electron6.Models
 
         private FileSystemWatcher MonitorDirectory(string path)
         {
-            FileSystemWatcher fileSystemWatcher = new FileSystemWatcher();
+            FileSystemWatcher fileSystemWatcher = new FileSystemWatcher(path);
             fileSystemWatcher.IncludeSubdirectories = false;
-            fileSystemWatcher.Path = path;
-            fileSystemWatcher.Created += new FileSystemEventHandler(FileSystemWatcher_Created);
+            //fileSystemWatcher.Path = path;
+
+            fileSystemWatcher.NotifyFilter = NotifyFilters.FileName | NotifyFilters.LastWrite;
             fileSystemWatcher.EnableRaisingEvents = true;
+
+            fileSystemWatcher.Created += new FileSystemEventHandler(FileSystemWatcher_Created);
             if (WATCHER != null && !WATCHER.ContainsKey(path)) WATCHER.TryAdd(path, fileSystemWatcher);
             fileSystemWatcher.WaitForChanged(WatcherChangeTypes.All);
             return fileSystemWatcher;

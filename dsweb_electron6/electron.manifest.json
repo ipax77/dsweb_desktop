@@ -4,30 +4,50 @@
     "imageFile": "wwwroot/images/icon-512x512.png"
   },
   "singleInstance": false,
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ipax77/dsweb_desktop.git"
+  },
   "build": {
-    "appId": "com.dsweb_electron6.app",
+    "win": {
+      "publish": [ "github" ],
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "icon": "wwwroot/images/icon-512x512.png"
+    },
+    "appId": "com.electorn.dsweb_electron6.app",
     "productName": "dsweb_electron6",
-    "copyright": "Copyright © 2019",
-    "buildVersion": "1.0.0",
+    "copyright": "Copyright © 2019 Philipp Hetzner",
+    "buildVersion": "1.0.3",
     "compression": "maximum",
     "directories": {
-      "output": "../../../bin/Desktop",
+      "output": "../../bin/Desktop",
       "buildResources": "../../../build"
     },
     "extraResources": [
       {
         "from": "./bin",
         "to": "bin",
-        "filter": ["**/*"]
+        "filter": [ "**/*" ]
       }
     ],
     "files": [
       {
         "from": "./ElectronHostHook/node_modules",
         "to": "ElectronHostHook/node_modules",
-        "filter": ["**/*"]
+        "filter": [ "**/*" ]
       },
       "**/*"
     ]
-  }
+  },
+  "user": "ipax77",
+  "project": "dsweb_desktop",
+  "author": "Philipp Hetzner",
+  "license": "GPL3"
 }

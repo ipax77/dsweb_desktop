@@ -5,7 +5,7 @@
 sc2dsstats is a dotnet core – blazor - electron app for analyzing your Starcraft 2 Direct Strike Replays. It generates some Graphs showing the win rate, synergy, mvp and damage output of each commander. There is also a matchmaking system built in. 
 
 To install the app just download and install the setup.exe: 
-https://github.com/ipax77/dsweb_desktop/blob/master/Desktop/dsweb_electron6%20Setup%201.0.2.exe
+https://github.com/ipax77/dsweb_desktop/releases/download/v1.0.3/dsweb_electron6-Setup-1.0.3.exe
 
 ![sample graph](/images/dsweb_desktop.png)
 

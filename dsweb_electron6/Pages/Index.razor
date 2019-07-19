@@ -29,31 +29,43 @@ else
     <dsweb_electron6.Pages.Scan />
 }
 
+<!--
+<button name="btn_mode" class="btn btn-sm btn-primary" @onclick="@UpdateApp">Update</button>
+-->
 @code {
 
-TimeSpan t;
+    TimeSpan t;
 
-protected override void OnInit()
-{
-    StartUp.Init();
-    DSdata.Init();
-    t = DateTime.Now - StartUp.Conf.LastUpload;
-    stateChanged.PropertyChanged += Update;
-}
-
-private async void Update(object sender, PropertyChangedEventArgs e)
-{
-    await InvokeAsync(() =>
+    protected override void OnInit()
     {
-        StateHasChanged();
-        Task t = new Task(() => { });
-        return t;
-    });
-}
+        StartUp.Init();
+        DSdata.Init();
+        t = DateTime.Now - StartUp.Conf.LastUpload;
+        stateChanged.PropertyChanged += Update;
+    }
 
-public void Dispose()
-{
-    stateChanged.PropertyChanged -= Update;
-}
+    private async void Update(object sender, PropertyChangedEventArgs e)
+    {
+        await InvokeAsync(() =>
+        {
+            StateHasChanged();
+            Task t = new Task(() => { });
+            return t;
+        });
+    }
+
+    void UpdateApp()
+    {
+        AppUpdate up = new AppUpdate();
+        up.Test();
+
+
+    }
+
+
+    public void Dispose()
+    {
+        stateChanged.PropertyChanged -= Update;
+    }
 
 }

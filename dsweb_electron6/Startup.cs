@@ -62,7 +62,7 @@ namespace dsweb_electron6
                 endpoints.MapBlazorHub();
                 endpoints.MapFallbackToPage("/_Host");
             });
-            Electron.WindowManager.CreateWindowAsync();
+            Task.Run(async () => await Electron.WindowManager.CreateWindowAsync());
         }
     }
 }
