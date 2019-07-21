@@ -32,10 +32,10 @@ namespace dsweb_electron6
             services.AddServerSideBlazor();
             services.AddSingleton<StartUp>();
             services.AddSingleton<ScanStateChange>();
-            services.AddSingleton<DSdataModel>();
             services.AddSingleton<IDSdata_cache, DSdata_cache>();
-            services.AddSingleton<MMservice>();
-            services.AddSingleton<dsotfng>();
+            services.AddScoped<MMservice>();
+            services.AddScoped<dsotfng>();
+            services.AddScoped<DSdataModel>();
             services.AddScoped<ChartService>();
             services.AddScoped<DSdyn>();
             services.AddScoped<ChartStateChange>();

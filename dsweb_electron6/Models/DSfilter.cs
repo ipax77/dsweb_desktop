@@ -295,6 +295,9 @@ namespace dsweb_electron6.Models
                 enddate = DateTime.Parse(opt.Enddate).ToString("yyyyMMdd");
             } catch { }
 
+            HashSet<string> Gamemodes = opt.Gamemodes.Where(x => x.Value == true).Select(y => y.Key).ToHashSet();
+            
+
             List<dsreplay> fil_replays = new List<dsreplay>(replays);
             List<dsreplay> tmprep = new List<dsreplay>();
             FIL.GAMES = replays.Count;
@@ -314,14 +317,6 @@ namespace dsweb_electron6.Models
                 FIL.Hots -= fil_replays.Count;
             }
 
-            if (false)
-            {
-                FIL.Std = fil_replays.Count;
-                tmprep = new List<dsreplay>(fil_replays.Where(x => !x.PLAYERS.Exists(y => y.RACE == "Protoss" || y.RACE == "Terran" || y.RACE == "Zerg")).ToList());
-                fil_replays = new List<dsreplay>(tmprep);
-                FIL.Std -= fil_replays.Count;
-            }
-
             if (opt.PlayerCount > 0)
             {
                 FIL.Playercount = fil_replays.Count;
@@ -329,6 +324,11 @@ namespace dsweb_electron6.Models
                 fil_replays = new List<dsreplay>(tmprep);
                 FIL.Playercount -= fil_replays.Count;
             }
+
+            FIL.Gamemodes = fil_replays.Count;
+            tmprep = new List<dsreplay>(fil_replays.Where(x => Gamemodes.Contains(x.GAMEMODE))).ToList();
+            fil_replays = new List<dsreplay>(tmprep);
+            FIL.Gamemodes -= fil_replays.Count;
 
             if (startdate != null && enddate != null)
             {

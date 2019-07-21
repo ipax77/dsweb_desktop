@@ -73,7 +73,7 @@
     private async void GenPieChart(PieChart piechart)
     {
         await JSRuntime.InvokeAsync<string>("PieChart", piechart);
-        StateHasChanged();
+        Invoke(() => StateHasChanged());
     }
 
     public void Dispose()

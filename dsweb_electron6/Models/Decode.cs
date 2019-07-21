@@ -28,6 +28,7 @@ namespace dsweb_electron6.Models
             Console.WriteLine("Engine start.");
             s2dec.LoadEngine(Data.ID, Data._startUp);
             s2dec.START = DateTime.UtcNow;
+            stateChange.Update = !stateChange.Update;
             int total = 0;
             lock (Data.Todo)
             {

@@ -62,7 +62,22 @@ namespace dsweb_electron6.Data
                  "Swann",
                  "Tychus",
                  "Vorazun",
-                 "Zagara"
+                 "Zagara",
+                 "Protoss",
+                 "Terran",
+                 "Zerg"
+        };
+
+        public static string[] s_gamemodes { get; } = new string[]
+        {
+            "GameModeBrawlCommanders",
+            "GameModeBrawlStandard",
+            "GameModeCommanders",
+            "GameModeCommandersHeroic",
+            "GameModeGear",
+            "GameModeSabotage",
+            "GameModeStandard",
+            "GameModeSwitch"
         };
 
         public static string[] s_breakpoints { get; } = new string[]
@@ -139,7 +154,7 @@ namespace dsweb_electron6.Data
             {     "Zerg", "#440e5f"   }
         };
 
-        public static string Enddate = DateTime.Today.ToString("yyyyMMdd");
+        public static string Enddate { get; set; } = DateTime.Today.AddDays(1).ToString("yyyyMMdd");
 
         public DSdata()
         {
@@ -191,6 +206,8 @@ namespace dsweb_electron6.Data
         {
             lock (REPLAYS)
             {
+                DSdata.Enddate = DateTime.Today.AddDays(1).ToString("yyyyMMdd");
+                
                 REPLAYS.Clear();
                 REPLAYS = new List<dsreplay>(replays);
                 winratevs_CACHE.Clear();
@@ -288,14 +305,15 @@ namespace dsweb_electron6.Data
 
             foreach (dsreplay rep in replays)
             {
-                if (rep.PLAYERCOUNT != 6) continue;
+                //if (rep.PLAYERCOUNT != 6) continue;
+                if (rep.ISBRAWL == true) continue;
                 foreach (dsplayer pl in rep.PLAYERS)
                 {
                     foreach (string bp in DSdata.s_breakpoints)
                     {
                         if (!pl.UNITS.ContainsKey(bp)) continue;
                         dsplayer opp = rep.GetOpp(pl.REALPOS);
-                        if (opp == null) continue;
+                        if (opp == null || opp.RACE == null) continue;
 
                         if (player == "player" && !_startUp.Conf.Players.Contains(pl.NAME)) continue;
                         //if (pl.NAME == player)

@@ -9,6 +9,7 @@
 <h3>Database</h3>
 <div class="row mb-2">
     <button class="btn btn-secondary mr-3" @onclick="@ToggleFilter">Filter</button>
+    <button class="btn btn-primary mr-3" @onclick="@Reload">Reload</button>
     <button class="btn btn-primary mr-3" @onclick="@Chart">Chart</button>
 </div>
 <div class="@FilterClass" id="div_filter">
@@ -153,165 +154,170 @@
 </div>
 
 @code {
-private string GameClass = "colapsed";
-private dsreplay replay;
-int skip = 0;
-int take = 12;
-string last = "";
-bool chart = false;
-IEnumerable<dsreplay> myReplays;
-ReplayOptions RepOpt = new ReplayOptions();
-string FilterClass => _options.Filter ? null : "collapse";
-string mb = "";
+    private string GameClass = "colapsed";
+    private dsreplay replay;
+    int skip = 0;
+    int take = 12;
+    string last = "";
+    bool chart = false;
+    IEnumerable<dsreplay> myReplays;
+    ReplayOptions RepOpt = new ReplayOptions();
+    string FilterClass => _options.Filter ? null : "collapse";
+    string mb = "";
 
-public class DBFilter
-{
-    public string Value { get; set; } = "";
-    public string Opt { get; set; } = "Filter1";
-}
-Dictionary<int, DBFilter> DBFilterDic;
-Dictionary<int, DBFind> DBFindDic;
+    public class DBFilter
+    {
+        public string Value { get; set; } = "";
+        public string Opt { get; set; } = "Filter1";
+    }
+    Dictionary<int, DBFilter> DBFilterDic;
+    Dictionary<int, DBFind> DBFindDic;
 
-protected override void OnInit()
-{
-    DBFilterDic = new Dictionary<int, DBFilter>();
-    DBFilterDic.Add(0, new DBFilter());
-    DBFindDic = new Dictionary<int, DBFind>();
-    DBFindDic.Add(0, new DBFind());
-    myReplays = _dsdata.Replays;
+    protected override void OnInit()
+    {
+        DBFilterDic = new Dictionary<int, DBFilter>();
+        DBFilterDic.Add(0, new DBFilter());
+        DBFindDic = new Dictionary<int, DBFind>();
+        DBFindDic.Add(0, new DBFind());
+        myReplays = _dsdata.Replays;
 
-    _options.PropertyChanged += OptionChanged;
-}
+        _options.PropertyChanged += OptionChanged;
+    }
 
-void Skip()
-{
-    skip -= 12;
-    if (skip < 0 || take < 0)
+    void Skip()
+    {
+        skip -= 12;
+        if (skip < 0 || take < 0)
+        {
+            skip = 0;
+            take = 12;
+        }
+    }
+
+    void Take()
+    {
+        skip += 12;
+    }
+
+    void ToggleFilter()
+    {
+        _options.Filter = !_options.Filter;
+    }
+
+    void Chart()
+    {
+        if (chart == true) { chart = false; }
+        else
+        {
+            if (_options.Interest != "") { _options.Icons = 1; }
+            chart = true;
+        }
+    }
+
+    void Reload()
+    {
+        _dsdata.LoadData();
+    }
+
+    void Reset()
     {
         skip = 0;
         take = 12;
+        DBFilterDic = new Dictionary<int, DBFilter>();
+        DBFilterDic.Add(0, new DBFilter());
+        DBFindDic = new Dictionary<int, DBFind>();
+        DBFindDic.Add(0, new DBFind());
+        myReplays = _dsdata.Replays;
     }
-}
 
-void Take()
-{
-    skip += 12;
-}
-
-void ToggleFilter()
-{
-    _options.Filter = !_options.Filter;
-}
-
-void Chart()
-{
-    if (chart == true) { chart = false; }
-    else
+    void AddDBFilter()
     {
-        if (_options.Interest != "") { _options.Icons = 1; }
-        chart = true;
-    }
-}
-
-void Reset()
-{
-    skip = 0;
-    take = 12;
-    DBFilterDic = new Dictionary<int, DBFilter>();
-    DBFilterDic.Add(0, new DBFilter());
-    DBFindDic = new Dictionary<int, DBFind>();
-    DBFindDic.Add(0, new DBFind());
-    myReplays = _dsdata.Replays;
-}
-
-void AddDBFilter()
-{
-    int nk = -1;
-    try
-    {
-        nk = DBFilterDic.Keys.OrderByDescending(x => x).First();
-    }
-    catch { }
-    DBFilterDic.Add(nk + 1, new DBFilter());
-}
-
-void AddDBFind()
-{
-    int nk = -1;
-    try
-    {
-        nk = DBFindDic.Keys.OrderByDescending(x => x).First();
-    }
-    catch { }
-    DBFindDic.Add(nk + 1, new DBFind());
-}
-
-void RemoveDBFind(int i)
-{
-    DBFindDic.Remove(i);
-}
-
-string GetRepProperty(dsreplay rep, string prop)
-{
-    return rep.GetType().GetProperty(prop).GetValue(rep, null).ToString();
-}
-
-public async void SortReps(string id)
-{
-    if (last == id)
-    {
-        myReplays = myReplays.OrderByDescending(o => o.GetType().GetProperty(id).GetValue(o, null)).ToList();
-        last = "";
-    }
-    else
-    {
-        myReplays = myReplays.OrderBy(o => o.GetType().GetProperty(id).GetValue(o, null)).ToList();
-        last = id;
-    }
-}
-
-void DoFind()
-{
-    foreach (var dic in DBFindDic.Keys)
-    {
-        var ent = DBFindDic[dic];
-
-        if (ent.RACE.Length > 0)
+        int nk = -1;
+        try
         {
-            if (ent.PLAYER == false)
-            {
-                myReplays = myReplays.Where(x => x.RACES.Contains(ent.RACE));
-            } else
-            {
+            nk = DBFilterDic.Keys.OrderByDescending(x => x).First();
+        }
+        catch { }
+        DBFilterDic.Add(nk + 1, new DBFilter());
+    }
 
+    void AddDBFind()
+    {
+        int nk = -1;
+        try
+        {
+            nk = DBFindDic.Keys.OrderByDescending(x => x).First();
+        }
+        catch { }
+        DBFindDic.Add(nk + 1, new DBFind());
+    }
+
+    void RemoveDBFind(int i)
+    {
+        DBFindDic.Remove(i);
+    }
+
+    string GetRepProperty(dsreplay rep, string prop)
+    {
+        return rep.GetType().GetProperty(prop).GetValue(rep, null).ToString();
+    }
+
+    public async void SortReps(string id)
+    {
+        if (last == id)
+        {
+            myReplays = myReplays.OrderByDescending(o => o.GetType().GetProperty(id).GetValue(o, null)).ToList();
+            last = "";
+        }
+        else
+        {
+            myReplays = myReplays.OrderBy(o => o.GetType().GetProperty(id).GetValue(o, null)).ToList();
+            last = id;
+        }
+    }
+
+    void DoFind()
+    {
+        foreach (var dic in DBFindDic.Keys)
+        {
+            var ent = DBFindDic[dic];
+
+            if (ent.RACE.Length > 0)
+            {
+                if (ent.PLAYER == false)
+                {
+                    myReplays = myReplays.Where(x => x.RACES.Contains(ent.RACE));
+                } else
+                {
+
+                }
             }
-        }
 
-        if (ent.RACE.Length > 0 && ent.RACEVS.Length > 0)
-        {
-            myReplays = myReplays.Where(x => x.PLAYERS.Exists(y => y.RACE == ent.RACE && x.GetOpp(y.REALPOS).RACE == ent.RACEVS));
+            if (ent.RACE.Length > 0 && ent.RACEVS.Length > 0)
+            {
+                myReplays = myReplays.Where(x => x.PLAYERS.Exists(y => y.RACE == ent.RACE && x.GetOpp(y.REALPOS).RACE == ent.RACEVS));
+            }
+
         }
 
     }
 
-}
-
-private async void OptionChanged(object sender, PropertyChangedEventArgs e)
-{
-    if (_options.DOIT == true)
+    private async void OptionChanged(object sender, PropertyChangedEventArgs e)
     {
-        myReplays = DBfilter.Filter(_dsdata.Replays, _options, _dsdata._startUp);
+        if (_options.DOIT == true)
+        {
+            myReplays = DBfilter.Filter(_dsdata.Replays, _options, _dsdata._startUp);
+        }
     }
-}
 
-public void ShowGame(int repid)
-{
-    GameClass = "null";
-    replay = myReplays.Where(x => x.ID == repid).ToArray()[0];
-}
+    public void ShowGame(int repid)
+    {
+        GameClass = "null";
+        replay = myReplays.Where(x => x.ID == repid).ToArray()[0];
+    }
 
-public void Dispose()
-{
-    _options.PropertyChanged -= OptionChanged;
-}
+    public void Dispose()
+    {
+        _options.PropertyChanged -= OptionChanged;
+    }
 }

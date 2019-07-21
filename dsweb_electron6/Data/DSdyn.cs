@@ -98,12 +98,23 @@ namespace dsweb_electron6.Data
         private string Mode_value = "Winrate";
         private bool BeginAtZero_value = false;
         private string Build_value = String.Empty;
+        private string Gamemode_value = "Commanders";
 
         public event PropertyChangedEventHandler PropertyChanged;
 
         private void NotifyPropertyChanged([CallerMemberName] String propertyName = "")
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
+
+        public DSdyn_filteroptions()
+        {
+            foreach (var ent in DSdata.s_gamemodes)
+            {
+                Gamemodes.Add(ent, false);
+            }
+            Gamemodes["GameModeCommanders"] = true;
+            Gamemodes["GameModeCommandersHeroic"] = true;
         }
 
         public object Clone()
@@ -117,6 +128,7 @@ namespace dsweb_electron6.Data
         public Models.dsfilter fil { get; set; } = new Models.dsfilter();
         public ChartJS Chart { get; set; } = new ChartJS();
         public int Total { get; set; } = 0;
+        public Dictionary<string, bool> Gamemodes { get; set; } = new Dictionary<string, bool>();
 
         public int Duration
         {
@@ -310,6 +322,18 @@ namespace dsweb_electron6.Data
                 }
             }
         }
+        public string Gamemode
+        {
+            get { return this.Gamemode_value; }
+            set
+            {
+                if (value != this.Gamemode_value)
+                {
+                    this.Gamemode_value = value;
+                    NotifyPropertyChanged();
+                }
+            }
+        }
 
         public string GenHash()
         {
@@ -326,9 +350,17 @@ namespace dsweb_electron6.Data
                 else if (prop.Name == "Total") continue;
                 else if (prop.Name == "Ordered") continue;
 
-                if (prop.Name == "Enddate" && prop.GetValue(this, null).ToString() == DateTime.Now.ToString("yyyy-MM-dd"))
+                if (prop.Name == "Enddate" && prop.GetValue(this, null).ToString() == DateTime.Now.AddDays(1).ToString("yyyy-MM-dd"))
                 {
                     opthash += prop.Name + "LaSt";
+                }
+                else if (prop.Name == "Gamemodes")
+                {
+                    Dictionary<string, bool> gm = prop.GetValue(this, null) as Dictionary<string, bool>;
+                    foreach (var ent in gm.Keys)
+                    {
+                        opthash += gm[ent].ToString();
+                    }
                 }
                 else
                 {

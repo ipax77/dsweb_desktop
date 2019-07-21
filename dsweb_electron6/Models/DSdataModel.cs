@@ -9,6 +9,7 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Text;
 using dsweb_electron6.Models;
+using dsweb_electron6.Data;
 using dsweb_electron6.Interfaces;
 using System.Security.Cryptography;
 
@@ -23,9 +24,11 @@ namespace dsweb_electron6.Models
         public int ID { get; set; } = 0;
         public StartUp _startUp;
         IDSdata_cache _dsdata;
+        DSdyn_filteroptions _options;
 
-        public DSdataModel(StartUp startUp, IDSdata_cache dsdata)
+        public DSdataModel(StartUp startUp, IDSdata_cache dsdata, DSdyn_filteroptions options)
         {
+            _options = options;
             _startUp = startUp;
             _dsdata = dsdata;
             LoadData();
@@ -76,6 +79,10 @@ namespace dsweb_electron6.Models
                     ID = maxid;
                     NewReplays();
                     _dsdata.Init(Replays);
+                    _options.DOIT = false;
+                    _options.BeginAtZero = !_options.BeginAtZero;
+                    _options.DOIT = true;
+                    _options.BeginAtZero = !_options.BeginAtZero;
                 }
             }
         }

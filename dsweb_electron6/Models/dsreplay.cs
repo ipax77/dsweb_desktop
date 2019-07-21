@@ -428,7 +428,8 @@ namespace dsweb_electron6.Models
         public int FILTERED { get; set; }
         public int Beta { get; set; }
         public int Hots { get; set; }
-        public int Playercount { get; set; }
+        public int Playercount { get; set; } = 0;
+        public int Gamemodes { get; set; } = 0;
         public int Gametime { get; set; }
         public int Duration { get; set; }
         public int Leaver { get; set; }
@@ -502,6 +503,10 @@ namespace dsweb_electron6.Models
                 //bab += "Beta: " + this.Beta + " (" + f + "%)" + "; ";
                 f = FilterRate(this.Hots);
                 //bab += "Hots: " + this.Hots + " (" + f + "%)" + "; ";
+                f = FilterRate(this.Playercount);
+                bab += "Playercount: " + this.Playercount + " (" + f + "%)" + "; ";
+                f = FilterRate(this.Gamemodes);
+                bab += "Gamemodes: " + this.Gamemodes + " (" + f + "%)" + "; ";
                 f = FilterRate(this.Gametime);
                 bab += "Gametime: " + this.Gametime + " (" + f + "%)" + "; ";
                 f = FilterRate(this.Duration);
