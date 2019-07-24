@@ -64,11 +64,11 @@ namespace s2decode
 
                 pl.NAME = name;
                 pl.RACE = player["m_race"].ToString();
-                pl.RESULT = int.Parse(player["m_result"].ToString());
-                pl.TEAM = int.Parse(player["m_teamId"].ToString());
+                pl.RESULT = (int)player["m_result"];
+                pl.TEAM = (int)player["m_teamId"];
                 try
                 {
-                    pl.POS = int.Parse(player["m_workingSetSlotId"].ToString()) + 1;
+                    pl.POS = (int)player["m_workingSetSlotId"] + 1;
                 }
                 catch
                 {
@@ -77,8 +77,8 @@ namespace s2decode
                 replay.PLAYERS.Add(pl);
             }
 
-            long offset = long.Parse(details_dec["m_timeLocalOffset"].ToString());
-            long timeutc = long.Parse(details_dec["m_timeUTC"].ToString());
+            long offset = (long)details_dec["m_timeLocalOffset"];
+            long timeutc = (long)details_dec["m_timeUTC"];
 
             long georgian = timeutc + offset;
             DateTime gametime = DateTime.FromFileTime(georgian);
@@ -96,8 +96,11 @@ namespace s2decode
             //File.WriteAllText(@"C:\temp\bab\track_" + id + ".txt", tjson);
 
             REPtrackerevents track = new REPtrackerevents();
-            REParea area = AREA;
             Dictionary<int, REPvec> UNITPOS = new Dictionary<int, REPvec>();
+
+            Dictionary<int, Dictionary<int, Dictionary<string, int>>> Spawns = new Dictionary<int, Dictionary<int, Dictionary<string, int>>>();
+            Dictionary<int, Dictionary<int, bool>> Middle = new Dictionary<int, Dictionary<int, bool>>();
+
 
             foreach (dsplayer pl in replay.PLAYERS)
                 track.PLAYERS.Add(pl.POS, pl);
@@ -118,7 +121,7 @@ namespace s2decode
                 {
                     if (pydic.ContainsKey("m_controlPlayerId"))
                     {
-                        int playerid = int.Parse(pydic["m_controlPlayerId"].ToString());
+                        int playerid = (int)pydic["m_controlPlayerId"];
                         Match m = rx_race2.Match(pydic["m_unitTypeName"].ToString());
                         if (m.Success && m.Groups[1].Value.Length > 0)
                         {
@@ -136,85 +139,141 @@ namespace s2decode
                                 else if (race == "Kerrigan") track.PLAYERS[playerid].ARMY += 400;
                             }
                         }
-                        else if (pydic.ContainsKey("m_creatorAbilityName") && pydic["m_creatorAbilityName"] != null)
+                        else if (pydic.ContainsKey("m_creatorAbilityName") && pydic["m_creatorAbilityName"] == null)
                         {
-                            m = rx_unit.Match(pydic["m_creatorAbilityName"].ToString());
-                            if (m.Success)
+                            if (pydic["_event"].ToString() == "NNet.Replay.Tracker.SUnitBornEvent")
                             {
-                                units++;
-                                int gameloop = int.Parse(pydic["_gameloop"].ToString());
-                                string unit = m.Groups[1].Value;
-                                if (m.Groups[2].Value.Length > 0) unit += m.Groups[2].Value;
+                                int born_gameloop = (int)pydic["_gameloop"];
+                                if (born_gameloop < 480) continue;
+                                int born_playerid = (int)pydic["m_controlPlayerId"];
+                                string born_unit = pydic["m_unitTypeName"].ToString();
 
-                                // failsafe double tychus
-                                if (pydic.ContainsKey("m_unitTypeName"))
-                                    if (pydic["m_unitTypeName"].ToString() == "UnitBirthBar")
-                                        continue;
+                                if (born_unit == "TrophyRiftPremium") continue;
+                                if (born_unit == "MineralIncome") continue;
+                                if (born_unit == "ParasiticBombRelayDummy") continue;
 
-
-                                foreach (var bp in BREAKPOINTS)
+                                dsplayer pl = replay.PLAYERS.Where(x => x.POS == born_playerid).FirstOrDefault();
+                                if (pl != null)
                                 {
-                                    if (bp.Value > 0 && gameloop > bp.Value) continue;
+                                    int fixloop = born_gameloop;
 
-
-                                    if (track.UNITS.ContainsKey(playerid))
+                                    if (Spawns.ContainsKey(born_playerid) && Spawns[born_playerid].Count > 0)
                                     {
-                                        if (track.UNITS[playerid].ContainsKey(bp.Key))
-                                        {
-                                            if (track.UNITS[playerid][bp.Key].ContainsKey(unit)) track.UNITS[playerid][bp.Key][unit] = track.UNITS[playerid][bp.Key][unit] + 1;
-                                            else track.UNITS[playerid][bp.Key].Add(unit, 1);
-                                        }
-                                        else
-                                        {
-                                            track.UNITS[playerid].Add(bp.Key, new Dictionary<string, int>());
-                                            track.UNITS[playerid][bp.Key].Add(unit, 1);
+                                        int maxloop = Spawns[born_playerid].OrderByDescending(x => x.Key).First().Key;
+                                        if ((born_gameloop - maxloop) <= 720) {
+                                            fixloop = maxloop;
                                         }
                                     }
-                                    else
+
+                                    if (!Spawns.ContainsKey(born_playerid)) Spawns.Add(playerid, new Dictionary<int, Dictionary<string, int>>());
+                                    if (!Spawns[born_playerid].ContainsKey(fixloop)) Spawns[born_playerid].Add(fixloop, new Dictionary<string, int>());
+                                    if (!Spawns[born_playerid][fixloop].ContainsKey(born_unit)) Spawns[born_playerid][fixloop].Add(born_unit, 1);
+                                    else Spawns[born_playerid][fixloop][born_unit]++;
+
+
+                                    if (!track.UNITS.ContainsKey(born_playerid)) track.UNITS.Add(born_playerid, new Dictionary<string, Dictionary<string, int>>());
+
+                                    if (fixloop >= 20640 && fixloop <= 22080)
+                                        track.UNITS[born_playerid]["MIN15"] = Spawns[born_playerid][fixloop];
+                                    else if (fixloop >= 13440 && fixloop <= 14880)
+                                        track.UNITS[born_playerid]["MIN10"] = Spawns[born_playerid][fixloop];
+                                    else if (fixloop >= 6240 && fixloop <= 7680)
+                                        track.UNITS[born_playerid]["MIN5"] = Spawns[born_playerid][fixloop];
+
+                                    if (track.UNITS[born_playerid].ContainsKey("ALL") && track.UNITS[born_playerid]["ALL"].ContainsKey("Gas"))
                                     {
-                                        track.UNITS.Add(playerid, new Dictionary<string, Dictionary<string, int>>());
-                                        track.UNITS[playerid].Add(bp.Key, new Dictionary<string, int>());
-                                        track.UNITS[playerid][bp.Key].Add(unit, 1);
-                                    }
+                                        int gas = track.UNITS[born_playerid]["ALL"]["Gas"];
+                                        int middle = track.UNITS[born_playerid]["ALL"]["Mid"];
+                                        int upgrades = track.UNITS[born_playerid]["ALL"]["Upgrades"];
+                                        track.UNITS[born_playerid]["ALL"] = Spawns[born_playerid][fixloop];
+                                        track.UNITS[born_playerid]["ALL"]["Gas"] = gas;
+                                        track.UNITS[born_playerid]["ALL"]["Mid"] = middle;
+                                        track.UNITS[born_playerid]["ALL"]["Upgrades"] = upgrades;
+                                    } else
+                                        track.UNITS[born_playerid]["ALL"] = Spawns[born_playerid][fixloop];
 
-                                }
-
-
-                                if (track.PLAYERS[playerid].REALPOS == 0)
-                                {
-                                    int x = int.Parse(pydic["m_x"].ToString());
-                                    int y = int.Parse(pydic["m_y"].ToString());
-
-                                    int pos = area.GetPos(x, y);
-
-                                    if (pos > 0)
+                                    if (pl.REALPOS == null || pl.REALPOS == 0)
                                     {
-                                        foreach (dsplayer fpl in track.PLAYERS.Values)
+                                        int pos = 0;
+                                        if ((born_gameloop - 480) % 1440 == 0)
+                                            pos = 1;
+                                        else if ((born_gameloop - 481) % 1440 == 0)
+                                            pos = 1;
+                                        else if ((born_gameloop - 960) % 1440 == 0)
+                                            pos = 2;
+                                        else if ((born_gameloop - 961) % 1440 == 0)
+                                            pos = 2;
+                                        else if ((born_gameloop - 1440) % 1440 == 0)
+                                            pos = 3;
+                                        else if ((born_gameloop - 1441) % 1440 == 0)
+                                            pos = 3;
+
+                                        if (pos > 0)
                                         {
-                                            if (fpl.REALPOS == pos)
-                                            {
-                                                if (UNITPOS.ContainsKey(fpl.POS)) Program.Log(id + " Double pos: X: " + x + " Y: " + y + " POS:" + track.PLAYERS[playerid].POS + " REALPOS: " + pos + " (DX: " + UNITPOS[fpl.POS].x + " DY: " + UNITPOS[fpl.POS].y + " DPOS: " + fpl.POS + " DREALPOS: " + fpl.REALPOS + ")");
-                                            }
+                                            int team = REParea.GetTeam((int)pydic["m_x"], (int)pydic["m_y"]);
+                                            if (team == 1) pl.REALPOS = pos;
+                                            else if (team == 2) pl.REALPOS = pos + 3;
+                                            pl.TEAM = team - 1;
                                         }
-                                        if (!UNITPOS.ContainsKey(playerid)) UNITPOS.Add(playerid, new REPvec(x, y));
-                                        track.PLAYERS[playerid].REALPOS = pos;
                                     }
-                                }
-
-                                if (fix == true)
-                                {
-                                    if (unit == "StukovInfestedBunker") track.PLAYERS[playerid].ARMY += 375;
-                                    else if (unit == "HornerAssaultGalleon") track.PLAYERS[playerid].ARMY += 475;
-
                                 }
                             }
                         }
                     }
                 }
+                else if (pydic.ContainsKey("m_upgradeTypeName") && pydic["m_upgradeTypeName"].ToString() == "MineralIncomeBonus") {
+                    int playerid = (int)pydic["m_playerId"];
+                    int gameloop = (int)pydic["_gameloop"];
+                    int bonus = (int)pydic["m_count"];
+
+                    dsplayer pl = replay.PLAYERS.Where(x => x.POS == playerid).FirstOrDefault();
+                    if (pl != null)
+                    {
+                        if (pl.REALPOS > 0)
+                        {
+                            int lastmid = -1;
+                            lastmid = track.Inc.Middle.LastOrDefault().Value;
+                            
+                            if (pl.TEAM == 0)
+                            {
+                                if (bonus > 0)
+                                {
+                                    track.Inc.MidT1 = true;
+                                    track.Inc.MidT2 = false;
+                                    track.Inc.Middle[gameloop] = 0;
+                                }
+                                else if (bonus < 0) track.Inc.MidT1 = false;
+                                else if (lastmid >= 0) track.Inc.Middle[gameloop] = lastmid;
+                            }
+                            else if (pl.TEAM == 1)
+                            {
+                                if (bonus > 0)
+                                {
+                                    track.Inc.MidT2 = true;
+                                    track.Inc.MidT1 = false;
+                                    track.Inc.Middle[gameloop] = 1;
+                                }
+                                else if (bonus < 0) track.Inc.MidT2 = false;
+                                else if (lastmid >= 0) track.Inc.Middle[gameloop] = lastmid;
+                            }
+                        }
+                    }
+                }
+                else if (pydic.ContainsKey("m_unitTagIndex") && (int)pydic["m_unitTagIndex"] == 20 && pydic.ContainsKey("_event") && pydic["_event"].ToString() == "NNet.Replay.Tracker.SUnitOwnerChangeEvent")
+                {
+                    int gameloop = (int)pydic["_gameloop"];
+                    int upkeepid = (int)pydic["m_upkeepPlayerId"];
+
+                    if (upkeepid == 13)
+                        track.Inc.Middle[gameloop] = 0;
+                    else if (upkeepid == 14)
+                        track.Inc.Middle[gameloop] = 1;
+
+                }
                 else if (pydic.ContainsKey("m_stats"))
                 {
-                    int playerid = int.Parse(pydic["m_playerId"].ToString());
-                    int gameloop = int.Parse(pydic["_gameloop"].ToString());
+                    int playerid = (int)pydic["m_playerId"];
+                    int gameloop = (int)pydic["_gameloop"];
                     int spawn = (gameloop - 480) % 1440;
                     int pos = 0;
 
@@ -252,13 +311,26 @@ namespace s2decode
                     if (track.PLAYERS.ContainsKey(playerid))
                     {
                         spawns++;
+                        bool failsafe = false;
                         if (track.PLAYERS[playerid].REALPOS > 0) pos = track.PLAYERS[playerid].REALPOS;
-                        else pos = track.PLAYERS[playerid].POS;
+                        else
+                        {
+                            pos = track.PLAYERS[playerid].POS;
+                            failsafe = true;
+                        }
 
                         PythonDictionary pystats = pydic["m_stats"] as PythonDictionary;
+                        double income = Convert.ToDouble((int)pystats["m_scoreValueMineralsCollectionRate"]);
                         track.PLAYERS[playerid].KILLSUM = (int)pystats["m_scoreValueMineralsKilledArmy"];
-                        track.PLAYERS[playerid].INCOME += Convert.ToDouble(pystats["m_scoreValueMineralsCollectionRate"]) / 9.15;
+                        track.PLAYERS[playerid].INCOME += income / 9.15;
+                        bool playerspawn = false;
+                        if (spawn == 0 && (pos == 1 || pos == 4)) playerspawn = true;
+                        if (spawn == 480 && (pos == 2 || pos == 5)) playerspawn = true;
+                        if (spawn == 960 && (pos == 3 || pos == 6)) playerspawn = true;
+                        if (playerspawn == true) track.PLAYERS[playerid].ARMY += (int)pystats["m_scoreValueMineralsUsedActiveForces"];
 
+                        if (failsafe) continue;
+                        if (income < 400) continue;
                         /**
                         ticks modify  1gas income  possible1 possible2
                         160 2,8125  0,1875  450 base
@@ -271,58 +343,87 @@ namespace s2decode
                         **/
                         int gas = 0;
                         int mid = 0;
-                        if (pos > 0)
+
+                        int last_gameloop = 0;
+                        int last_teammid = -1;
+
+                        int solidmid_t1 = 0;
+                        int solidmid_t2 = 0;
+                        int solidmid = 0;
+
+                        int i = 0;
+                        foreach (int myloop in track.Inc.Middle.Keys)
                         {
-                            if (!track.Inc.FS.ContainsKey(pos)) track.Inc.FS[pos] = 0;
-                            int income = (int)pystats["m_scoreValueMineralsCollectionRate"];
-                            if (pos == 1)
+
+                            int gmid = track.Inc.Middle[myloop];
+
+                            if (last_gameloop > 0 && last_teammid >= 0)
                             {
-                                if (track.SUMT1 > track.SUMT2)
-                                {
-                                    track.Inc.T1 = true;
-                                    track.Inc.T2 = false;
-                                    track.Inc.MidT1 += 160;
-                                }
-                                else
-                                {
-                                    track.Inc.T1 = false;
-                                    track.Inc.T2 = true;
-                                    track.Inc.MidT2 += 160;
-                                }
-                                track.SUMT1 = income;
-                                track.SUMT2 = 0;
-                                mid = track.Inc.MidT1;
-                            }
-                            else if (pos <= 3)
-                            {
-                                track.SUMT1 += income;
-                                mid = track.Inc.MidT1;
-                            }
-                            else if (pos > 3)
-                            {
-                                track.SUMT2 += income;
-                                mid = track.Inc.MidT2;
+                                if (!(gmid == track.PLAYERS[playerid].TEAM && last_teammid == track.PLAYERS[playerid].TEAM))
+                                    mid += myloop - last_gameloop;
                             }
 
-                            if (pos <= 3 && track.Inc.T1) income -= 60;
-                            else if (pos > 3 && track.Inc.T2) income -= 60;
+                            if (i > track.Inc.Middle.Count - 120)
+                            {
+                                if (gmid == 0) solidmid_t1++;
+                                else if (gmid == 1) solidmid_t2++;
+                            }
 
+                            if (gmid == last_teammid) solidmid++;
+                            else solidmid = 0;
+
+                            last_gameloop = myloop;
+                            last_teammid = gmid;
+                            i++;
+                        }
+                        // unknown why (empiric research)
+                        mid -= gameloop;
+                        mid *= -1;
+                        mid -= track.Inc.Middle.FirstOrDefault().Key;
+                        if (mid < 0) mid = 0;
+
+                        if (!Middle.ContainsKey(pos)) Middle.Add(pos, new Dictionary<int, bool>());
+
+                        bool? lastmid = Middle[pos].LastOrDefault().Value;
+                        bool middle = false;
+                        if (pos <= 3)
+                        {
+                            Middle[pos][gameloop] = track.Inc.MidT1;
+                            middle = track.Inc.MidT1;
+                        }
+                        else if (pos > 3)
+                        {
+                            Middle[pos][gameloop] = track.Inc.MidT2;
+                            middle = track.Inc.MidT2;
+                        }
+                        
+
+                        //string info = gameloop + "; " + pos + "; " + (int)income + "; " + track.Inc.MidT1 + "; " + track.Inc.MidT2 + "; " + solidmid + "; " + solidmid_t1 + "; " + solidmid_t2;
+                        //File.AppendAllText(@"C:\temp\bab\analyzes\income.txt", info + Environment.NewLine);
+                        /**
+                        double midincome = 0.5;
+                        if (pos <= 3) income -= midincome * (double)solidmid_t1;
+                        else if (pos > 3) income -= midincome * (double)solidmid_t2;
+                        **/
+
+                        if (lastmid != null && lastmid == middle)
+                        {
+
+                            if (middle) income -= 60;
+
+                            //if (pos <= 3 && solidmid_t1 >= 14) income -= 60;
+                            //else if (pos > 3 && solidmid_t2 >= 14) income -= 60;
 
                             if (income < 470) gas = 0; // base income
                             else if (income < 500) gas = 1;
                             else if (income < 530 && gameloop > 2240) gas = 2;
                             else if (income < 560 && gameloop > 4480) gas = 3;
-                            else if (income < 590 && gameloop > 13440) gas = 4;
-
-
-                            bool playerspawn = false;
-                            if (spawn == 0 && (pos == 1 || pos == 4)) playerspawn = true;
-                            if (spawn == 480 && (pos == 2 || pos == 5)) playerspawn = true;
-                            if (spawn == 960 && (pos == 3 || pos == 6)) playerspawn = true;
-                            if (playerspawn == true) track.PLAYERS[playerid].ARMY += (int)pystats["m_scoreValueMineralsUsedActiveForces"];
+                            else if (income < 600 && gameloop > 13440) gas = 4;
                         }
 
-                        replay.DURATION = int.Parse(pydic["_gameloop"].ToString());
+
+
+                        replay.DURATION = (int)pydic["_gameloop"];
                         track.PLAYERS[playerid].PDURATION = replay.DURATION;
 
                         foreach (var bp in BREAKPOINTS)
@@ -337,21 +438,8 @@ namespace s2decode
                                 track.UNITS[playerid][bp.Key]["Upgrades"] = (int)pystats["m_scoreValueMineralsUsedCurrentTechnology"];
 
                             if (!track.UNITS[playerid][bp.Key].ContainsKey("Gas")) track.UNITS[playerid][bp.Key]["Gas"] = gas;
-                            else
-                            {
-                                if (gas > track.UNITS[playerid][bp.Key]["Gas"])
-                                {
-                                    if (track.Inc.FS[pos] > 3)
-                                    {
-                                        track.UNITS[playerid][bp.Key]["Gas"] = gas;
-                                        track.Inc.FS[pos] = 0;
-                                    }
-                                    else
-                                    {
-                                        track.Inc.FS[pos]++;
-                                    }
-                                }
-                            }
+                            else if (gas > 0 && gas > track.UNITS[playerid][bp.Key]["Gas"]) track.UNITS[playerid][bp.Key]["Gas"] = gas;
+
                             track.UNITS[playerid][bp.Key]["Mid"] = mid;
                         }
                     }
@@ -369,23 +457,37 @@ namespace s2decode
             FixPos(replay);
             FixWinner(replay, _startUp);
 
+            int flast_teammid = 0;
+            int fmid = 0;
+            int flast_gameloop = 0;
+            foreach (int myloop in track.Inc.Middle.Keys)
+            {
+
+                int gmid = track.Inc.Middle[myloop];
+
+                if (flast_gameloop > 0 && flast_teammid >= 0)
+                {
+                    if (!(gmid == 1 && flast_teammid == 1))
+                        fmid += myloop - flast_gameloop;
+                }
+
+                flast_gameloop = myloop;
+                flast_teammid = gmid;
+            }
+
+            if (replay.WINNER == 0) {
+                replay.MIDTEAMWINNER = fmid;
+                replay.MIDTEAMSECOND = replay.DURATION - fmid;
+            }
+            else {
+                replay.MIDTEAMSECOND = fmid;
+                replay.MIDTEAMWINNER = replay.DURATION - fmid;
+            }
+
             foreach (dsplayer pl in replay.PLAYERS)
             {
                 if (track.UNITS.ContainsKey(pl.POS)) pl.UNITS = track.UNITS[pl.POS];
-
-                if (pl.UNITS != null && pl.UNITS.ContainsKey("ALL") && pl.UNITS["ALL"].ContainsKey("Mid"))
-                {
-                    if (pl.TEAM == replay.WINNER)
-                    {
-                        if (pl.UNITS["ALL"]["Mid"] > replay.MIDTEAMWINNER) replay.MIDTEAMWINNER = pl.UNITS["ALL"]["Mid"];
-                    }
-                    else
-                    {
-                        if (pl.UNITS["ALL"]["Mid"] > replay.MIDTEAMSECOND) replay.MIDTEAMSECOND = pl.UNITS["ALL"]["Mid"];
-                    }
-                }
                 pl.INCOME = Math.Round(pl.INCOME, 2);
-                
             }
 
             return replay;
@@ -480,7 +582,7 @@ namespace s2decode
             }
         }
 
-        private class REPvec
+        public class REPvec
         {
             public int x { get; set; }
             public int y { get; set; }
@@ -494,52 +596,30 @@ namespace s2decode
 
         private class REParea
         {
-            public Dictionary<int, Dictionary<string, REPvec>> POS { get; set; } = new Dictionary<int, Dictionary<string, REPvec>>();
-
-            public REParea()
+            public static Dictionary<int, Dictionary<string, REPvec>> POS { get; set; } = new Dictionary<int, Dictionary<string, REPvec>>()
             {
+                // spawn area pl 1,2,3
+                { 1, new Dictionary<string, REPvec>() {
+                    { "A", new REPvec(107, 162) },
+                    { "B", new REPvec(160, 106) },
+                    { "C", new REPvec(218, 160) },
+                    { "D", new REPvec(162, 216) }
+                }
+                },
+                // spawn area pl 4,5,6
+                { 2, new Dictionary<string, REPvec>()
+                {
+                    { "A", new REPvec(35, 88) },
+                    { "B", new REPvec(92, 30) },
+                    { "C", new REPvec(142, 99) },
+                    { "D", new REPvec(100, 144) }
+                }
+                }
+            };
 
-                POS.Add(1, new Dictionary<string, REPvec>());
-                POS[1].Add("A", new REPvec(115, 202));
-                POS[1].Add("B", new REPvec(154, 177));
-                POS[1].Add("C", new REPvec(184, 208));
-                POS[1].Add("D", new REPvec(153, 239));
-
-                POS.Add(2, new Dictionary<string, REPvec>());
-                POS[2].Add("A", new REPvec(151, 178));
-                POS[2].Add("B", new REPvec(179, 151));
-                POS[2].Add("C", new REPvec(210, 181));
-                POS[2].Add("D", new REPvec(183, 208));
-
-                POS.Add(3, new Dictionary<string, REPvec>());
-                POS[3].Add("A", new REPvec(179, 151));
-                POS[3].Add("B", new REPvec(206, 108));
-                POS[3].Add("C", new REPvec(243, 150));
-                POS[3].Add("D", new REPvec(210, 181));
-
-                POS.Add(4, new Dictionary<string, REPvec>());
-                POS[4].Add("A", new REPvec(6, 90));
-                POS[4].Add("B", new REPvec(35, 56));
-                POS[4].Add("C", new REPvec(69, 89));
-                POS[4].Add("D", new REPvec(36, 122));
-
-                POS.Add(5, new Dictionary<string, REPvec>());
-                POS[5].Add("A", new REPvec(35, 56));
-                POS[5].Add("B", new REPvec(57, 32));
-                POS[5].Add("C", new REPvec(93, 65));
-                POS[5].Add("D", new REPvec(69, 89));
-
-                POS.Add(6, new Dictionary<string, REPvec>());
-                POS[6].Add("A", new REPvec(57, 32));
-                POS[6].Add("B", new REPvec(91, 0));
-                POS[6].Add("C", new REPvec(126, 33));
-                POS[6].Add("D", new REPvec(93, 65));
-
-            }
-
-            public int GetPos(int x, int y)
+            public static int GetTeam(int x, int y)
             {
-                int pos = 0;
+                int team = 0;
                 bool indahouse = false;
                 foreach (int plpos in POS.Keys)
                 {
@@ -548,15 +628,15 @@ namespace s2decode
 
                     if (indahouse == true)
                     {
-                        pos = plpos;
+                        team = plpos;
                         break;
                     }
                 }
-                return pos;
+                return team;
             }
 
 
-            private bool PointInTriangle(int Px, int Py, int Ax, int Ay, int Bx, int By, int Cx, int Cy)
+            private static bool PointInTriangle(int Px, int Py, int Ax, int Ay, int Bx, int By, int Cx, int Cy)
             {
                 bool indahouse = false;
                 int b1 = 0;
@@ -571,7 +651,7 @@ namespace s2decode
                 return indahouse;
             }
 
-            private int sign(int Ax, int Ay, int Bx, int By, int Cx, int Cy)
+            private static int sign(int Ax, int Ay, int Bx, int By, int Cx, int Cy)
             {
                 int sig = (Ax - Cx) * (By - Cy) - (Bx - Cx) * (Ay - Cy);
                 return sig;
@@ -589,11 +669,9 @@ namespace s2decode
 
         private class Teamincome
         {
-            public bool T1 { get; set; } = false;
-            public bool T2 { get; set; } = false;
-            public int MidT1 { get; set; } = 0;
-            public int MidT2 { get; set; } = 0;
-            public Dictionary<int, int> FS { get; set; } = new Dictionary<int, int>();
+            public bool MidT1 { get; set; } = false;
+            public bool MidT2 { get; set; } = false;
+            public Dictionary<int, int> Middle { get; set; } = new Dictionary<int, int>();
         }
     }
 }

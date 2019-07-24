@@ -47,7 +47,7 @@
     void ScanReps()
     {
         if (StartUp.SAMPLEDATA == true) StartUp.SAMPLEDATA = false;
-        FindReps();
+        DSdata.NewReplays();
         if (DSdata.Todo.Count > 0)
         {
             if (StateChange.Scan.Running == false)

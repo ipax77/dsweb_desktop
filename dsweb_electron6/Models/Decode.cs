@@ -40,6 +40,9 @@ namespace dsweb_electron6.Models
             }
             s2dec.TOTAL = total;
             Scan.Total = total;
+            s2dec.TOTAL_DONE = 0;
+            Scan.Info = s2dec.TOTAL_DONE + "/" + s2dec.TOTAL + " done. (0%)";
+
             for (int i = 0; i < CORES; i++)
             {
                 Thread thread = new Thread(OnHandlerStart)

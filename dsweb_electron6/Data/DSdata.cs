@@ -5,6 +5,7 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Text.RegularExpressions;
 using dsweb_electron6.Models;
 using Newtonsoft.Json;
 using dsweb_electron6;
@@ -198,6 +199,12 @@ namespace dsweb_electron6.Data
         public Dictionary<string, List<Models.dsreplay>> BUILD_REPLAYS { get; private set; } = new Dictionary<string, List<dsreplay>>();
         StartUp _startUp;
 
+        HashSet<string> ALLUNITS = new HashSet<string>();
+        static Regex rx_star = new Regex(@"(.*)Starlight(.*)", RegexOptions.Singleline);
+        static Regex rx_light = new Regex(@"(.*)Lightweight(.*)", RegexOptions.Singleline);
+        static Regex rx_hero = new Regex(@"Hero(.*)WaveUnit", RegexOptions.Singleline);
+        static Regex rx_mp = new Regex(@"(.*)MP$", RegexOptions.Singleline);
+
         public DSdata_cache(StartUp startUp) {
             _startUp = startUp;
         }
@@ -232,6 +239,7 @@ namespace dsweb_electron6.Data
                 {
                     GenBuilds(player);
                 }
+                //File.WriteAllLines(@"C:/temp/bab/analyzes/units.txt", ALLUNITS.OrderBy(o => o));
             }
         }
 
@@ -337,8 +345,7 @@ namespace dsweb_electron6.Data
 
                                 foreach (string unit in pl.UNITS[bp].Keys.ToArray())
                                 {
-                                    if (unit == "DecorationDefense") continue;
-                                    if (unit == "DecorationFood") continue;
+                                    if (unit.StartsWith("Decoration")) continue;
 
                                     bool isBrawl = false;
                                     if (unit.StartsWith("Hybrid")) isBrawl = true;
@@ -350,12 +357,17 @@ namespace dsweb_electron6.Data
                                     {
                                         if (pl.UNITS[bp][unit] > 1) pl.UNITS[bp][unit] = 1;
                                     }
+                                    
+                                    string fixunit = FixUnitName(unit);
+                                    //ALLUNITS.Add(fixunit);
 
-                                    if (UNITS[bp][pl.RACE]["ALL"].ContainsKey(unit)) UNITS[bp][pl.RACE]["ALL"][unit] += pl.UNITS[bp][unit];
-                                    else UNITS[bp][pl.RACE]["ALL"].Add(unit, pl.UNITS[bp][unit]);
+                                    if (fixunit == "") continue;
 
-                                    if (UNITS[bp][pl.RACE][opp.RACE].ContainsKey(unit)) UNITS[bp][pl.RACE][opp.RACE][unit] += pl.UNITS[bp][unit];
-                                    else UNITS[bp][pl.RACE][opp.RACE].Add(unit, pl.UNITS[bp][unit]);
+                                    if (UNITS[bp][pl.RACE]["ALL"].ContainsKey(fixunit)) UNITS[bp][pl.RACE]["ALL"][fixunit] += pl.UNITS[bp][unit];
+                                    else UNITS[bp][pl.RACE]["ALL"].Add(fixunit, pl.UNITS[bp][unit]);
+
+                                    if (UNITS[bp][pl.RACE][opp.RACE].ContainsKey(fixunit)) UNITS[bp][pl.RACE][opp.RACE][fixunit] += pl.UNITS[bp][unit];
+                                    else UNITS[bp][pl.RACE][opp.RACE].Add(fixunit, pl.UNITS[bp][unit]);
 
 
                                 }
@@ -458,6 +470,45 @@ namespace dsweb_electron6.Data
                 }
             }
 
+        }
+
+        public string FixUnitName(string unit)
+        {
+            if (unit == "TrophyRiftPremium") return "";
+            // abathur unknown
+            if (unit == "ParasiticBombRelayDummy") return "";
+            // raynor viking
+            if (unit == "VikingFighter" || unit == "VikingAssault") return "Viking";
+            if (unit == "DuskWings") return "DuskWing";
+            // stukov lib
+            if (unit == "InfestedLiberatorViralSwarm") return "InfestedLiberator";
+            // Tychus extra mins
+            if (unit == "MineralIncome") return "";
+            // Zagara
+            if (unit == "InfestedAbomination") return "Aberration";
+            // Horner viking
+            if (unit == "HornerDeimosVikingFighter" || unit == "HornerDeimosVikingAssault") return "HornerDeimosViking";
+            if (unit == "HornerAssaultGalleonUpgraded") return "HornerAssaultGalleon";
+            // Terrran thor
+            if (unit == "ThorAP") return "Thor";
+
+            Match m = rx_star.Match(unit);
+            if (m.Success)
+                return m.Groups[1].ToString() + m.Groups[2].ToString();
+
+            m = rx_light.Match(unit);
+            if (m.Success)
+                return m.Groups[1].ToString() + m.Groups[2].ToString();
+
+            m = rx_hero.Match(unit);
+            if (m.Success)
+                return m.Groups[1].ToString();
+
+            m = rx_mp.Match(unit);
+            if (m.Success)
+                return m.Groups[1].ToString();
+
+            return unit;
         }
  
         public double GenWr(int wins, int games)

@@ -1,4 +1,9 @@
 
+v1.0.8
+
+- gas/mid/unit count rework
+
+
 v1.0.7
 
 Added Gamemode/Playercount filter

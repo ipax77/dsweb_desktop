@@ -39,6 +39,12 @@ namespace s2decode
 
         public ScriptEngine LoadEngine(int ID, StartUp startUp)
         {
+            if (ENGINE != null)
+            {
+                Program.Log("Engine already up.", 3);
+                return ENGINE;
+            }
+
             _startUp = startUp;
             Program.Log("Loading Engine ..", 3);
             REPID = ID + 1;

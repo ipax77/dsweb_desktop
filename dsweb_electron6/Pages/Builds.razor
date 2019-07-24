@@ -217,11 +217,23 @@
                                 <tbody>
                                     @foreach (var ent in _DSdata.BUILDREPLAYSCACHE[_options.Build][options.CMDR][options.CMDR_VS].OrderByDescending(o => o.GAMETIME).Skip(skip).Take(take))
                                     {
-                                        <tr class="table-row sort-link" @onclick="@(() => ShowGame(@ent.ID))">
+                                        @if (replay_id == ent.ID)
+                                        {
+                                            <tr class="table-info table-row sort-link" @onclick="@(() => ShowGame(@ent.ID))">
 
-                                            <th scope="row">@ent.ID</th>
-                                            <td>@ent.GAMETIME.ToString().Substring(0, 8)</td>
-                                        </tr>
+                                                <th scope="row">@ent.ID</th>
+                                                <td>@ent.GAMETIME.ToString().Substring(0, 8)</td>
+                                            </tr>
+
+                                        }
+                                        else
+                                        {
+                                            <tr class="table-row sort-link" @onclick="@(() => ShowGame(@ent.ID))">
+
+                                                <th scope="row">@ent.ID</th>
+                                                <td>@ent.GAMETIME.ToString().Substring(0, 8)</td>
+                                            </tr>
+                                        }
                                     }
                                 </tbody>
                             </table>
@@ -361,11 +373,23 @@
                                     <tbody>
                                         @foreach (var ent in _DSdata.BUILDREPLAYSCACHE[options.BUILD_COMPARE][options.CMDR][options.CMDR_VS].OrderByDescending(o => o.GAMETIME).Skip(skip_vs).Take(take))
                                         {
-                                            <tr class="table-row sort-link" @onclick="@(() => ShowGame_vs(@ent.ID))">
+                                            @if (replay_id == ent.ID)
+                                            {
+                                                <tr class="table-info table-row sort-link" @onclick="@(() => ShowGame_vs(@ent.ID))">
 
-                                                <th scope="row">@ent.ID</th>
-                                                <td>@ent.GAMETIME.ToString().Substring(0, 8)</td>
-                                            </tr>
+                                                    <th scope="row">@ent.ID</th>
+                                                    <td>@ent.GAMETIME.ToString().Substring(0, 8)</td>
+                                                </tr>
+
+                                            }
+                                            else
+                                            {
+                                                <tr class="table-row sort-link" @onclick="@(() => ShowGame_vs(@ent.ID))">
+
+                                                    <th scope="row">@ent.ID</th>
+                                                    <td>@ent.GAMETIME.ToString().Substring(0, 8)</td>
+                                                </tr>
+                                            }
                                         }
                                     </tbody>
                                 </table>
@@ -430,6 +454,7 @@
     private int id = 0;
     private string GameClass = "colapsed";
     private Models.dsreplay replay;
+    private int replay_id = 0;
     int skip = 0;
     int skip_vs = 0;
     int take = 12;
@@ -505,11 +530,13 @@
     public void ShowGame(int repid) {
         GameClass = "null";
         replay = _DSdata.BUILDREPLAYSCACHE[_options.Build][options.CMDR][options.CMDR_VS].Where(x => x.ID == repid).ToArray()[0];
+        replay_id = repid;
     }
 
     public void ShowGame_vs(int repid) {
         GameClass = "null";
         replay = _DSdata.BUILDREPLAYSCACHE[options.BUILD_COMPARE][options.CMDR][options.CMDR_VS].Where(x => x.ID == repid).ToArray()[0];
+        replay_id = repid;
     }
 
     void Skip()
