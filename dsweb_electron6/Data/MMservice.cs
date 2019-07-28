@@ -21,6 +21,7 @@ namespace dsweb_electron6.Data
         public bool SEARCHING { get; set; } = false;
         public bool GAMEFOUND { get; set; } = false;
         public bool AllowRandoms { get; set; } = false;
+        public string RandomIsDisabled { get; set; } = "d-none";
         public string Serverinfo { get; set; } = "Offline";
         public string Serverbadge { get; set; } = "badge-offline";
         public string Info { get; set; } = "";
@@ -61,6 +62,7 @@ namespace dsweb_electron6.Data
             SEARCHING = false;
             GAMEFOUND = false;
             AllowRandoms = false;
+            RandomIsDisabled = "d-none";
             _time = new TimeSpan(0);
             Serverinfo = "Offline";
             Serverbadge = "badge-danger";
@@ -102,9 +104,10 @@ namespace dsweb_electron6.Data
                 {
                     Thread.Sleep(1000);
                     _time = _time.Add(TimeSpan.FromSeconds(1));
-                    if (_time.TotalMinutes > 1)
+                    if (_time.TotalMinutes > 1 && AllowRandoms == false)
                     {
                         AllowRandoms = true;
+                        RandomIsDisabled = "";
                         Info += " You can fill your lobby with randoms now if you want (check 'allow Randoms' top right)";
                     }
                     var res = DSrest.FindGame(seplayer.Name);

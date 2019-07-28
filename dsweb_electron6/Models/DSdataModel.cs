@@ -100,7 +100,7 @@ namespace dsweb_electron6.Models
                         dsreplay rep = null;
                         try
                         {
-                            rep = System.Text.Json.Serialization.JsonSerializer.Parse<dsreplay>(fileContents);
+                            rep = System.Text.Json.JsonSerializer.Deserialize<dsreplay>(fileContents);
                             if (rep != null)
                             {
                                 rep.Init();

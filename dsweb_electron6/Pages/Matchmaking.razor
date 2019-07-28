@@ -101,8 +101,8 @@ else
                             </div>
                         </div>
                     </div>
-                    <div class="form-group mr-2">
-                        <input type="checkbox" name="serandom" id="serandom" disabled="@_mm." @bind="@seplayer.Random" />
+                    <div class="form-group mr-2 @_mm.RandomIsDisabled">
+                        <input type="checkbox" name="serandom" id="serandom" @bind="@seplayer.Random" />
                         <label for="serandom" class="control-label">allow Randoms</label>
                     </div>
                 </form>

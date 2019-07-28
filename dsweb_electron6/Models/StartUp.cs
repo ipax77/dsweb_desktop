@@ -18,6 +18,7 @@ namespace dsweb_electron6.Models
         public UserConfig Conf { get; set; } = new UserConfig();
         public bool FIRSTRUN { get; set; } = false;
         public bool SAMPLEDATA { get; set; } = false;
+        public static string VERSION { get; } = "v1.0.9";
 
         public StartUp(IConfiguration config)
         {
@@ -25,6 +26,9 @@ namespace dsweb_electron6.Models
             if (!File.Exists(Program.myConfig))
             {
                 Helper(Conf);
+                string exedir = new FileInfo(Assembly.GetExecutingAssembly().Location).DirectoryName;
+                Conf.ExeDir = exedir;
+                Conf.Version = VERSION;
                 Save();
                 FirstRun();
             }
@@ -48,6 +52,7 @@ namespace dsweb_electron6.Models
                 _config.Bind("Config", Conf);
                 string exedir = new FileInfo(Assembly.GetExecutingAssembly().Location).DirectoryName;
                 Conf.ExeDir = exedir;
+                Conf.Version = VERSION;
                 Program.workdir = Conf.WorkDir;
                 Program.myJson_file = Conf.WorkDir + "/data.json";
                 if (!File.Exists(Program.myJson_file))

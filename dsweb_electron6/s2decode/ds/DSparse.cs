@@ -151,6 +151,7 @@ namespace s2decode
                                 if (born_unit == "TrophyRiftPremium") continue;
                                 if (born_unit == "MineralIncome") continue;
                                 if (born_unit == "ParasiticBombRelayDummy") continue;
+                                if (born_unit == "Biomass") continue;
 
                                 dsplayer pl = replay.PLAYERS.Where(x => x.POS == born_playerid).FirstOrDefault();
                                 if (pl != null)

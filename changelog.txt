@@ -1,4 +1,9 @@
 
+v1.0.9
+
+- mm bugfix
+- unit biomass fix
+
 v1.0.8
 
 - gas/mid/unit count rework
