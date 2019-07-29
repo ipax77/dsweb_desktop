@@ -1,4 +1,8 @@
 
+v1.0.11
+
+- BuildCheck bugfix
+
 v1.0.10
 
 - publish
