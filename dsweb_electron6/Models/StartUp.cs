@@ -18,7 +18,7 @@ namespace dsweb_electron6.Models
         public UserConfig Conf { get; set; } = new UserConfig();
         public bool FIRSTRUN { get; set; } = false;
         public bool SAMPLEDATA { get; set; } = false;
-        public static string VERSION { get; } = "v1.0.10";
+        public static string VERSION { get; } = "v1.0.11";
 
         public StartUp(IConfiguration config)
         {

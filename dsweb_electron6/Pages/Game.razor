@@ -53,7 +53,7 @@
                                     <td width="30px"><img alt="img_@pl.RACE" longdesc="img_@pl.RACE" src="@DSdata.GetIcon(@pl.RACE)" width="30" height="30" /></td>
 
                                     <!--<td><input id="build_@pl.RACE\_@pl.REALPOS" name="build_@pl.RACE" type="checkbox" onchange="@(eventArgs => { ShowBuild(@pl.REALPOS, eventArgs.Value); })" /></td>-->
-                                    <td><input id="build_@pl.RACE\_@pl.REALPOS" name="build_@pl.RACE" type="checkbox" @bind=@BuildCheck[pl.REALPOS].IsChecked /></td>
+                                    <td><input id="build_@pl.RACE\_@pl.REALPOS" name="build_@pl.RACE" type="checkbox" checked="@BuildCheck[pl.REALPOS].IsChecked" /></td>
                                     <td>@pl.RACE</td>
                                     <td>@(((double)@pl.ARMY / 1000).ToString("N", CultureInfo.CreateSpecificCulture("en-US")))k</td>
                                     <td>@(((double)@pl.KILLSUM / 1000).ToString("N", CultureInfo.CreateSpecificCulture("en-US")))k</td>
@@ -72,7 +72,7 @@
                         <input type="radio"
                                name="BP"
                                id="rb_5min"
-                               @onchange="@(eventArgs => { ChangeBuild(1, eventArgs.Value); })" />
+                               @onchange="@(() => { ChangeBuild(1); })" />
                         5min
                     </label>
                 </div>
@@ -82,7 +82,7 @@
                                name="BP"
                                id="rb_10min"
                                checked="checked"
-                               @onchange="@(eventArgs => { ChangeBuild(2, eventArgs.Value); })" />
+                               @onchange="@(() => { ChangeBuild(2); })" />
                         10min
                     </label>
                 </div>
@@ -91,7 +91,7 @@
                         <input type="radio"
                                name="BP"
                                id="rb_15min"
-                               @onchange="@(eventArgs => { ChangeBuild(3, eventArgs.Value); })" />
+                               @onchange="@(() => { ChangeBuild(3); })" />
                         15min
                     </label>
                 </div>
@@ -101,7 +101,7 @@
                                name="BP"
                                checked="checked"
                                id="rb_all"
-                               @onchange="@(eventArgs => { ChangeBuild(4, eventArgs.Value); })" />
+                               @onchange="@(() => { ChangeBuild(4); })" />
                         all
                     </label>
                 </div>
@@ -360,7 +360,7 @@ public void ChangeRep()
     BUILDS.Clear();
 }
 
-void ChangeBuild(int p, object checkedValue)
+void ChangeBuild(int p)
 {
     BreakPoint = p;
     string bp = "ALL";
@@ -465,8 +465,6 @@ void LoadBuild()
 
 void ShowBuildHandler(object sender, PropertyChangedEventArgs e)
 {
-    DSdyn_BuildChecked ent = new DSdyn_BuildChecked();
-    ent = sender as DSdyn_BuildChecked;
     BUILDS.Clear();
     SPECIAL.Clear();
     if (replay != null)
