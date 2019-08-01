@@ -168,6 +168,7 @@
 <br />
 <div class="container-fluid @GameClass">
     <Game replay="replay" />
+    <label>@ladderstring</label>
 </div>
 
 @code {
@@ -182,6 +183,7 @@
     ReplayOptions RepOpt = new ReplayOptions();
     string FilterClass => _options.Filter ? null : "collapse";
     string mb = "";
+    string ladderstring = "";
 
     public class DBFilter
     {
@@ -338,15 +340,62 @@
         }
     }
 
-    public void ShowGame(int repid)
+    public async Task ShowGame(int repid)
     {
         GameClass = "null";
         replay = myReplays.Where(x => x.ID == repid).ToArray()[0];
         replay_id = replay.ID;
+        ladderstring = await GetReplayString(replay);
     }
 
     public void Dispose()
     {
         _options.PropertyChanged -= OptionChanged;
     }
+
+
+    async Task<string> GetReplayString(dsreplay game)
+    {
+        string result1 = "";
+        string result2 = "";
+        string result = "unknown";
+        if (game != null)
+        {
+            await Task.Run(() =>
+            {
+                foreach (dsplayer player in game.PLAYERS.OrderBy(o => o.REALPOS))
+                {
+                    if (player.REALPOS <= game.PLAYERCOUNT / 2)
+                    {
+                        result1 += "(" + player.NAME + ", " + player.RACE + ", " + player.KILLSUM + ")";
+                        if (player.REALPOS != game.PLAYERCOUNT / 2)
+                        {
+                            result1 += ", ";
+                        }
+                    }
+                    else if (player.REALPOS > game.PLAYERCOUNT / 2)
+                    {
+                        result2 += "(" + player.NAME + ", " + player.RACE + ", " + player.KILLSUM + ")";
+                        if (player.REALPOS != game.PLAYERCOUNT)
+                        {
+                            result2 += ", ";
+                        }
+
+                    }
+                }
+            });
+
+
+            if (game.WINNER == 0)
+            {
+                result = result1 + " vs " + result2;
+            }
+            else if (game.WINNER == 1)
+            {
+                result = result2 + " vs " + result1;
+            }
+        }
+        return result;
+    }
+
 }

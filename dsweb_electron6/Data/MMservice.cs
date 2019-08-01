@@ -30,6 +30,8 @@ namespace dsweb_electron6.Data
         public int MMID { get; set; } = 0;
         public string Server { get; set; } = "NA";
         public MMgame Game { get; set; } = new MMgame();
+        public MMgame preGame { get; set; } = new MMgame();
+
 
         public ConcurrentDictionary<string, bool> Lobby = new ConcurrentDictionary<string, bool>();
 
@@ -76,6 +78,8 @@ namespace dsweb_electron6.Data
         public void FindGame(SEplayer _seplayer)
         {
             seplayer = _seplayer;
+            Game = new MMgame();
+            preGame = new MMgame();
             Info = "Connecting ...";
             Serverbadge = "badge-success";
             Serverinfo = "Online";
@@ -170,7 +174,7 @@ namespace dsweb_electron6.Data
                     Thread.Sleep(250);
                     Info = "Waiting for all players to accept ...";
                     game = DSrest.Status(id);
-                    Game = game;
+                    preGame = game;
                     if (game == null)
                     {
                         //Console.WriteLine("game = null {0} => ({1})", seplayer.Name, id);

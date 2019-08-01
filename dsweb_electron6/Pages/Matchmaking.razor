@@ -317,9 +317,9 @@ else
     <button type="button" class="btn btn-success mt-1 mr-2" disabled="@isAcceptDisabled" @onclick="@Acceptgame">Accept</button>
     <button type="button" class="btn btn-danger btn-sm mt-1 mr-2" disabled="@isDeclinedDisabled" @onclick="@Declinegame">decline</button>
     <div class="row mt-2 mb-2">
-        @if (_mm.Game != null)
+        @if (_mm.preGame != null)
         {
-        @foreach (var pl in _mm.Game.Players())
+        @foreach (var pl in _mm.preGame.Players())
         {
             <div class="col-auto">
                 @if (pl.Accepted == true)
@@ -381,6 +381,7 @@ else
     int repid = 0;
     int dd = 0;
     bool RepSelDisabled = true;
+    bool UpdateRunning = false;
 
     protected override void OnInit()
     {
@@ -407,10 +408,25 @@ else
         isDeclinedDisabled = false;
         _mm.FindGame(seplayer);
 
-        Task.Factory.StartNew(() =>
+        Update();
+    }
+
+    void Update()
+    {
+        UpdateRunning = true;
+        Task.Run(() =>
         {
             Thread.Sleep(3000);
             while (_mm.SEARCHING == true)
+            {
+                Thread.Sleep(2000);
+                Invoke(() =>
+                {
+                    StateHasChanged();
+                });
+            }
+            UpdateRunning = false;
+            while (_mm.GAMEFOUND == true)
             {
                 Thread.Sleep(1000);
                 Invoke(() =>
@@ -419,14 +435,14 @@ else
                 });
             }
 
-            while (_mm.GAMEFOUND == true)
+            // someone declined - searching again
+            if (_mm.SEARCHING == true && UpdateRunning == false)
             {
-                Thread.Sleep(500);
-                Invoke(() =>
-                {
-                    StateHasChanged();
-                });
+                isAcceptDisabled = false;
+                isDeclinedDisabled = false;
+                Update();
             }
+            
         });
     }
 

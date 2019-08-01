@@ -20,7 +20,8 @@ namespace dsweb_electron6.Models
     {
         
         //public static RestClient Client = new RestClient("https://localhost:44393/");
-        public static RestClient Client = new RestClient("https://www.pax77.org:9128/");
+        public static RestClient Client = new RestClient("http://192.168.178.28:9133/");
+        //public static RestClient Client = new RestClient("https://www.pax77.org:9128/");
 
         public static BasePlayer LetmePlay(SEplayer player)
         {
@@ -349,7 +350,7 @@ namespace dsweb_electron6.Models
     }
 
     [Serializable]
-    public class SEplayer : MMplayer
+    public class SEplayer : BasePlayer
     {
         public string Mode { get; set; } = "Commander";
         public string Server { get; set; } = "NA";
