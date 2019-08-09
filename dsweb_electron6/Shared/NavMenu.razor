@@ -82,13 +82,13 @@
                 <br />
                 <div class="btn-group-vertical ml-3">
                     <div>
-                        <input type="checkbox" @bind="@OTF" />
+                        <input type="checkbox" checked="@OTF" />
                         <button type="button" class="btn btn-sm btn-primary" data-toggle="tooltip" data-placement="top" @onclick="@Otf" title="Auto-decode new replays after each game.">
                             on the fly scan
                         </button>
                     </div>
                     <div>
-                        <input type="checkbox" @bind="@StartUp.SAMPLEDATA" />
+                        <input type="checkbox" checked="@StartUp.SAMPLEDATA" />
                         <button type="button" class="btn btn-sm btn-primary" data-toggle="tooltip" data-placement="top" @onclick="@Sampledata" title="Use a sample dataset to test the application.">
                             use sample data
                         </button>
