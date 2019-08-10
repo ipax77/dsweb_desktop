@@ -26,21 +26,29 @@ else
     {
         <dsweb_electron6.Pages.Upload />
     }
+    if (Loading == true)
+    {
+        <a>Loading ..</a>
+    }
+    else
+    {
     <dsweb_electron6.Pages.Scan />
+    }
 }
 
 <!--
 <button name="btn_mode" class="btn btn-sm btn-primary" @onclick="@UpdateApp">Update</button>
 -->
 @code {
-
     TimeSpan t;
+    bool Loading = true;
 
-    protected override void OnInit()
+    protected override async Task OnInitAsync()
     {
-        StartUp.Init();
-        DSdata.Init();
+        await StartUp.Init();
+        await DSdata.Init();
         t = DateTime.Now - StartUp.Conf.LastUpload;
+        Loading = false;
         stateChanged.PropertyChanged += Update;
     }
 

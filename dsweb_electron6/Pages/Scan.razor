@@ -1,6 +1,5 @@
 @page "/scan"
 @using dsweb_electron6.Models
-@using System.Threading;
 @using System.ComponentModel
 @inject IComponentContext ComponentContext
 @inject StartUp StartUp
@@ -44,10 +43,10 @@
     string SCAN = "";
     bool init = false;
 
-    void ScanReps()
+    async Task ScanReps()
     {
         if (StartUp.SAMPLEDATA == true) StartUp.SAMPLEDATA = false;
-        DSdata.NewReplays();
+        await DSdata.NewReplays();
         if (DSdata.Todo.Count > 0)
         {
             if (StateChange.Scan.Running == false)
@@ -92,7 +91,7 @@
 
         if (StartUp.Conf.Autoscan == true)
         {
-            ScanReps();
+            await ScanReps();
         } else
         {
             await FindReps();
@@ -103,10 +102,8 @@
 
     private async Task FindReps()
     {
-        await Task.Factory.StartNew(() => {
-            DSdata.NewReplays();
-            Invoke(() => StateHasChanged());
-        });
+        await DSdata.NewReplays();
+        StateHasChanged();
     }
 
     public void Dispose()

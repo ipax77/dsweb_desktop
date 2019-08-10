@@ -324,7 +324,7 @@
                     chartChanged.Fil = _options.fil;
                     chartChanged.Update = !chartChanged.Update;
                     _isLoading = "hidden";
-                    Invoke(() => StateHasChanged());
+                    await Invoke(() => StateHasChanged());
                 }
             }
         }

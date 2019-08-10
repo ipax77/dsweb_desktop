@@ -1,6 +1,4 @@
-﻿using Microsoft.AspNetCore.Components;
-using Microsoft.AspNetCore.Http.Extensions;
-using Microsoft.Extensions.Configuration;
+﻿using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
@@ -18,11 +16,26 @@ namespace dsweb_electron6.Models
         public UserConfig Conf { get; set; } = new UserConfig();
         public bool FIRSTRUN { get; set; } = false;
         public bool SAMPLEDATA { get; set; } = false;
-        public static string VERSION { get; } = "v1.0.14";
+        public static string VERSION { get; } = "v1.0.15";
+        private bool INIT = false;
 
         public StartUp(IConfiguration config)
         {
             _config = config;
+        }
+
+        public void Save()
+        {
+            Dictionary<string, UserConfig> temp = new Dictionary<string, UserConfig>();
+            temp.Add("Config", Conf);
+            var json = JsonConvert.SerializeObject(temp, Formatting.Indented);
+            File.WriteAllText(Program.myConfig, json);
+        }
+
+        public async Task Init()
+        {
+            if (INIT == true) return;
+            INIT = true;
             if (!File.Exists(Program.myConfig))
             {
                 Helper(Conf);
@@ -48,30 +61,18 @@ namespace dsweb_electron6.Models
                 _config.Bind("MMcredential", Conf.MMcredential);
                 _config.Bind("Cores", Conf.Cores);
                 **/
-
-                _config.Bind("Config", Conf);
-                string exedir = new FileInfo(Assembly.GetExecutingAssembly().Location).DirectoryName;
-                Conf.ExeDir = exedir;
-                Conf.Version = VERSION;
-                Program.workdir = Conf.WorkDir;
-                Program.myJson_file = Conf.WorkDir + "/data.json";
-                if (!File.Exists(Program.myJson_file))
-                    File.Create(Program.myJson_file).Dispose();
-                Program.myScan_log = Conf.WorkDir + "/log.txt";
+                await Task.Run(() => { 
+                    _config.Bind("Config", Conf);
+                    string exedir = new FileInfo(Assembly.GetExecutingAssembly().Location).DirectoryName;
+                    Conf.ExeDir = exedir;
+                    Conf.Version = VERSION;
+                    Program.workdir = Conf.WorkDir;
+                    Program.myJson_file = Conf.WorkDir + "/data.json";
+                    if (!File.Exists(Program.myJson_file))
+                        File.Create(Program.myJson_file).Dispose();
+                    Program.myScan_log = Conf.WorkDir + "/log.txt";
+                });
             }
-
-        }
-
-        public void Save()
-        {
-            Dictionary<string, UserConfig> temp = new Dictionary<string, UserConfig>();
-            temp.Add("Config", Conf);
-            var json = JsonConvert.SerializeObject(temp, Formatting.Indented);
-            File.WriteAllText(Program.myConfig, json);
-        }
-
-        public void Init()
-        {
         }
 
         public void FirstRun()

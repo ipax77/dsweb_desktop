@@ -1,17 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using dsweb_electron6;
-using System.IO;
-using Newtonsoft.Json;
-using System.Text.Json;
-using System.Text.Json.Serialization;
-using System.Text;
-using dsweb_electron6.Models;
-using dsweb_electron6.Data;
+﻿using dsweb_electron6.Data;
 using dsweb_electron6.Interfaces;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 using System.Security.Cryptography;
+using System.Text;
+using System.Text.Json;
+using System.Threading.Tasks;
 
 namespace dsweb_electron6.Models
 {
@@ -22,6 +18,8 @@ namespace dsweb_electron6.Models
         public HashSet<string> Todo = new HashSet<string>();
 
         public int ID { get; set; } = 0;
+        private bool INIT = false;
+
         public StartUp _startUp;
         IDSdata_cache _dsdata;
         DSdyn_filteroptions _options;
@@ -31,16 +29,18 @@ namespace dsweb_electron6.Models
             _options = options;
             _startUp = startUp;
             _dsdata = dsdata;
-            LoadData();
-            LoadSkip();
+
         }
 
-        public void Init()
+        public async Task Init()
         {
-
+            if (INIT == true) return;
+            INIT = true;
+            await LoadData();
+            await LoadSkip();
         }
 
-        public void LoadData()
+        public async Task LoadData()
         {
             if (File.Exists(Program.myJson_file))
             {
@@ -52,38 +52,40 @@ namespace dsweb_electron6.Models
                         _startUp.Conf.Players.Remove("player");
                     } catch { }
                 }
-                lock (Replays)
-                {
-                    Replays.Clear();
-                    int maxid = 0;
-                    foreach (string fileContents in File.ReadLines(Program.myJson_file))
+                await Task.Run(() => { 
+                    lock (Replays)
                     {
-                        dsreplay rep = null;
-                        try
+                        Replays.Clear();
+                        int maxid = 0;
+                        foreach (string fileContents in File.ReadLines(Program.myJson_file, Encoding.UTF8))
                         {
-                            rep = JsonConvert.DeserializeObject<dsreplay>(fileContents);
+                            dsreplay rep = null;
+                            try
+                            {
+                                rep = JsonSerializer.Deserialize<dsreplay>(fileContents);
+                            }
+                            catch { }
+                            if (rep != null)
+                            {
+                                rep.Init();
+                                //foreach (var pl in rep.PLAYERS)
+                                //{
+                                //    if (_startUp.Conf.Players.Contains(pl.NAME))
+                                //        pl.NAME = "player";
+                                //}
+                                Replays.Add(rep);
+                                if (rep.ID > maxid) maxid = rep.ID;
+                            }
                         }
-                        catch { }
-                        if (rep != null)
-                        {
-                            rep.Init();
-                            //foreach (var pl in rep.PLAYERS)
-                            //{
-                            //    if (_startUp.Conf.Players.Contains(pl.NAME))
-                            //        pl.NAME = "player";
-                            //}
-                            Replays.Add(rep);
-                            if (rep.ID > maxid) maxid = rep.ID;
-                        }
+                        ID = maxid;
+                        NewReplays();
+                        _dsdata.Init(Replays);
+                        _options.DOIT = false;
+                        _options.BeginAtZero = !_options.BeginAtZero;
+                        _options.DOIT = true;
+                        _options.BeginAtZero = !_options.BeginAtZero;
                     }
-                    ID = maxid;
-                    NewReplays();
-                    _dsdata.Init(Replays);
-                    _options.DOIT = false;
-                    _options.BeginAtZero = !_options.BeginAtZero;
-                    _options.DOIT = true;
-                    _options.BeginAtZero = !_options.BeginAtZero;
-                }
+                });
             }
         }
 
@@ -100,7 +102,7 @@ namespace dsweb_electron6.Models
                         dsreplay rep = null;
                         try
                         {
-                            rep = System.Text.Json.JsonSerializer.Deserialize<dsreplay>(fileContents);
+                            rep = JsonSerializer.Deserialize<dsreplay>(fileContents);
                             if (rep != null)
                             {
                                 rep.Init();
@@ -114,57 +116,61 @@ namespace dsweb_electron6.Models
             }
         }
 
-        public void LoadSkip()
+        public async Task LoadSkip()
         {
-            if (File.Exists(Program.workdir + "/skip.json")) {
-                TextReader reader = new StreamReader(Program.workdir + "/skip.json", Encoding.UTF8);
-                string fileContents;
-                while ((fileContents = reader.ReadLine()) != null)
-                {
-                    try
+            await Task.Run(() => { 
+                if (File.Exists(Program.workdir + "/skip.json")) {
+                    TextReader reader = new StreamReader(Program.workdir + "/skip.json", Encoding.UTF8);
+                    string fileContents;
+                    while ((fileContents = reader.ReadLine()) != null)
                     {
-                        Skip = JsonConvert.DeserializeObject<Dictionary<string, int>>(fileContents);
-                    } catch { }
+                        try
+                        {
+                            Skip = JsonSerializer.Deserialize<Dictionary<string, int>>(fileContents);
+                        } catch { }
+                    }
+                    reader = null;
                 }
-                reader = null;
-            }
+            });
         }
 
-        public void NewReplays()
+        public async Task NewReplays()
         {
-            lock (Todo)
-            {
-                Todo.Clear();
-
-                if (_startUp.SAMPLEDATA == true) return;
-
-                HashSet<string> replist = new HashSet<string>();
-
-                foreach (dsreplay rep in Replays)
+            await Task.Run(() => { 
+                lock (Todo)
                 {
-                    replist.Add(rep.REPLAY);
-                }
+                    Todo.Clear();
 
+                    if (_startUp.SAMPLEDATA == true) return;
 
-                foreach (var dir in _startUp.Conf.Replays)
-                {
-                    if (Directory.Exists(dir))
+                    HashSet<string> replist = new HashSet<string>();
+
+                    foreach (dsreplay rep in Replays)
                     {
-                        var plainTextBytes = Encoding.UTF8.GetBytes(dir);
-                        MD5 md5 = new MD5CryptoServiceProvider();
-                        string reppath_md5 = BitConverter.ToString(md5.ComputeHash(plainTextBytes));
+                        replist.Add(rep.REPLAY);
+                    }
 
-                        foreach (var fileName in Directory.GetFiles(dir, "Direct Strike*.SC2Replay", SearchOption.AllDirectories))
+
+                    foreach (var dir in _startUp.Conf.Replays)
+                    {
+                        if (Directory.Exists(dir))
                         {
-                            string id = Path.GetFileNameWithoutExtension(fileName);
-                            string repid = reppath_md5 + "/" + id;
-                            if (Skip.Keys.Contains(repid) && Skip[repid] > 4) continue;
-                            if (replist.Contains(repid)) continue;
-                            Todo.Add(fileName);
+                            var plainTextBytes = Encoding.UTF8.GetBytes(dir);
+                            MD5 md5 = new MD5CryptoServiceProvider();
+                            string reppath_md5 = BitConverter.ToString(md5.ComputeHash(plainTextBytes));
+
+                            foreach (var fileName in Directory.GetFiles(dir, "Direct Strike*.SC2Replay", SearchOption.AllDirectories))
+                            {
+                                string id = Path.GetFileNameWithoutExtension(fileName);
+                                string repid = reppath_md5 + "/" + id;
+                                if (Skip.Keys.Contains(repid) && Skip[repid] > 4) continue;
+                                if (replist.Contains(repid)) continue;
+                                Todo.Add(fileName);
+                            }
                         }
                     }
                 }
-            }
+            });
         }
     }
 }

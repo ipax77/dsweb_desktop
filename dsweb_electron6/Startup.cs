@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -11,7 +8,6 @@ using dsweb_electron6.Data;
 using dsweb_electron6.Models;
 using ElectronNET.API;
 using dsweb_electron6.Interfaces;
-using Microsoft.AspNetCore.Components;
 
 namespace dsweb_electron6
 {
