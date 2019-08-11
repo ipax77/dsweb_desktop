@@ -37,7 +37,9 @@ namespace dsweb_electron6.Interfaces
         Dictionary<string, Dictionary<string, Dictionary<string, Models.dsfilter>>> FILTER { get; }
         Dictionary<string, List<Models.dsreplay>> BUILD_REPLAYS { get; }
 
-        void Init(List<dsreplay> replays);
+        Task Init(List<dsreplay> replays);
+        Task InitBuilds();
+
         void GenBuilds(string player, string startdate = null, string enddate = null);
         void GetDynData(DSdyn_filteroptions fil,
                         out Dictionary<string, KeyValuePair<double, int>> winrate,

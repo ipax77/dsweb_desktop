@@ -215,24 +215,31 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    @foreach (var ent in _DSdata.BUILDREPLAYSCACHE[_options.Build][options.CMDR][options.CMDR_VS].OrderByDescending(o => o.GAMETIME).Skip(skip).Take(take))
+                                    @if (!_DSdata.BUILDREPLAYSCACHE.ContainsKey(_options.Build))
                                     {
-                                        @if (replay_id == ent.ID)
+                                        <tr><th>Loading ...</th></tr>
+                                    }
+                                    else
+                                    {
+                                        @foreach (var ent in _DSdata.BUILDREPLAYSCACHE[_options.Build][options.CMDR][options.CMDR_VS].OrderByDescending(o => o.GAMETIME).Skip(skip).Take(take))
                                         {
-                                            <tr class="table-info table-row sort-link" @onclick="@(() => ShowGame(@ent.ID))">
+                                            @if (replay_id == ent.ID)
+                                            {
+                                                <tr class="table-info table-row sort-link" @onclick="@(() => ShowGame(@ent.ID))">
 
-                                                <th scope="row">@ent.ID</th>
-                                                <td>@ent.GAMETIME.ToString().Substring(0, 8)</td>
-                                            </tr>
+                                                    <th scope="row">@ent.ID</th>
+                                                    <td>@ent.GAMETIME.ToString().Substring(0, 8)</td>
+                                                </tr>
 
-                                        }
-                                        else
-                                        {
-                                            <tr class="table-row sort-link" @onclick="@(() => ShowGame(@ent.ID))">
+                                            }
+                                            else
+                                            {
+                                                <tr class="table-row sort-link" @onclick="@(() => ShowGame(@ent.ID))">
 
-                                                <th scope="row">@ent.ID</th>
-                                                <td>@ent.GAMETIME.ToString().Substring(0, 8)</td>
-                                            </tr>
+                                                    <th scope="row">@ent.ID</th>
+                                                    <td>@ent.GAMETIME.ToString().Substring(0, 8)</td>
+                                                </tr>
+                                            }
                                         }
                                     }
                                 </tbody>
@@ -371,24 +378,31 @@
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        @foreach (var ent in _DSdata.BUILDREPLAYSCACHE[options.BUILD_COMPARE][options.CMDR][options.CMDR_VS].OrderByDescending(o => o.GAMETIME).Skip(skip_vs).Take(take))
+                                        @if (!_DSdata.BUILDREPLAYSCACHE.ContainsKey(options.BUILD_COMPARE))
                                         {
-                                            @if (replay_id == ent.ID)
+                                            <tr><th>Loading ...</th></tr>
+                                        }
+                                        else
+                                        {
+                                            @foreach (var ent in _DSdata.BUILDREPLAYSCACHE[options.BUILD_COMPARE][options.CMDR][options.CMDR_VS].OrderByDescending(o => o.GAMETIME).Skip(skip_vs).Take(take))
                                             {
-                                                <tr class="table-info table-row sort-link" @onclick="@(() => ShowGame_vs(@ent.ID))">
+                                                @if (replay_id == ent.ID)
+                                                {
+                                                    <tr class="table-info table-row sort-link" @onclick="@(() => ShowGame_vs(@ent.ID))">
 
-                                                    <th scope="row">@ent.ID</th>
-                                                    <td>@ent.GAMETIME.ToString().Substring(0, 8)</td>
-                                                </tr>
+                                                        <th scope="row">@ent.ID</th>
+                                                        <td>@ent.GAMETIME.ToString().Substring(0, 8)</td>
+                                                    </tr>
 
-                                            }
-                                            else
-                                            {
-                                                <tr class="table-row sort-link" @onclick="@(() => ShowGame_vs(@ent.ID))">
+                                                }
+                                                else
+                                                {
+                                                    <tr class="table-row sort-link" @onclick="@(() => ShowGame_vs(@ent.ID))">
 
-                                                    <th scope="row">@ent.ID</th>
-                                                    <td>@ent.GAMETIME.ToString().Substring(0, 8)</td>
-                                                </tr>
+                                                        <th scope="row">@ent.ID</th>
+                                                        <td>@ent.GAMETIME.ToString().Substring(0, 8)</td>
+                                                    </tr>
+                                                }
                                             }
                                         }
                                     </tbody>
@@ -467,7 +481,7 @@
     }
 
 
-    protected override void OnInit()
+    protected override async Task OnInitAsync()
     {
         CultureInfo.CurrentCulture = CultureInfo.CreateSpecificCulture("en-US");
 
@@ -508,6 +522,7 @@
         _options.DOIT = true;
         _options.Interest = options.CMDR;
 
+        await _DSdata.InitBuilds();
 
         _options.PropertyChanged += FilOptionChanged;
         options.PropertyChanged += OptionChanged;
@@ -593,8 +608,9 @@
         CultureInfo.CurrentCulture = CultureInfo.CreateSpecificCulture("en-US");
         string bp = options.BREAKPOINT;
         string build = _options.Build;
-        List<KeyValuePair<string, double>> temp = new List<KeyValuePair<string, double>>();
-        temp = _DSdata.BUILDCACHE[build][options.CMDR][options.CMDR_VS][bp].OrderByDescending(o => o.Value).ToList();
+        List<KeyValuePair<string, double>> temp = new List<KeyValuePair<string, double>>(
+            _DSdata.BUILDCACHE[build][options.CMDR][options.CMDR_VS][bp].OrderByDescending(o => o.Value).ToList()
+        );
 
         KeyValuePair<string, double> Gas = new KeyValuePair<string, double>();
         KeyValuePair<string, double> Mid = new KeyValuePair<string, double>();

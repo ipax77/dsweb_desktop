@@ -9,6 +9,7 @@ using System.Text.RegularExpressions;
 using dsweb_electron6.Models;
 using Newtonsoft.Json;
 using dsweb_electron6;
+using System.Threading.Tasks;
 
 namespace dsweb_electron6.Data
 {
@@ -205,42 +206,59 @@ namespace dsweb_electron6.Data
         static Regex rx_hero = new Regex(@"Hero(.*)WaveUnit", RegexOptions.Singleline);
         static Regex rx_mp = new Regex(@"(.*)MP$", RegexOptions.Singleline);
 
+        private bool BuildUpdateNeeded = true;
+
         public DSdata_cache(StartUp startUp) {
             _startUp = startUp;
         }
 
-        public void Init(List<dsreplay> replays)
+        public async Task Init(List<dsreplay> replays)
         {
-            lock (REPLAYS)
-            {
-                DSdata.Enddate = DateTime.Today.AddDays(1).ToString("yyyyMMdd");
-                
-                REPLAYS.Clear();
-                REPLAYS = new List<dsreplay>(replays);
-                winratevs_CACHE.Clear();
-                winrate_CACHE.Clear();
-                BUILDCACHE.Clear();
-                BUILDREPLAYSCACHE.Clear();
-                BUILDDURCACHE.Clear();
-                BUILDWRCACHE.Clear();
-                filter_CACHE.Clear();
-                DSfilter fil = new DSfilter();
-                FILTERED_REPLAYS = fil.Filter(REPLAYS);
-                FIL_INFO = fil.FIL;
-                FIL_WR = fil.FIL.WR;
-                FILTER.Clear();
-                FILTER.Add("Winrate", new Dictionary<string, Dictionary<string, dsfilter>>());
-                FILTER["Winrate"].Add("0", new Dictionary<string, dsfilter>());
-                FILTER["Winrate"]["0"].Add("0", fil.FIL);
-                BUILD_REPLAYS.Clear();
-                BUILD_REPLAYS.Add("ALL", REPLAYS);
-                BUILD_REPLAYS.Add("player", REPLAYS);
-                foreach (string player in BUILD_REPLAYS.Keys.ToArray())
+            await Task.Run(() => { 
+                lock (REPLAYS)
                 {
-                    GenBuilds(player);
+                    DSdata.Enddate = DateTime.Today.AddDays(1).ToString("yyyyMMdd");
+                
+                    REPLAYS.Clear();
+                    REPLAYS = new List<dsreplay>(replays);
+                    winratevs_CACHE.Clear();
+                    winrate_CACHE.Clear();
+                    BUILDCACHE.Clear();
+                    BUILDREPLAYSCACHE.Clear();
+                    BUILDDURCACHE.Clear();
+                    BUILDWRCACHE.Clear();
+                    filter_CACHE.Clear();
+                    DSfilter fil = new DSfilter();
+                    FILTERED_REPLAYS = fil.Filter(REPLAYS);
+                    FIL_INFO = fil.FIL;
+                    FIL_WR = fil.FIL.WR;
+                    FILTER.Clear();
+                    FILTER.Add("Winrate", new Dictionary<string, Dictionary<string, dsfilter>>());
+                    FILTER["Winrate"].Add("0", new Dictionary<string, dsfilter>());
+                    FILTER["Winrate"]["0"].Add("0", fil.FIL);
+                    BuildUpdateNeeded = true;
+
+                    //File.WriteAllLines(@"C:/temp/bab/analyzes/units.txt", ALLUNITS.OrderBy(o => o));
                 }
-                //File.WriteAllLines(@"C:/temp/bab/analyzes/units.txt", ALLUNITS.OrderBy(o => o));
-            }
+            });
+        }
+
+        public async Task InitBuilds()
+        {
+            await Task.Run(() => {
+                lock (BUILD_REPLAYS) lock (REPLAYS)
+                {
+                    if (BuildUpdateNeeded == false) return;
+                    BuildUpdateNeeded = false;
+                    BUILD_REPLAYS.Clear();
+                    BUILD_REPLAYS.Add("ALL", REPLAYS);
+                    BUILD_REPLAYS.Add("player", REPLAYS);
+                    foreach (string player in BUILD_REPLAYS.Keys.ToArray())
+                    {
+                        GenBuilds(player);
+                    }
+                }
+            });
         }
 
         public void GenBuilds(string player, string startdate = "20190101", string enddate = "0") {
@@ -566,7 +584,8 @@ namespace dsweb_electron6.Data
             }
 
             List<dsreplay> replays = new List<dsreplay>();
-            replays = DBfilter.Filter(BUILD_REPLAYS[fil.Build].ToList(), fil, _startUp);
+            //replays = DBfilter.Filter(BUILD_REPLAYS[fil.Build].ToList(), fil, _startUp);
+            replays = DBfilter.Filter(REPLAYS.ToList(), fil, _startUp);
 
             if (fil.Mode == "Winrate")
             {

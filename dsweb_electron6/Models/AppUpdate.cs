@@ -14,16 +14,21 @@ namespace dsweb_electron6.Models
 
             if (HybridSupport.IsElectronActive)
             {
-
+                Console.WriteLine("Update ..");
                 Electron.IpcMain.On("auto-update", async (args) =>
                 {
                     var currentVersion = await Electron.App.GetVersionAsync();
+                    Console.WriteLine(currentVersion);
                     var updateCheckResult = await Electron.AutoUpdater.CheckForUpdatesAndNotifyAsync();
+                    Console.WriteLine(updateCheckResult);
                     var availableVersion = updateCheckResult.UpdateInfo.Version;
+                    Console.WriteLine(availableVersion);
                     string information = $"Current version: {currentVersion} - available version: {availableVersion}";
-
+                    Console.WriteLine(information);
                     var mainWindow = Electron.WindowManager.BrowserWindows.First();
+                    Console.WriteLine(currentVersion);
                     Electron.IpcMain.Send(mainWindow, "auto-update-reply", information);
+
                 });
             }
         }

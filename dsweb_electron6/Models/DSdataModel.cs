@@ -52,40 +52,40 @@ namespace dsweb_electron6.Models
                         _startUp.Conf.Players.Remove("player");
                     } catch { }
                 }
+                int maxid = 0;
                 await Task.Run(() => { 
-                    lock (Replays)
+                    Replays.Clear();
+                    
+                    foreach (string fileContents in File.ReadLines(Program.myJson_file, Encoding.UTF8))
                     {
-                        Replays.Clear();
-                        int maxid = 0;
-                        foreach (string fileContents in File.ReadLines(Program.myJson_file, Encoding.UTF8))
+                        dsreplay rep = null;
+                        try
                         {
-                            dsreplay rep = null;
-                            try
-                            {
-                                rep = JsonSerializer.Deserialize<dsreplay>(fileContents);
-                            }
-                            catch { }
-                            if (rep != null)
-                            {
-                                rep.Init();
-                                //foreach (var pl in rep.PLAYERS)
-                                //{
-                                //    if (_startUp.Conf.Players.Contains(pl.NAME))
-                                //        pl.NAME = "player";
-                                //}
-                                Replays.Add(rep);
-                                if (rep.ID > maxid) maxid = rep.ID;
-                            }
+                            rep = JsonSerializer.Deserialize<dsreplay>(fileContents);
                         }
-                        ID = maxid;
-                        NewReplays();
-                        _dsdata.Init(Replays);
-                        _options.DOIT = false;
-                        _options.BeginAtZero = !_options.BeginAtZero;
-                        _options.DOIT = true;
-                        _options.BeginAtZero = !_options.BeginAtZero;
+                        catch { }
+                        if (rep != null)
+                        {
+                            rep.Init();
+                            //foreach (var pl in rep.PLAYERS)
+                            //{
+                            //    if (_startUp.Conf.Players.Contains(pl.NAME))
+                            //        pl.NAME = "player";
+                            //}
+                            Replays.Add(rep);
+                            if (rep.ID > maxid) maxid = rep.ID;
+                        }
                     }
                 });
+                ID = maxid;
+                await NewReplays();
+                await _dsdata.Init(Replays);
+                _options.DOIT = false;
+                _options.BeginAtZero = !_options.BeginAtZero;
+                _options.DOIT = true;
+                _options.BeginAtZero = !_options.BeginAtZero;
+                    
+                
             }
         }
 

@@ -16,7 +16,7 @@ namespace dsweb_electron6.Models
         public UserConfig Conf { get; set; } = new UserConfig();
         public bool FIRSTRUN { get; set; } = false;
         public bool SAMPLEDATA { get; set; } = false;
-        public static string VERSION { get; } = "v1.0.15";
+        public static string VERSION { get; } = "v1.0.16";
         private bool INIT = false;
 
         public StartUp(IConfiguration config)
@@ -73,6 +73,9 @@ namespace dsweb_electron6.Models
                     Program.myScan_log = Conf.WorkDir + "/log.txt";
                 });
             }
+
+            AppUpdate appup = new AppUpdate();
+            appup.Update();
         }
 
         public void FirstRun()
