@@ -15,7 +15,7 @@ namespace dsweb_electron6.Models
             if (HybridSupport.IsElectronActive)
             {
                 Console.WriteLine("Update ..");
-                Electron.IpcMain.On("auto-update", async (args) =>
+                Electron.IpcMain.On("AppUpdater", async (args) =>
                 {
                     var currentVersion = await Electron.App.GetVersionAsync();
                     Console.WriteLine(currentVersion);
