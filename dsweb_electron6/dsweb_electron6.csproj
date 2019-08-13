@@ -189,6 +189,7 @@
     <None Remove="s2decode\pylib\site-packages\s2protocol\encoders.pyc" />
     <None Remove="s2decode\pylib\site-packages\s2protocol\namespaces.py" />
     <None Remove="s2decode\pylib\site-packages\s2protocol\namespaces.pyc" />
+    <None Remove="s2decode\pylib\site-packages\s2protocol\s2protocol.zip" />
     <None Remove="s2decode\pylib\site-packages\s2protocol\s2_cli.py" />
     <None Remove="s2decode\pylib\site-packages\s2protocol\s2_cli.pyc" />
     <None Remove="s2decode\pylib\site-packages\s2protocol\s2_cli.spec" />
@@ -306,6 +307,10 @@
     <None Remove="s2decode\pylib\site-packages\s2protocol\versions\protocol74456.pyc" />
     <None Remove="s2decode\pylib\site-packages\s2protocol\versions\protocol74741.py" />
     <None Remove="s2decode\pylib\site-packages\s2protocol\versions\protocol74741.pyc" />
+    <None Remove="s2decode\pylib\site-packages\s2protocol\versions\protocol75025.py" />
+    <None Remove="s2decode\pylib\site-packages\s2protocol\versions\protocol75025.pyc" />
+    <None Remove="s2decode\pylib\site-packages\s2protocol\versions\protocol75689.py" />
+    <None Remove="s2decode\pylib\site-packages\s2protocol\versions\protocol75689.pyc" />
     <None Remove="s2decode\pylib\site-packages\s2protocol\versions\__init__.py" />
     <None Remove="s2decode\pylib\site-packages\s2protocol\versions\__init__.pyc" />
     <None Remove="s2decode\pylib\site-packages\s2protocol\__init__.py" />
@@ -899,6 +904,9 @@
     <Content Include="s2decode\pylib\site-packages\s2protocol\namespaces.pyc">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+    <Content Include="s2decode\pylib\site-packages\s2protocol\s2protocol.zip">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
     <Content Include="s2decode\pylib\site-packages\s2protocol\s2_cli.py">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
@@ -1250,6 +1258,18 @@
     <Content Include="s2decode\pylib\site-packages\s2protocol\versions\protocol74741.pyc">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+    <Content Include="s2decode\pylib\site-packages\s2protocol\versions\protocol75025.py">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="s2decode\pylib\site-packages\s2protocol\versions\protocol75025.pyc">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="s2decode\pylib\site-packages\s2protocol\versions\protocol75689.py">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="s2decode\pylib\site-packages\s2protocol\versions\protocol75689.pyc">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
     <Content Include="s2decode\pylib\site-packages\s2protocol\versions\__init__.py">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
@@ -1483,14 +1503,6 @@
     <Content Update="wwwroot\js\dschart.js">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-  </ItemGroup>
-  <ItemGroup>
-    <None Update="s2decode\pylib\site-packages\s2protocol\versions\protocol75025.py">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="s2decode\pylib\site-packages\s2protocol\versions\protocol75025.pyc">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Json\" />
