@@ -1,0 +1,31 @@
+﻿@page "/dummy"
+@using System.ComponentModel
+@inject IComponentContext ComponentContext
+@inject IJSRuntime JSRuntime
+
+<h3>Dummy</h3>
+<button class="btn btn-secondary" href="dummy2" @onclick="@Doit">Dummy</button>
+<div class="chart">
+    <canvas id="dummychart"></canvas>
+    <canvas id="dummy" style="width: 50px; height: 500px;"></canvas>
+</div>
+
+@code {
+
+    protected override void OnInitialized()
+    {
+        GenDummyChart("");
+
+    }
+
+    void Doit()
+    {
+        GenDummyChart("");
+    }
+
+    private async void GenDummyChart(string dummychart)
+    {
+        await JSRuntime.InvokeAsync<string>("DummyChart", dummychart);
+        StateHasChanged();
+    }
+}

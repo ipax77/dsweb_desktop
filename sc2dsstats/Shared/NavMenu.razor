@@ -1,0 +1,174 @@
+﻿@using sc2dsstats.Models
+@using System.ComponentModel
+@using System.Text.Json
+@using sc2dsstats.Data;
+@inject IComponentContext ComponentContext
+@inject ScanStateChange StateChange
+@inject StartUp  StartUp
+@inject dsotfng _otf
+@inject DSdataModel _dsdata
+@inject DSdyn_filteroptions _options
+@implements IDisposable
+
+<div class="top-row pl-4 navbar navbar-dark">
+    <a class="navbar-brand" href="">sc2dsstats</a>
+    <button class="navbar-toggler" @onclick="@ToggleNavMenu">
+        <span class="navbar-toggler-icon"></span>
+    </button>
+</div>
+
+<div class="@NavMenuCssClass" @onclick="@ToggleNavMenu">
+    <ul class="nav flex-column">
+        <li class="nav-item px-3">
+            <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
+                <span class="oi oi-home" aria-hidden="true"></span> Home
+            </NavLink>
+        </li>
+        @if (StartUp.FIRSTRUN == false)
+        {
+            <li class="nav-item px-3">
+                <NavLink class="nav-link" href="chart">
+                    <span class="oi oi-list-rich" aria-hidden="true"></span> Charts
+                </NavLink>
+            </li>
+            <li class="nav-item px-3">
+                <NavLink class="nav-link" href="builds">
+                    <span class="oi oi-list-rich" aria-hidden="true"></span> Builds
+                </NavLink>
+            </li>
+            <li class="nav-item px-3">
+                <NavLink class="nav-link" href="scan">
+                    <span class="oi oi-list-rich" aria-hidden="true"></span> Scan
+                </NavLink>
+                <div class="@ProgbarClass ml-2" id="div_progbar">
+                    <div class="progress">
+                        <div class="progress-bar progress-bar-striped" role="progressbar"
+                             style="width: @((int)Done)%" aria-valuenow=@Done
+                             aria-valuemin="0" aria-valuemax="100">
+                        </div>
+                    </div>
+                </div>
+            </li>
+            <li class="nav-item px-3">
+                <NavLink class="nav-link" href="https://www.pax77.org/dsweb/chart" target="_blank">
+                    <span class="oi oi-list-rich" aria-hidden="true"></span> World Charts<font size="1">external link</font>
+                </NavLink>
+            </li>
+            <li class="nav-item px-3">
+                <NavLink class="nav-link" href="https://www.pax77.org:9128/" target="_blank">
+                    <span class="oi oi-list-rich" aria-hidden="true"></span> Find players<font size="1">external link</font>
+                </NavLink>
+            </li>
+            <li class="nav-item px-3">
+                <NavLink class="nav-link" href="database">
+                    <span class="oi oi-list-rich" aria-hidden="true"></span> Database
+                </NavLink>
+            </li>
+            <li class="nav-item px-3">
+                <NavLink class="nav-link" href="config">
+                    <span class="oi oi-list-rich" aria-hidden="true"></span> Settings
+                </NavLink>
+            </li>
+            <li class="nav-item px-3">
+                <NavLink class="nav-link" href="upload">
+                    <span class="oi oi-list-rich" aria-hidden="true"></span> Upload
+                </NavLink>
+            </li>
+            <li class="nav-item px-3">
+                <NavLink class="nav-link" href="info">
+                    <span class="oi oi-list-rich" aria-hidden="true"></span> Info
+                </NavLink>
+            </li>
+            <li>
+                <br />
+                <div class="btn-group-vertical ml-3">
+                    <div>
+                        <input type="checkbox" checked="@OTF" />
+                        <button type="button" class="btn btn-sm btn-primary" data-toggle="tooltip" data-placement="top" @onclick="@Otf" title="Auto-decode new replays after each game.">
+                            on the fly scan
+                        </button>
+                    </div>
+                    <div>
+                        <input type="checkbox" checked="@StartUp.SAMPLEDATA" />
+                        <button type="button" class="btn btn-sm btn-primary" data-toggle="tooltip" data-placement="top" @onclick="@Sampledata" title="Use a sample dataset to test the application.">
+                            use sample data
+                        </button>
+                    </div>
+
+                </div>
+            </li>
+        }
+    </ul>
+</div>
+<div class="ml-3">
+    <br />
+    <br />
+    <span class="badge badge-dark">@StartUp.VERSION</span>
+</div>
+@code {
+    bool collapseNavMenu = true;
+    string ProgbarClass = "d-none";
+    string NavMenuCssClass => collapseNavMenu ? "collapse" : null;
+    double Done = 0;
+    bool OTF = false;
+
+    void ToggleNavMenu()
+    {
+        collapseNavMenu = !collapseNavMenu;
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        StateChange.PropertyChanged += Update;
+    }
+
+    private async void Update(object sender, PropertyChangedEventArgs e)
+    {
+        await InvokeAsync(() =>
+        {
+            if (StateChange.Scan.Running == true)
+            {
+                ProgbarClass = "";
+                Done = StateChange.Scan.Done;
+            }
+            else
+            {
+                ProgbarClass = "d-none";
+            }
+        StateHasChanged();
+    });
+    }
+
+    void Otf()
+    {
+        OTF = !OTF;
+        if (OTF == true)
+        {
+            _otf.Start();
+        }
+        else
+        {
+            _otf.Stop();
+        }
+    }
+
+    void Sampledata()
+    {
+        StartUp.SAMPLEDATA = !StartUp.SAMPLEDATA;
+        if (StartUp.SAMPLEDATA == true)
+        {
+            _dsdata.LoadSampleData();
+            _options.Player = !_options.Player;
+        }
+        else
+        {
+            _dsdata.LoadData();
+            _options.Player = !_options.Player;
+        }
+    }
+
+    public void Dispose()
+    {
+        StateChange.PropertyChanged -= Update;
+    }
+}

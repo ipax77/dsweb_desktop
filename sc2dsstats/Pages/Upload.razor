@@ -1,0 +1,69 @@
+@page "/upload"
+@using sc2dsstats.Models
+
+@inject StartUp StartUp
+@inject DSdataModel DSdata
+
+
+<h3>Upload</h3>
+
+@if (StartUp.Conf.Uploadcredential == false)
+{
+<div class="row">
+    <div class="custom-control custom-checkbox w-25">
+        <input type="checkbox" class="custom-control-input" name="cb_upload_credential" id="cb_upload_credential" @bind="@StartUp.Conf.Uploadcredential" />
+        <label class="custom-control-label" for="cb_upload_credential">Allow Uploads</label>
+    </div>
+    <div class="w-auto">
+        <label>
+            To improve this application it would be very nice if the statistics were uploaded from time to time.
+            <br />
+            All player names (including yours) will be anonymized before sending. By checking you agree that your anonymized DS-replay data will be used at <a href="https://www.pax77.org/dsweb">https://www.pax77.org/dsweb</a> to generate global charts.
+        </label>
+    </div>
+</div>
+}
+<div class="jumbotron">
+    To improve this application it would be very nice if the statistics were uploaded from time to time.
+    <br />
+    All player names (including yours) will be anonymized before sending. <br />
+    Check <a href="https://www.pax77.org/dsweb">https://www.pax77.org/dsweb</a> for updates.
+</div>
+<button class="btn btn-primary mb-2" @onclick="@DoUpload">Upload</button>
+<button class="btn btn-secondary btn-sm mb-2" @onclick="@Skip">Skip</button>
+<h5>@TY</h5>
+
+@code {
+string TY = "";
+
+void DoUpload()
+{
+    if (StartUp.Conf.Uploadcredential)
+    {
+        bool success = DSrest.Upload(StartUp, DSdata);
+        if (success)
+        {
+            TY = "Upload successful. Thank you!";
+            StartUp.Conf.LastUpload = DateTime.Now;
+            StartUp.Save();
+        }
+        else
+        {
+            TY = "Upload failed :( Please try again later.";
+        }
+    } else
+    {
+        TY = "Please check 'Allow Uploads' first.";
+    }
+    StateHasChanged();
+}
+
+void Skip()
+{
+    TY = ":(";
+    StartUp.Conf.LastUpload = DateTime.Now;
+    StartUp.Save();
+    StateHasChanged();
+}
+
+}

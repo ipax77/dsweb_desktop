@@ -1,0 +1,74 @@
+﻿@page "/"
+@using sc2dsstats.Models;
+@using Microsoft.AspNetCore.Components;
+@using sc2dsstats.Interfaces;
+@using System.ComponentModel;
+@inject StartUp StartUp
+@inject DSdataModel DSdata
+@inject IUriHelper UriHelper
+@inject IDSdata_cache  DScache
+@inject ScanStateChange stateChanged
+@implements IDisposable
+
+<h1>sc2dsstats</h1>
+
+@if (StartUp.FIRSTRUN == true)
+{
+    <br />
+    <div class="container">
+        <h2>Welcome to sc2dsstats - this is your first run, so please check the options and press Save.</h2>
+        <h3>You can change the settings at any time at 'Settings' in the Nav menu</h3>
+    </div>
+    <Config />
+}
+else
+{
+    if (DSdata.Replays.Count > 10 && t.Days > 30 && stateChanged.Scan.Running == false)
+    {
+        <Upload />
+    }
+    if (Loading == true)
+    {
+        <a>Loading ..</a>
+    }
+    else
+    {
+        <Scan />
+    }
+}
+
+<!--
+<button name="btn_mode" class="btn btn-sm btn-primary" @onclick="@UpdateApp">Update</button>
+-->
+@code {
+    TimeSpan t;
+    bool Loading = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await StartUp.Init();
+        await DSdata.Init();
+        t = DateTime.Now - StartUp.Conf.LastUpload;
+        Loading = false;
+        stateChanged.PropertyChanged += Update;
+    }
+
+    private async void Update(object sender, PropertyChangedEventArgs e)
+    {
+        await InvokeAsync(() => StateHasChanged());
+    }
+
+    async void UpdateApp()
+    {
+        AppUpdate up = new AppUpdate();
+        await up.Test();
+
+
+    }
+
+    public void Dispose()
+    {
+        stateChanged.PropertyChanged -= Update;
+    }
+
+}

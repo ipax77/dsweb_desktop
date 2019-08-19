@@ -1,0 +1,136 @@
+@page "/scan"
+@using sc2dsstats.Models
+@using System.ComponentModel
+@inject IComponentContext ComponentContext
+@inject StartUp StartUp
+@inject ScanStateChange StateChange
+@inject DSdataModel  DSdata
+
+<h3>Scan</h3>
+
+<div class="jumbotron">
+    New replays found: @DSdata.Todo.Count <br />
+    Expected time needed: @(string.Format("{0:0.00}", (DSdata.Todo.Count * 7.2 / StartUp.Conf.Cores / 60 / 60))) h <br />
+    <br />
+    You can always quit the process, next time it will continue at the last position. <br />
+</div>
+<div class="form-group">
+    <label for="sel1">CPU Cores</label>
+    <select class="form-control w-auto" id="sel1" @bind="@StartUp.Conf.Cores">
+        @for (int i = 1; i <= Environment.ProcessorCount; i++)
+        {
+            if (i == 2)
+            {
+                <option selected="selected" value=@i>@i</option>
+            }
+            else
+            {
+                <option value=@i>@i</option>
+            }
+        }
+    </select>
+</div>
+<button class="btn btn-primary mb-2" @onclick="@ScanReps">Scan</button>
+<h6>@SCAN</h6>
+<h5>@INFO</h5>
+<br />
+@if (Decode.Failed.Count() > 0)
+{
+<div>
+    <h4>@Decode.Failed.Count() replays failed decoding</h4>
+    Please check on <a href="https://github.com/ipax77/dsweb_desktop">GitHub</a> for an update.
+    <br />
+    Failed Replays:
+    <table class="table table-dark">
+        <thead>
+            <tr><th>Path</th></tr>
+        </thead>
+        <tbody>
+            @foreach (string rep in Decode.Failed)
+            {
+                <tr><td>@rep</td></tr>
+            }
+        </tbody>
+    </table>
+</div>
+    
+}
+
+
+
+@code {
+    int count = 0;
+    string INFO = "";
+    string SCAN = "";
+    bool init = false;
+
+    async Task ScanReps()
+    {
+        if (StartUp.SAMPLEDATA == true) StartUp.SAMPLEDATA = false;
+        await DSdata.NewReplays();
+        if (DSdata.Todo.Count > 0)
+        {
+            if (StateChange.Scan.Running == false)
+            {
+                StateChange.Scan.Running = true;
+                SCAN = "Decoding replays ...";
+                Decode.Doit(DSdata, StateChange, StartUp.Conf.Cores);
+            }
+        }
+        else
+        {
+            SCAN = "No new replays found.";
+        }
+    }
+
+    private async void Update(object sender, PropertyChangedEventArgs e)
+    {
+        await InvokeAsync(() =>
+        {
+            if (StateChange.Scan.Running == true)
+            {
+                SCAN = "Decoding replays ..";
+                INFO = StateChange.Scan.Info;
+            }
+            else
+            {
+                SCAN = "Jobs done.";
+                INFO = StateChange.Scan.Info;
+                INFO += " Elapsed time: " + Decode.Elapsed.ToString("c");
+            }
+            StateHasChanged();
+        });
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (INFO.Length > 0)
+        {
+            SCAN = "Decoding replays ...";
+            INFO = StateChange.Scan.Info;
+        }
+
+        if (StartUp.Conf.Autoscan == true)
+        {
+            await ScanReps();
+        }
+        else
+        {
+            await FindReps();
+        }
+
+        StateChange.PropertyChanged += Update;
+    }
+
+    private async Task FindReps()
+    {
+        await DSdata.NewReplays();
+        StateHasChanged();
+    }
+
+    public void Dispose()
+    {
+        //StateChange.PropertyChanged -= Update;
+    }
+
+}

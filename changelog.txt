@@ -1,4 +1,8 @@
 
+v 1.1.0
+
+- port to dotnet 3.0 preview 8
+
 v1.0.16
 
 - Game Page redesign

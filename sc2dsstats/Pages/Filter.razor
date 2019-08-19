@@ -1,0 +1,192 @@
+﻿@page "/filter"
+@using System.Globalization;
+@using sc2dsstats.Data
+@inject DSdyn_filteroptions  _options
+
+
+<h3>Filter</h3>
+<div class="row">
+    <div>
+        <div>
+            <p>
+                <button class="btn btn-primary btn-block" @onclick="@ShowFilter">Close</button>
+            </p>
+        </div>
+        <div>
+            <p>
+                <button class="btn btn-secondary btn-block" @onclick="@DefaultFilter">Default</button>
+            </p>
+        </div>
+        <div>
+            <p>
+                <button class="btn btn-secondary btn-block" @onclick="@OffFilter">Off</button>
+            </p>
+        </div>
+        <br />
+
+    </div>
+    <div>
+        <div class="container-fluid">
+            <div class="row">
+                <div class="col-sm form-group">
+                    <label for="startdate">startdate</label>
+                    <input type="date" name="startdate" id="startdate" @bind="@_options.Startdate" @bind:culture="CultureInfo.InvariantCulture" class="form-control"/>
+                </div>
+                <div class="col-sm form-group">
+                    <label for="enddate">enddate</label>
+                    <input type="date" name="enddate" id="enddate" @bind="@_options.Enddate" @bind:culture="CultureInfo.InvariantCulture" class="form-control" />
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-sm form-group">
+                    <label>
+                        Duration
+                        <input type="number" name="Duration" id="Duration" @bind="@_options.Duration" class="form-control" />
+                    </label>
+                </div>
+                <div class="col-sm form-group">
+                    <label>
+                        Army
+                        <input type="number" name="Army" id="Army" @bind="@_options.Army" class="form-control" />
+                    </label>
+                </div>
+                <div class="col-sm form-group">
+                    <label>
+                        Income
+                        <input type="number" name="Income" id="Income" @bind="@_options.Income" class="form-control" />
+                    </label>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-sm form-group">
+                    <label>
+                        Leaver
+                        <input type="number" name="Leaver" id="Leaver" @bind="@_options.Leaver" class="form-control" />
+                    </label>
+                </div>
+                <div class="col-sm form-group">
+                    <label>
+                        Kills
+                        <input type="number" name="Killsum" id="Killsum" @bind="@_options.Kills" class="form-control" />
+                    </label>
+                </div>
+                <div class="col-sm form-group">
+                    <label>
+                        Playercount
+                        <input type="number" name="Playercount" id="Playercount" @bind="@_options.PlayerCount" class="form-control" />
+                    </label>
+                </div>
+            </div>
+            <!--
+            <div class="row">
+                <div class="col-sm form-group">
+                    <label>
+                        Player
+                        <input type="checkbox" name="Player" id="Player" @bind="@_options.Player" />
+                    </label>
+                </div>
+                <div class="col-sm form-group">
+                    <label>
+                        Matchup
+                        <input type="checkbox" name="matchup" id="matchup" @bind="@_options.Matchup" />
+                    </label>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-sm form-group">
+                    <label>
+                        Cmdr @_options.Interest
+                        <select id="chb_cmdrfil" name="chb_cmdr" @bind="@_options.Interest" class="form-control">
+                            <option></option>
+                            @foreach (var ent in DSdata.s_races)
+                            {
+                                <option>@ent</option>
+                            }
+                        </select>
+                    </label>
+                </div>
+                <div class="col-sm form-group">
+                    <label>
+                        Vs @_options.Vs
+                        <select id="chb_vsfil" name="chb_vs" @bind="@_options.Vs" class="form-control">
+                            <option selected="selected"></option>
+                            @foreach (var ent in DSdata.s_races)
+                            {
+                                <option>@ent</option>
+                            }
+                        </select>
+                    </label>
+                </div>
+            </div>
+                -->
+            <div class="col-sm form-group">
+                <h5>Gamemodes</h5>
+                @foreach (var ent in DSdata.s_gamemodes)
+                {
+                    <div class="custom-control custom-checkbox mr-2">
+                        <input type="checkbox" class="custom-control-input" name="cb_gamemodes" id="cb_gamemodes_@ent" @bind="@_options.Gamemodes[ent]" />
+                        <label class="custom-control-label" for="cb_gamemodes_@ent">@ent</label>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+
+@code {
+    void ShowFilter()
+    {
+        _options.Filter = !_options.Filter;
+
+        _options.DOIT = false;
+        _options.BeginAtZero = !_options.BeginAtZero;
+        _options.DOIT = true;
+        _options.BeginAtZero = !_options.BeginAtZero;
+
+    }
+
+    void DefaultFilter()
+    {
+        DSdyn_filteroptions defoptions = new DSdyn_filteroptions();
+        _options.DOIT = false;
+        _options.Build = "ALL";
+        _options.Duration = defoptions.Duration;
+        _options.Leaver = defoptions.Leaver;
+        _options.Army = defoptions.Army;
+        _options.Kills = defoptions.Kills;
+        _options.Income = defoptions.Income;
+        _options.Startdate = defoptions.Startdate;
+        _options.Enddate = defoptions.Enddate;
+        _options.PlayerCount = defoptions.PlayerCount;
+        _options.Gamemodes = defoptions.Gamemodes;
+        _options.Interest = defoptions.Interest;
+        _options.Vs = defoptions.Vs;
+        _options.BeginAtZero = !_options.BeginAtZero;
+        _options.DOIT = true;
+        _options.BeginAtZero = !_options.BeginAtZero;
+    }
+
+    void OffFilter()
+    {
+        _options.DOIT = false;
+        _options.Build = "ALL";
+        _options.Duration = 0;
+        _options.Leaver = 0;
+        _options.Army = 0;
+        _options.Kills = 0;
+        _options.Income = 0;
+        _options.Startdate = new DateTime(2018, 01, 01);
+        _options.Enddate = DateTime.Now.AddDays(1);
+        _options.PlayerCount = 0;
+        foreach (var ent in _options.Gamemodes.Keys.ToArray())
+        {
+            _options.Gamemodes[ent] = true;
+        }
+        _options.Interest = String.Empty;
+        _options.Vs = String.Empty;
+        _options.BeginAtZero = !_options.BeginAtZero;
+        _options.DOIT = true;
+        _options.BeginAtZero = !_options.BeginAtZero;
+    }
+}
