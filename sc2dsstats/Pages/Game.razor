@@ -12,6 +12,13 @@
     {
         @NewReplay()
     }
+    <button class="btn btn-sm btn-secondary mb-1" @onclick="@(() => showDetails = !showDetails)">Show details</button>
+    <div class="container-fluid">
+        @if (showDetails == true)
+        {
+            <GameChart replay="@replay" />
+        }
+    </div>
     <div class="row">
         <div>
             <div>
@@ -248,7 +255,7 @@
 
 @code {
     [Parameter]
-    private dsreplay replay { get; set; }
+    public dsreplay replay { get; set; }
 
     string TeamClass = "badge-primary";
     string PlayerClass = "table-primary";
@@ -257,6 +264,7 @@
     string Breakpoint = "MIN10";
     string pldiffcolor = DSdata.color_plbg_def;
     int replayid = 0;
+    bool showDetails = false;
 
     static double MIN5 = 6720;
     static double MIN10 = 13440;
@@ -290,7 +298,7 @@
     object NewReplay()
     {
         replayid = replay.ID;
-
+        showDetails = false;
         if (replay != null)
         {
             BreakpointMid["ALL"] = replay.DURATION;

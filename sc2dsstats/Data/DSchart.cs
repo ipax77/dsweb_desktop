@@ -351,21 +351,21 @@ namespace sc2dsstats.Data
             _jsRuntime = jsRuntime;
         }
 
-        public Task<string> ChartChanged(string data)
+        public async Task<string> ChartChanged(string data)
         {
             // The handleTickerChanged JavaScript method is implemented
             // in a JavaScript file, such as 'wwwroot/tickerJsInterop.js'.
-            return _jsRuntime.InvokeAsync<string>("DynChart", data);
+            return await _jsRuntime.InvokeAsync<string>("DynChart", data);
         }
 
-        public Task<string> AddDataset(string data)
+        public async Task<string> AddDataset(string data)
         {
-            return _jsRuntime.InvokeAsync<string>("AddDynChart", data);
+            return await _jsRuntime.InvokeAsync<string>("AddDynChart", data);
         }
 
-        public Task<string> RemoveDataset(int data)
+        public async Task<string> RemoveDataset(int data)
         {
-            return _jsRuntime.InvokeAsync<string>("RemoveDynChart", data);
+            return await _jsRuntime.InvokeAsync<string>("RemoveDynChart", data);
         }
     }
 

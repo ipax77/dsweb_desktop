@@ -37,6 +37,7 @@ namespace sc2dsstats
             services.AddScoped<dsotfng>();
             services.AddScoped<DSdataModel>();
             services.AddScoped<ChartService>();
+            services.AddScoped<GameChartService>();
             services.AddScoped<DSdyn>();
             services.AddScoped<ChartStateChange>();
             services.AddScoped<DSdyn_filteroptions>();

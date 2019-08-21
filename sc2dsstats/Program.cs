@@ -21,6 +21,7 @@ namespace sc2dsstats
         public static string workdir = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData) + "\\sc2dsstats_web";
         public static string myScan_log = workdir + "/log.txt";
         public static string myJson_file = workdir + "/data.json";
+        public static string myDetails_file = workdir + "/details.json";
         public static string myConfig = workdir + "/config.json";
 
         public static void Main(string[] args)

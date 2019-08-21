@@ -22,13 +22,21 @@ namespace sc2dsstats.Models
 
         public static ScanState Scan { get; set; } = new ScanState();
 
+        public static async Task<dsreplay> ScanRep(string file, DSdataModel Data)
+        {
+            return await Task.Run(() => {
+                s2dec.LoadEngine(0, Data.ReplayFolder);
+                return s2dec.DecodePython(file);
+            });
+        }
+
         public static void Doit(DSdataModel Data, ScanStateChange stateChange, int cores = 2)
         {
             CORES = cores;
             Scan.Done = 0;
             Failed = new List<string>();
             Console.WriteLine("Engine start.");
-            s2dec.LoadEngine(Data.ID);
+            s2dec.LoadEngine(Data.ID, Data.ReplayFolder);
             //s2dec.LoadEngine();
             s2dec.END = new DateTime();
             s2dec.START = DateTime.UtcNow;

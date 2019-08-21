@@ -2,6 +2,7 @@
 @using System.IO
 @using sc2dsstats.Models
 @inject StartUp  StartUp
+@inject DSdataModel _dsData
 @inject ScanStateChange stateChange
 
 <h3>Config</h3>
@@ -338,6 +339,7 @@
             StartUp.Conf.Players = newPlayers.ToList();
             StartUp.Conf.Replays = newReplays.ToList();
 
+            _dsData.Init();
 
             StartUp.Save();
         }

@@ -16,6 +16,7 @@ namespace sc2dsstats.Models
         public List<dsreplay> Replays = new List<dsreplay>();
         public Dictionary<string, int> Skip = new Dictionary<string, int>();
         public HashSet<string> Todo = new HashSet<string>();
+        public Dictionary<string, string> ReplayFolder { get; set; } = new Dictionary<string, string>();
 
         public int ID { get; set; } = 0;
         private bool INIT = false;
@@ -38,6 +39,17 @@ namespace sc2dsstats.Models
             INIT = true;
             await LoadData();
             await LoadSkip();
+
+            foreach (var ent in _startUp.Conf.Replays)
+            {
+                string reppath = ent;
+                if (reppath.EndsWith("/") || reppath.EndsWith("\\"))
+                    reppath.Remove(reppath.Length - 1);
+                var plainTextBytes = Encoding.UTF8.GetBytes(reppath);
+                MD5 md5 = new MD5CryptoServiceProvider();
+                string reppath_md5 = BitConverter.ToString(md5.ComputeHash(plainTextBytes));
+                ReplayFolder.Add(reppath, reppath_md5);
+            }
         }
 
         public async Task LoadData()

@@ -996,46 +996,46 @@ namespace sc2dsstats.Models
 
     public class M_stats
     {
-        public int m_scoreValueFoodMade { get; set; } = 0;
-        public int m_scoreValueFoodUsed { get; set; } = 0;
-        public int m_scoreValueMineralsCollectionRate { get; set; } = 0;
-        public int m_scoreValueMineralsCurrent { get; set; } = 0;
-        public int m_scoreValueMineralsFriendlyFireArmy { get; set; } = 0;
-        public int m_scoreValueMineralsFriendlyFireEconomy { get; set; } = 0;
-        public int m_scoreValueMineralsFriendlyFireTechnology { get; set; } = 0;
-        public int m_scoreValueMineralsKilledArmy { get; set; } = 0;
-        public int m_scoreValueMineralsKilledEconomy { get; set; } = 0;
-        public int m_scoreValueMineralsKilledTechnology { get; set; } = 0;
-        public int m_scoreValueMineralsLostArmy { get; set; } = 0;
-        public int m_scoreValueMineralsLostEconomy { get; set; } = 0;
-        public int m_scoreValueMineralsLostTechnology { get; set; } = 0;
-        public int m_scoreValueMineralsUsedActiveForces { get; set; } = 0;
-        public int m_scoreValueMineralsUsedCurrentArmy { get; set; } = 0;
-        public int m_scoreValueMineralsUsedCurrentEconomy { get; set; } = 0;
-        public int m_scoreValueMineralsUsedCurrentTechnology { get; set; } = 0;
+        //public int FoodMade { get; set; } = 0;
+        public int FoodUsed { get; set; } = 0;
+        public int MineralsCollectionRate { get; set; } = 0;
+        public int MineralsCurrent { get; set; } = 0;
+        public int MineralsFriendlyFireArmy { get; set; } = 0;
+        //public int MineralsFriendlyFireEconomy { get; set; } = 0;
+        public int MineralsFriendlyFireTechnology { get; set; } = 0;
+        public int MineralsKilledArmy { get; set; } = 0;
+        //public int MineralsKilledEconomy { get; set; } = 0;
+        public int MineralsKilledTechnology { get; set; } = 0;
+        public int MineralsLostArmy { get; set; } = 0;
+        //public int MineralsLostEconomy { get; set; } = 0;
+        //public int MineralsLostTechnology { get; set; } = 0;
+        public int MineralsUsedActiveForces { get; set; } = 0;
+        public int MineralsUsedCurrentArmy { get; set; } = 0;
+        //public int MineralsUsedCurrentEconomy { get; set; } = 0;
+        public int MineralsUsedCurrentTechnology { get; set; } = 0;
         /**
-        public int m_scoreValueMineralsUsedInProgressArmy { get; set; } = 0;
-        public int m_scoreValueMineralsUsedInProgressEconomy { get; set; } = 0;
-        public int m_scoreValueMineralsUsedInProgressTechnology { get; set; } = 0;
-        public int m_scoreValueVespeneCollectionRate { get; set; } = 0;
-        public int m_scoreValueVespeneCurrent { get; set; } = 0;
-        public int m_scoreValueVespeneFriendlyFireArmy { get; set; } = 0;
-        public int m_scoreValueVespeneFriendlyFireEconomy { get; set; } = 0;
-        public int m_scoreValueVespeneFriendlyFireTechnology { get; set; } = 0;
-        public int m_scoreValueVespeneKilledArmy { get; set; } = 0;
-        public int m_scoreValueVespeneKilledEconomy { get; set; } = 0;
-        public int m_scoreValueVespeneKilledTechnology { get; set; } = 0;
-        public int m_scoreValueVespeneLostArmy { get; set; } = 0;
-        public int m_scoreValueVespeneLostEconomy { get; set; } = 0;
-        public int m_scoreValueVespeneLostTechnology { get; set; } = 0;
-        public int m_scoreValueVespeneUsedActiveForces { get; set; } = 0;
-        public int m_scoreValueVespeneUsedCurrentArmy { get; set; } = 0;
-        public int m_scoreValueVespeneUsedCurrentEconomy { get; set; } = 0;
-        public int m_scoreValueVespeneUsedCurrentTechnology { get; set; } = 0;
-        public int m_scoreValueVespeneUsedInProgressArmy { get; set; } = 0;
-        public int m_scoreValueVespeneUsedInProgressEconomy { get; set; } = 0;
-        public int m_scoreValueVespeneUsedInProgressTechnology { get; set; } = 0;
-        public int m_scoreValueWorkersActiveCount { get; set; } = 0;
+        public int MineralsUsedInProgressArmy { get; set; } = 0;
+        public int MineralsUsedInProgressEconomy { get; set; } = 0;
+        public int MineralsUsedInProgressTechnology { get; set; } = 0;
+        public int VespeneCollectionRate { get; set; } = 0;
+        public int VespeneCurrent { get; set; } = 0;
+        public int VespeneFriendlyFireArmy { get; set; } = 0;
+        public int VespeneFriendlyFireEconomy { get; set; } = 0;
+        public int VespeneFriendlyFireTechnology { get; set; } = 0;
+        public int VespeneKilledArmy { get; set; } = 0;
+        public int VespeneKilledEconomy { get; set; } = 0;
+        public int VespeneKilledTechnology { get; set; } = 0;
+        public int VespeneLostArmy { get; set; } = 0;
+        public int VespeneLostEconomy { get; set; } = 0;
+        public int VespeneLostTechnology { get; set; } = 0;
+        public int VespeneUsedActiveForces { get; set; } = 0;
+        public int VespeneUsedCurrentArmy { get; set; } = 0;
+        public int VespeneUsedCurrentEconomy { get; set; } = 0;
+        public int VespeneUsedCurrentTechnology { get; set; } = 0;
+        public int VespeneUsedInProgressArmy { get; set; } = 0;
+        public int VespeneUsedInProgressEconomy { get; set; } = 0;
+        public int VespeneUsedInProgressTechnology { get; set; } = 0;
+        public int WorkersActiveCount { get; set; } = 0;
         **/
     }
 }

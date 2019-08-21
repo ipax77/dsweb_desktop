@@ -34,16 +34,8 @@ namespace s2decode
         public static dsreplay GetDetails(string replay_file, dynamic details_dec)
         {
             string id = Path.GetFileNameWithoutExtension(replay_file);
-            string reppath = Path.GetDirectoryName(replay_file);
-            var plainTextBytes = Encoding.UTF8.GetBytes(reppath);
-            MD5 md5 = new MD5CryptoServiceProvider();
-            string reppath_md5 = System.BitConverter.ToString(md5.ComputeHash(plainTextBytes));
-            string repid = reppath_md5 + "/" + id;
-
 
             dsreplay replay = new dsreplay();
-            replay.REPLAY = repid;
-            Program.Log("Replay id: " + repid);
             int failsafe_pos = 0;
             foreach (var player in details_dec["m_playerList"])
             {
@@ -206,46 +198,46 @@ namespace s2decode
 
                     PythonDictionary pystats = pydic["m_stats"] as PythonDictionary;
                     M_stats m_stats = new M_stats();
-                    m_stats.m_scoreValueFoodMade = (int)pystats["m_scoreValueFoodMade"];
-                    m_stats.m_scoreValueFoodUsed = (int)pystats["m_scoreValueFoodUsed"];
-                    m_stats.m_scoreValueMineralsCollectionRate = (int)pystats["m_scoreValueMineralsCollectionRate"];
-                    m_stats.m_scoreValueMineralsCurrent = (int)pystats["m_scoreValueMineralsCurrent"];
-                    m_stats.m_scoreValueMineralsFriendlyFireArmy = (int)pystats["m_scoreValueMineralsFriendlyFireArmy"];
-                    m_stats.m_scoreValueMineralsFriendlyFireEconomy = (int)pystats["m_scoreValueMineralsFriendlyFireEconomy"];
-                    m_stats.m_scoreValueMineralsFriendlyFireTechnology = (int)pystats["m_scoreValueMineralsFriendlyFireTechnology"];
-                    m_stats.m_scoreValueMineralsKilledArmy = (int)pystats["m_scoreValueMineralsKilledArmy"];
-                    m_stats.m_scoreValueMineralsKilledEconomy = (int)pystats["m_scoreValueMineralsKilledEconomy"];
-                    m_stats.m_scoreValueMineralsKilledTechnology = (int)pystats["m_scoreValueMineralsKilledTechnology"];
-                    m_stats.m_scoreValueMineralsLostArmy = (int)pystats["m_scoreValueMineralsLostArmy"];
-                    m_stats.m_scoreValueMineralsLostEconomy = (int)pystats["m_scoreValueMineralsLostEconomy"];
-                    m_stats.m_scoreValueMineralsLostTechnology = (int)pystats["m_scoreValueMineralsLostTechnology"];
-                    m_stats.m_scoreValueMineralsUsedActiveForces = (int)pystats["m_scoreValueMineralsUsedActiveForces"];
-                    m_stats.m_scoreValueMineralsUsedCurrentArmy = (int)pystats["m_scoreValueMineralsUsedCurrentArmy"];
-                    m_stats.m_scoreValueMineralsUsedCurrentEconomy = (int)pystats["m_scoreValueMineralsUsedCurrentEconomy"];
-                    m_stats.m_scoreValueMineralsUsedCurrentTechnology = (int)pystats["m_scoreValueMineralsUsedCurrentTechnology"];
+                    //m_stats.FoodMade = (int)pystats["m_scoreValueFoodMade"];
+                    m_stats.FoodUsed = (int)pystats["m_scoreValueFoodUsed"];
+                    m_stats.MineralsCollectionRate = (int)pystats["m_scoreValueMineralsCollectionRate"];
+                    m_stats.MineralsCurrent = (int)pystats["m_scoreValueMineralsCurrent"];
+                    m_stats.MineralsFriendlyFireArmy = (int)pystats["m_scoreValueMineralsFriendlyFireArmy"];
+                    //m_stats.MineralsFriendlyFireEconomy = (int)pystats["m_scoreValueMineralsFriendlyFireEconomy"];
+                    m_stats.MineralsFriendlyFireTechnology = (int)pystats["m_scoreValueMineralsFriendlyFireTechnology"];
+                    m_stats.MineralsKilledArmy = (int)pystats["m_scoreValueMineralsKilledArmy"];
+                    //m_stats.MineralsKilledEconomy = (int)pystats["m_scoreValueMineralsKilledEconomy"];
+                    m_stats.MineralsKilledTechnology = (int)pystats["m_scoreValueMineralsKilledTechnology"];
+                    m_stats.MineralsLostArmy = (int)pystats["m_scoreValueMineralsLostArmy"];
+                    //m_stats.MineralsLostEconomy = (int)pystats["m_scoreValueMineralsLostEconomy"];
+                    //m_stats.MineralsLostTechnology = (int)pystats["m_scoreValueMineralsLostTechnology"];
+                    m_stats.MineralsUsedActiveForces = (int)pystats["m_scoreValueMineralsUsedActiveForces"];
+                    m_stats.MineralsUsedCurrentArmy = (int)pystats["m_scoreValueMineralsUsedCurrentArmy"];
+                    //m_stats.MineralsUsedCurrentEconomy = (int)pystats["m_scoreValueMineralsUsedCurrentEconomy"];
+                    m_stats.MineralsUsedCurrentTechnology = (int)pystats["m_scoreValueMineralsUsedCurrentTechnology"];
                     /**
-                    m_stats.m_scoreValueMineralsUsedInProgressArmy = (int)pystats["m_scoreValueMineralsUsedInProgressArmy"];
-                    m_stats.m_scoreValueMineralsUsedInProgressEconomy = (int)pystats["m_scoreValueMineralsUsedInProgressEconomy"];
-                    m_stats.m_scoreValueMineralsUsedInProgressTechnology = (int)pystats["m_scoreValueMineralsUsedInProgressTechnology"];
-                    m_stats.m_scoreValueVespeneCollectionRate = (int)pystats["m_scoreValueVespeneCollectionRate"];
-                    m_stats.m_scoreValueVespeneCurrent = (int)pystats["m_scoreValueVespeneCurrent"];
-                    m_stats.m_scoreValueVespeneFriendlyFireArmy = (int)pystats["m_scoreValueVespeneFriendlyFireArmy"];
-                    m_stats.m_scoreValueVespeneFriendlyFireEconomy = (int)pystats["m_scoreValueVespeneFriendlyFireEconomy"];
-                    m_stats.m_scoreValueVespeneFriendlyFireTechnology = (int)pystats["m_scoreValueVespeneFriendlyFireTechnology"];
-                    m_stats.m_scoreValueVespeneKilledArmy = (int)pystats["m_scoreValueVespeneKilledArmy"];
-                    m_stats.m_scoreValueVespeneKilledEconomy = (int)pystats["m_scoreValueVespeneKilledEconomy"];
-                    m_stats.m_scoreValueVespeneKilledTechnology = (int)pystats["m_scoreValueVespeneKilledTechnology"];
-                    m_stats.m_scoreValueVespeneLostArmy = (int)pystats["m_scoreValueVespeneLostArmy"];
-                    m_stats.m_scoreValueVespeneLostEconomy = (int)pystats["m_scoreValueVespeneLostEconomy"];
-                    m_stats.m_scoreValueVespeneLostTechnology = (int)pystats["m_scoreValueVespeneLostTechnology"];
-                    m_stats.m_scoreValueVespeneUsedActiveForces = (int)pystats["m_scoreValueVespeneUsedActiveForces"];
-                    m_stats.m_scoreValueVespeneUsedCurrentArmy = (int)pystats["m_scoreValueVespeneUsedCurrentArmy"];
-                    m_stats.m_scoreValueVespeneUsedCurrentEconomy = (int)pystats["m_scoreValueVespeneUsedCurrentEconomy"];
-                    m_stats.m_scoreValueVespeneUsedCurrentTechnology = (int)pystats["m_scoreValueVespeneUsedCurrentTechnology"];
-                    m_stats.m_scoreValueVespeneUsedInProgressArmy = (int)pystats["m_scoreValueVespeneUsedInProgressArmy"];
-                    m_stats.m_scoreValueVespeneUsedInProgressEconomy = (int)pystats["m_scoreValueVespeneUsedInProgressEconomy"];
-                    m_stats.m_scoreValueVespeneUsedInProgressTechnology = (int)pystats["m_scoreValueVespeneUsedInProgressTechnology"];
-                    m_stats.m_scoreValueWorkersActiveCount = (int)pystats["m_scoreValueWorkersActiveCount"];
+                    m_stats.MineralsUsedInProgressArmy = (int)pystats["m_scoreValueMineralsUsedInProgressArmy"];
+                    m_stats.MineralsUsedInProgressEconomy = (int)pystats["m_scoreValueMineralsUsedInProgressEconomy"];
+                    m_stats.MineralsUsedInProgressTechnology = (int)pystats["m_scoreValueMineralsUsedInProgressTechnology"];
+                    m_stats.VespeneCollectionRate = (int)pystats["m_scoreValueVespeneCollectionRate"];
+                    m_stats.VespeneCurrent = (int)pystats["m_scoreValueVespeneCurrent"];
+                    m_stats.VespeneFriendlyFireArmy = (int)pystats["m_scoreValueVespeneFriendlyFireArmy"];
+                    m_stats.VespeneFriendlyFireEconomy = (int)pystats["m_scoreValueVespeneFriendlyFireEconomy"];
+                    m_stats.VespeneFriendlyFireTechnology = (int)pystats["m_scoreValueVespeneFriendlyFireTechnology"];
+                    m_stats.VespeneKilledArmy = (int)pystats["m_scoreValueVespeneKilledArmy"];
+                    m_stats.VespeneKilledEconomy = (int)pystats["m_scoreValueVespeneKilledEconomy"];
+                    m_stats.VespeneKilledTechnology = (int)pystats["m_scoreValueVespeneKilledTechnology"];
+                    m_stats.VespeneLostArmy = (int)pystats["m_scoreValueVespeneLostArmy"];
+                    m_stats.VespeneLostEconomy = (int)pystats["m_scoreValueVespeneLostEconomy"];
+                    m_stats.VespeneLostTechnology = (int)pystats["m_scoreValueVespeneLostTechnology"];
+                    m_stats.VespeneUsedActiveForces = (int)pystats["m_scoreValueVespeneUsedActiveForces"];
+                    m_stats.VespeneUsedCurrentArmy = (int)pystats["m_scoreValueVespeneUsedCurrentArmy"];
+                    m_stats.VespeneUsedCurrentEconomy = (int)pystats["m_scoreValueVespeneUsedCurrentEconomy"];
+                    m_stats.VespeneUsedCurrentTechnology = (int)pystats["m_scoreValueVespeneUsedCurrentTechnology"];
+                    m_stats.VespeneUsedInProgressArmy = (int)pystats["m_scoreValueVespeneUsedInProgressArmy"];
+                    m_stats.VespeneUsedInProgressEconomy = (int)pystats["m_scoreValueVespeneUsedInProgressEconomy"];
+                    m_stats.VespeneUsedInProgressTechnology = (int)pystats["m_scoreValueVespeneUsedInProgressTechnology"];
+                    m_stats.WorkersActiveCount = (int)pystats["m_scoreValueWorkersActiveCount"];
                     **/
                     pl.STATS[gameloop] = m_stats;
 
@@ -253,7 +245,7 @@ namespace s2decode
                     pl.PDURATION = gameloop;
 
                     int gas = 0;
-                    int income = pl.STATS[gameloop].m_scoreValueMineralsCollectionRate;
+                    int income = pl.STATS[gameloop].MineralsCollectionRate;
                     pl.INCOME += (double)income / 9.15;
 
                     KeyValuePair<int, int> lastMid = GetMiddle(replay);
@@ -294,8 +286,8 @@ namespace s2decode
 
                             if (pl.STATS.Count() > 0)
                             {
-                                pl.SPAWNS[fixloop]["Upgrades"] = pl.STATS.ElementAt(pl.STATS.Count() - 1).Value.m_scoreValueMineralsUsedCurrentTechnology;
-                                pl.ARMY += pl.STATS.ElementAt(pl.STATS.Count() - 1).Value.m_scoreValueMineralsUsedActiveForces;
+                                pl.SPAWNS[fixloop]["Upgrades"] = pl.STATS.ElementAt(pl.STATS.Count() - 1).Value.MineralsUsedCurrentTechnology;
+                                pl.ARMY += pl.STATS.ElementAt(pl.STATS.Count() - 1).Value.MineralsUsedActiveForces;
                             }
                         }
                     }
@@ -409,7 +401,7 @@ namespace s2decode
                     pl.UNITS["ALL"] = pl.SPAWNS.ElementAt(pl.SPAWNS.Count() - 1).Value;
 
                 if (pl.STATS.Count() > 0)
-                    pl.KILLSUM = pl.STATS.ElementAt(pl.STATS.Count() - 1).Value.m_scoreValueMineralsKilledArmy;
+                    pl.KILLSUM = pl.STATS.ElementAt(pl.STATS.Count() - 1).Value.MineralsKilledArmy;
 
                 pl.INCOME = Math.Round(pl.INCOME, 2);
             }
