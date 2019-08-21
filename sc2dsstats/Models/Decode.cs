@@ -26,7 +26,7 @@ namespace sc2dsstats.Models
         {
             return await Task.Run(() => {
                 s2dec.LoadEngine(0, Data.ReplayFolder);
-                return s2dec.DecodePython(file);
+                return s2dec.DecodePython(file, false);
             });
         }
 
