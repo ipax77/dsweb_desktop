@@ -62,6 +62,21 @@
             }
         </div>
         <br />
+        <div>
+            <div class="custom-control custom-checkbox">
+                <input type="checkbox"
+                       class="custom-control-input"
+                       name="repMiddle"
+                       checked="@middleChecked"
+                       value="middle"
+                       id="cb_middle"
+                       @onchange="@(() => ShowMiddle())" />
+            <label class=" custom-control-label" for="cb_middle">
+                Middle
+                </label>
+            </div>
+        </div>
+        <br />
         <h6>adjust Gametime</h6>
         <div class="slidecontainer">
             <input type="range" min="1" max="100" @bind="@slidervalue" class="slider" id="myRange" />
@@ -94,6 +109,7 @@
     bool showChart = false;
     int slidervalue = 100;
     int replayid = 0;
+    bool middleChecked = false;
 
     protected override async Task OnInitializedAsync()
     {
@@ -128,11 +144,63 @@
             reppath += ".SC2Replay";
             if (File.Exists(reppath))
                 await LoadReplay(reppath);
+        } else
+        {
+            mychart = await _chart.GetChartBase();
+            await ChangeTime();
+            await AddPlayer(1);
+            await AddDataset("FoodUsed", 0);
         }
         loading = false;
         if (replay.PLAYERS.FirstOrDefault().STATS.Count() == 0)
             loadFailed = true;
         StateHasChanged();
+    }
+
+    async Task ShowMiddle()
+    {
+        middleChecked = !middleChecked;
+
+        if (middleChecked == true)
+        {
+            ChartJSdataset dataset = new ChartJSdataset();
+            dataset.label = "Middle";
+            List<double> wr = new List<double>();
+
+            Dictionary<int, int> myMid = new Dictionary<int, int>();
+
+            int lastmid = 0;
+            foreach (var ent in stLabel.Values)
+            {
+                foreach (var mid in replay.MIDDLE)
+                {
+                    if (mid.Key > ent + 160)
+                        break;
+
+                    if (mid.Key >= ent)
+                    {
+                        if (mid.Value == 0)
+                            myMid[ent] = 10000;
+                        else if (mid.Value == 1)
+                            myMid[ent] = 20000;
+                        
+                        lastmid = myMid[ent];
+                        break;
+                    }
+                }
+                myMid[ent] = lastmid;
+            }
+
+
+            foreach (var dat in myMid)
+                wr.Add(dat.Value);
+
+            dataset.data = wr.ToArray();
+            mychart = await _chart.AddDataset(dataset);
+        } else
+        {
+            mychart = await _chart.RemoveDataset("Middle");
+        }
     }
 
     async Task AddPlayer(int pos)
@@ -187,6 +255,10 @@
     async Task ChangeTime()
     {
         mychart = await _chart.GetChartBase();
+
+        if (replay.MIDDLE.Count() == 0)
+            replay = _dsData.Replays.Where(x => x.ID == replay.ID).FirstOrDefault();
+
         HashSet<int> repLabels = new HashSet<int>();
         List<string> labels = new List<string>();
         foreach (dsplayer pl in replay.PLAYERS)
