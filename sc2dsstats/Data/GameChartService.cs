@@ -60,6 +60,7 @@ namespace sc2dsstats.Data
             mychart.options.title.fontColor = "#0c07ad";
             mychart.options.legend.labels.fontColor = "#0c07ad";
             if (draw == true) await _jsIterop.ChartChanged(JsonSerializer.Serialize(mychart));
+            mycolorPool = new List<string>(colorPool);
             return mychart;
         }
 
