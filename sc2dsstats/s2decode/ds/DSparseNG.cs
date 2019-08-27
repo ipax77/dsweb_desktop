@@ -248,9 +248,8 @@ namespace s2decode
                     int income = pl.STATS[gameloop].MineralsCollectionRate;
                     pl.INCOME += (double)income / 9.15;
 
-                    KeyValuePair<int, int> lastMid = GetMiddle(replay);
-                    if (lastMid.Key > 160 && lastMid.Value == pl.TEAM)
-                        income -= 60;
+                    //KeyValuePair<int, int> lastMid = GetMiddle(replay);
+                    income = MiddleIncome(replay.MIDDLE, gameloop, pl.TEAM, income);
 
                     if (income < 470) gas = 0; // base income
                     else if (income < 500) gas = 1;
@@ -339,6 +338,64 @@ namespace s2decode
             return replay;
         }
 
+        public static int MiddleIncome(List<KeyValuePair<int, int>> mid, int gameloop, int team, int income)
+        {
+            bool isMid = false;
+            KeyValuePair<int, int> lastMid = mid.LastOrDefault();
+
+            // no mid secured yet
+            if (lastMid.Key == 0) isMid = false;
+
+            // solid mid
+            else if (gameloop - lastMid.Key > 160)
+                if (lastMid.Value == team)
+                    isMid = true;
+                else
+                    isMid = false;
+
+            // split mid
+            else
+            {
+                int midPlTeam = 0;
+                int midOppTeam = 0;
+
+                KeyValuePair<int, int> bakMid = mid.FirstOrDefault();
+                foreach (var ent in mid)
+                {
+                    if (gameloop - ent.Key <= 160)
+                    {
+                        int lastloop = bakMid.Key;
+                        if (bakMid.Key < gameloop - 160)
+                            lastloop = gameloop - 160;
+
+
+                        if (bakMid.Value == team)
+                            midPlTeam += ent.Key - lastloop;
+                        else
+                            midOppTeam += ent.Key - lastloop;
+                    }
+                    bakMid = ent;
+                }
+                if (mid.LastOrDefault().Value == team)
+                    midPlTeam += gameloop - mid.LastOrDefault().Key;
+                else
+                    midOppTeam += gameloop - mid.LastOrDefault().Key;
+
+                double dmidPlTeam = (double)midPlTeam / 160;
+                double dmidOppTeam = (double)midOppTeam / 160;
+
+                double incChange = 60 * dmidPlTeam;
+                return income -= (int)incChange;
+            }
+
+
+            if (isMid == true)
+                return income -= 60;
+            else
+                return income;
+
+        }
+
         public static KeyValuePair<int, int> GetMiddle(dsreplay replay, bool current = false)
         {
             double team1 = 0;
@@ -398,7 +455,11 @@ namespace s2decode
                         SetBp("MIN5", MIN5, gl, pl, units);
                 }
                 if (pl.SPAWNS.Count() > 0)
+                {
                     pl.UNITS["ALL"] = pl.SPAWNS.ElementAt(pl.SPAWNS.Count() - 1).Value;
+                    if (pl.UNITS["ALL"].Count() == 3 && pl.SPAWNS.Count() > 1)
+                        pl.UNITS["ALL"] = pl.SPAWNS.ElementAt(pl.SPAWNS.Count() - 2).Value;
+                }
 
                 if (pl.STATS.Count() > 0)
                     pl.KILLSUM = pl.STATS.ElementAt(pl.STATS.Count() - 1).Value.MineralsKilledArmy;
@@ -422,16 +483,19 @@ namespace s2decode
 
         public static void FixWinner(dsreplay replay)
         {
-            int lastmid = GetMiddle(replay).Value;
             foreach (dsplayer pl in replay.PLAYERS)
             {
-                if (pl.TEAM == lastmid)
+                if (pl.RESULT == 1)
                 {
                     replay.WINNER = pl.TEAM;
-                    pl.RESULT = 1;
+                    break;
                 }
-                else
-                    pl.RESULT = 2;
+            }
+
+            foreach (dsplayer pl in replay.PLAYERS)
+            {
+                if (pl.TEAM == replay.WINNER) pl.RESULT = 1;
+                else pl.RESULT = 2;
             }
         }
 
