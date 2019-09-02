@@ -41,6 +41,24 @@ window.CopyToClipboard = (element) => {
     var can = document.getElementById(element);
     if (can != null) {
         if (element == "canvas") {
+            return can.toDataURL()
+        } else {
+            html2canvas(can, { backgroundColor: "#272b30" }).then(function (canvas) {
+                canvas.toBlob(function (blob) {
+                    const item = new ClipboardItem({ "image/png": blob });
+                    navigator.clipboard.write([item]);
+                });
+            });
+        }
+
+    }
+}
+
+
+window.CopyToClipboard_chrome = (element) => {
+    var can = document.getElementById(element);
+    if (can != null) {
+        if (element == "canvas") {
             var ctx = can.getContext("2d");
             ctx.globalCompositeOperation = 'destination-over'
             ctx.fillStyle = "#272b30";
@@ -218,4 +236,19 @@ return context.dataset.icons[context.dataIndex];
 
 window.myChartDataLabels = function (context) {
     return context.dataset.data[context.dataIndex] > 15;
+}
+
+function SelectText(element) {
+    var doc = document;
+    if (doc.body.createTextRange) {
+        var range = document.body.createTextRange();
+        range.moveToElementText(element);
+        range.select();
+    } else if (window.getSelection) {
+        var selection = window.getSelection();
+        var range = document.createRange();
+        range.selectNodeContents(element);
+        selection.removeAllRanges();
+        selection.addRange(range);
+    }
 }

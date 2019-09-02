@@ -1,13 +1,16 @@
-﻿using Microsoft.JSInterop;
+﻿using ElectronNET.API;
+using Microsoft.JSInterop;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Drawing;
+using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using System.Windows;
 
 namespace sc2dsstats.Data
 {
@@ -372,7 +375,15 @@ namespace sc2dsstats.Data
 
         public async Task CopyToClipboard(string element)
         {
-            await _jsRuntime.InvokeAsync<string>("CopyToClipboard", element);
+            string resp = await _jsRuntime.InvokeAsync<string>("CopyToClipboard", element);
+            Bitmap bmp = null;
+            var bytes = Convert.FromBase64String(resp.Replace("data:image/png;base64,", ""));
+            MemoryStream memoryStream = new MemoryStream(bytes);
+            memoryStream.Position = 0;
+            bmp = (Bitmap)Bitmap.FromStream(memoryStream);
+            memoryStream.Close();
+            memoryStream = null;
+            bytes = null;
         }
     }
 

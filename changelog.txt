@@ -2,7 +2,7 @@
 v 1.1.4
 
 - Chart await
-- Copy to clipboard button
+- Chart yAxes label
 
 v 1.1.3
 
