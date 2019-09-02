@@ -1,4 +1,9 @@
 
+v 1.1.5
+
+- Autoupdate
+- Resize Window on startup
+
 v 1.1.4
 
 - Chart await

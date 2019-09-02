@@ -7,6 +7,8 @@ using System.Linq;
 using System.Reflection;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using ElectronNET.API;
+using System.Threading;
 
 namespace sc2dsstats.Models
 {
@@ -16,7 +18,7 @@ namespace sc2dsstats.Models
         public UserConfig Conf { get; set; } = new UserConfig();
         public bool FIRSTRUN { get; set; } = false;
         public bool SAMPLEDATA { get; set; } = false;
-        public static string VERSION { get; } = "v1.1.4";
+        public static string VERSION { get; } = "v1.1.5";
         private bool INIT = false;
 
         public StartUp(IConfiguration config)
@@ -62,8 +64,34 @@ namespace sc2dsstats.Models
                 });
             }
 
+            await Resize();
             //AppUpdate appup = new AppUpdate();
             //appup.Update();
+        }
+
+        async Task Resize()
+        {
+            BrowserWindow browserWindow = null;
+            await Task.Run(() => {
+                do
+                {
+                    Thread.Sleep(250);
+                    browserWindow = Electron.WindowManager.BrowserWindows.FirstOrDefault();
+                    if (browserWindow != null)
+                    {
+                        try
+                        {
+                            browserWindow.SetPosition(0, 0);
+                            browserWindow.SetSize(1920, 1024);
+                            browserWindow.SetMenuBarVisibility(false);
+                        }
+                        catch
+                        {
+                        }
+                    }
+                } while (browserWindow == null);
+            });
+            
         }
 
         public void FirstRun()

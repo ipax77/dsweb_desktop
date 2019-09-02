@@ -51,6 +51,7 @@ else
         t = DateTime.Now - StartUp.Conf.LastUpload;
         Loading = false;
         stateChanged.PropertyChanged += Update;
+
     }
 
     private async void Update(object sender, PropertyChangedEventArgs e)
