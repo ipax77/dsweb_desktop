@@ -103,17 +103,9 @@ namespace sc2dsstats.Data
         public ChartJsoptions GetOptions()
         {
             ChartJsoptions chartoptions = new ChartJsoptions();
-
-            ChartJsoptions0 zoptions = new ChartJsoptions0();
-
-            ChartJSoptionsScales scales = new ChartJSoptionsScales();
-            ChartJSoptionsScalesTicks sticks = new ChartJSoptionsScalesTicks();
-            ChartJSoptionsScaleTicks ticks = new ChartJSoptionsScaleTicks();
-            ticks.beginAtZero = true;
-            sticks.ticks = ticks;
-            scales.yAxes.Add(sticks);
-            zoptions.scales = scales;
-            chartoptions = zoptions;
+            ChartJSoptionsScalesY yAxes = new ChartJSoptionsScalesY();
+            yAxes.ticks.beginAtZero = true;
+            chartoptions.scales.yAxes.Add(yAxes);
             chartoptions.title.display = true;
             return chartoptions;
         }

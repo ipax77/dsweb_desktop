@@ -36,7 +36,30 @@ window.RemoveDynChart = (chartdatasetpos) => {
         window.myChart.update();
     }
 }
-    
+
+window.CopyToClipboard = (element) => {
+    var can = document.getElementById(element);
+    if (can != null) {
+        if (element == "canvas") {
+            var ctx = can.getContext("2d");
+            ctx.globalCompositeOperation = 'destination-over'
+            ctx.fillStyle = "#272b30";
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            can.toBlob(function (blob) {
+                const item = new ClipboardItem({ "image/png": blob });
+                navigator.clipboard.write([item]);
+            });
+        } else {
+            html2canvas(can, {backgroundColor: "#272b30"}).then(function (canvas) {
+                canvas.toBlob(function (blob) {
+                    const item = new ClipboardItem({ "image/png": blob });
+                    navigator.clipboard.write([item]);
+                });
+            });
+        }
+
+    }
+}
 
 window.PieChart = (piechart) => {
     var piecan = document.getElementById('outlabeledChart');

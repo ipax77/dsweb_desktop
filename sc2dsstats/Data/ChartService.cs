@@ -28,7 +28,7 @@ namespace sc2dsstats.Data
             CultureInfo.CurrentCulture = CultureInfo.CreateSpecificCulture("en-US");
         }
 
-        public void GetChartBase(bool draw = true)
+        public async Task GetChartBase(bool draw = true)
         {
             ChartJS mychart = new ChartJS();
             s_races_ordered = DSdata.s_races_cmdr.ToList();
@@ -50,46 +50,46 @@ namespace sc2dsstats.Data
                 s_races_ordered = _s_races_cmdr_ordered;
             }
 
-            GetData(mychart);
+            await GetData(mychart);
             mychart.options = GetOptions();
             if (mychart.type != "line") DSchart.SortChart(mychart, ref s_races_ordered);
             SetColor(mychart);
             SetCmdrPics(mychart);
             _options.Chart = mychart;
-            if (draw == true) _jsIterop.ChartChanged(JsonConvert.SerializeObject(_options.Chart, Formatting.Indented));
+            if (draw == true) await _jsIterop.ChartChanged(JsonConvert.SerializeObject(_options.Chart, Formatting.Indented));
         }
 
-        public void AddDataset()
+        public async Task AddDataset()
         {
             ChartJS oldchart = new ChartJS();
             oldchart = _options.Chart;
             if (oldchart.data.datasets.Count() == 1 && oldchart.data.datasets[0].label == "global")
             {
                 oldchart.data.datasets.RemoveAt(0);
-                GetData(oldchart);
+                await GetData(oldchart);
                 //if (oldchart.type == "bar") oldchart.options.title.text = oldchart.options.title.text + " - " + _options.Interest + " vs ...";
                 DSchart.SortChart(oldchart, ref s_races_ordered);
                 SetColor(oldchart);
                 SetCmdrPics(oldchart);
                 _options.Chart = oldchart;
-                _jsIterop.ChartChanged(JsonConvert.SerializeObject(_options.Chart, Formatting.Indented));
+                await _jsIterop.ChartChanged(JsonConvert.SerializeObject(_options.Chart, Formatting.Indented));
             } else
             {
-                oldchart.data.datasets.Add(GetData());
+                oldchart.data.datasets.Add(await GetData());
                 SetColor(oldchart);
                 _options.Chart = oldchart;
-                _jsIterop.AddDataset(JsonConvert.SerializeObject(_options.Chart.data.datasets[_options.Chart.data.datasets.Count() -1], Formatting.Indented));
+                await _jsIterop.AddDataset(JsonConvert.SerializeObject(_options.Chart.data.datasets[_options.Chart.data.datasets.Count() -1], Formatting.Indented));
             }
         }
 
-        public void RemoveDataset()
+        public async Task RemoveDataset()
         {
             ChartJS oldchart = new ChartJS();
             oldchart = _options.Chart;
             if (oldchart.data.datasets.Count() == 1)
             {
                 _options.Interest = "";
-                GetChartBase();
+                await GetChartBase();
             } else
             {
                 for (int i = 0; i < _options.Chart.data.datasets.Count(); i++)
@@ -97,24 +97,24 @@ namespace sc2dsstats.Data
                     if (_options.Chart.data.datasets[i].label == _options.Interest)
                     {
                         _options.Chart.data.datasets.RemoveAt(i);
-                        _jsIterop.RemoveDataset(i);
+                        await _jsIterop.RemoveDataset(i);
                         break;
                     }
                 }
             }
         }
 
-        public void RebuildChart()
+        public async Task RebuildChart()
         {
             ChartJS oldchart = new ChartJS();
             oldchart = _options.Chart;
             _options.Interest = "";
 
-            GetChartBase(false);
+            await GetChartBase(false);
             
             if (oldchart.data.datasets.Count() == 1 && oldchart.data.datasets[0].label == "global")
             {
-                _jsIterop.ChartChanged(JsonConvert.SerializeObject(_options.Chart, Formatting.Indented));
+                await _jsIterop.ChartChanged(JsonConvert.SerializeObject(_options.Chart, Formatting.Indented));
             } else
             {
                 _options.Chart.data.datasets.RemoveAt(0);
@@ -122,14 +122,19 @@ namespace sc2dsstats.Data
                 foreach (var ent in oldchart.data.datasets)
                 {
                     _options.Interest = ent.label;
-                    _options.Chart.data.datasets.Add(GetData(labelChart));
+                    _options.Chart.data.datasets.Add(await GetData(labelChart));
                 }
                 _options.Chart.data.labels = labelChart.data.labels;
                 DSchart.SortChart(_options.Chart, ref s_races_ordered);
                 SetColor(_options.Chart);
                 SetCmdrPics(_options.Chart);
-                _jsIterop.ChartChanged(JsonConvert.SerializeObject(_options.Chart, Formatting.Indented));
+                await _jsIterop.ChartChanged(JsonConvert.SerializeObject(_options.Chart, Formatting.Indented));
             }
+        }
+
+        public async Task CopyToClipboard(string element)
+        {
+            await _jsIterop.CopyToClipboard(element);
         }
 
         public void SetColor(ChartJS mychart)
@@ -191,23 +196,15 @@ namespace sc2dsstats.Data
             }
             else
             {
-                if (_options.BeginAtZero == true)
-                {
-                    ChartJsoptions0 zoptions = new ChartJsoptions0();
+                ChartJsoptionsBar baroptions = new ChartJsoptionsBar();
+                chartoptions = baroptions;                
 
-                    ChartJSoptionsScales scales = new ChartJSoptionsScales();
-                    ChartJSoptionsScalesTicks sticks = new ChartJSoptionsScalesTicks();
-                    ChartJSoptionsScaleTicks ticks = new ChartJSoptionsScaleTicks();
-                    ticks.beginAtZero = true;
-                    sticks.ticks = ticks;
-                    scales.yAxes.Add(sticks);
-                    zoptions.scales = scales;
-                    chartoptions = zoptions;
-                } else
-                {
-                    ChartJsoptionsBar baroptions = new ChartJsoptionsBar();
-                    chartoptions = baroptions;                
-                }
+                ChartJSoptionsScalesY yAxes = new ChartJSoptionsScalesY();
+                yAxes.scaleLabel.labelString = "% - " + _options.Startdate.ToString("yyyy-MM-dd") + " - " + _options.Enddate.ToString("yyyy-MM-dd") + " - " + IsDefaultFilter();
+                if (_options.BeginAtZero == true)
+                    yAxes.ticks.beginAtZero = true;
+
+                chartoptions.scales.yAxes.Add(yAxes);
             }
 
             chartoptions.title.display = true;
@@ -216,7 +213,23 @@ namespace sc2dsstats.Data
             return chartoptions;
         }
 
-        public ChartJSdataset GetData(ChartJS mychart = null)
+        public string IsDefaultFilter()
+        {
+            DSdyn_filteroptions defoptions = new DSdyn_filteroptions();
+
+            if (_options.Duration == defoptions.Duration
+                && _options.Army == defoptions.Army
+                && _options.Income == defoptions.Income
+                && _options.Leaver == defoptions.Leaver
+                && _options.Kills == defoptions.Kills
+                && _options.PlayerCount == defoptions.PlayerCount
+            )
+                return "default Filter";
+            else
+                return "custom Filter";
+        }
+
+        public async Task<ChartJSdataset> GetData(ChartJS mychart = null)
         {
             Dictionary<string, KeyValuePair<double, int>> winrate = new Dictionary<string, KeyValuePair<double, int>>();
             Dictionary<string, Dictionary<string, KeyValuePair<double, int>>> winratevs = new Dictionary<string, Dictionary<string, KeyValuePair<double, int>>>();
@@ -225,7 +238,7 @@ namespace sc2dsstats.Data
             List<double> wr = new List<double>();
 
             string info;
-            _dsdata.GetDynData(_options, out winrate, out winratevs, out info);
+            await Task.Run(() => { _dsdata.GetDynData(_options, out winrate, out winratevs, out info); });
 
             ChartJSdataset dataset = new ChartJSdataset();
             if (_options.Interest == "")

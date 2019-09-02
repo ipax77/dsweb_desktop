@@ -182,7 +182,7 @@ namespace sc2dsstats.Data
         public bool maintainAspectRatio { get; set; } = true;
         public ChartJSoptionsLegend legend { get; set; } = new ChartJSoptionsLegend();
         public ChartJSoptionsTitle title { get; set; } = new ChartJSoptionsTitle();
-        
+        public ChartJSoptionsScales scales { get; set; } = new ChartJSoptionsScales();
         //public ChartJSoptionsScale scale { get; set; }
     }
 
@@ -192,19 +192,21 @@ namespace sc2dsstats.Data
         public ChartJSoptionsplugins plugins { get; set; } = new ChartJSoptionsplugins();
     }
 
-    public class ChartJsoptions0 : ChartJsoptionsBar
-    {
-        public ChartJSoptionsScales scales { get; set; } = new ChartJSoptionsScales();
-    }
-
     public class ChartJSoptionsScales
     {
-        public List<ChartJSoptionsScalesTicks> yAxes { get; set; } = new List<ChartJSoptionsScalesTicks>();
+        public List<ChartJSoptionsScalesY> yAxes { get; set; } = new List<ChartJSoptionsScalesY>();
     }
 
-    public class ChartJSoptionsScalesTicks
+    public class ChartJSoptionsScalesY
     {
+        public ChartJSoptionsScalesYLabel scaleLabel { get; set; } = new ChartJSoptionsScalesYLabel();
         public ChartJSoptionsScaleTicks ticks { get; set; } = new ChartJSoptionsScaleTicks();
+    }
+
+    public class ChartJSoptionsScalesYLabel
+    {
+        public bool display { get; set; } = true;
+        public string labelString { get; set; } = "";
     }
 
     public class ChartJsoptionsradar : ChartJsoptions
@@ -252,7 +254,7 @@ namespace sc2dsstats.Data
 
     public class ChartJSoptionsScaleTicks
     {
-        public bool beginAtZero { get; set; }
+        public bool beginAtZero { get; set; } = false;
     }
 
     public class ChartJSoptionsScaleTicksRadar
@@ -366,6 +368,11 @@ namespace sc2dsstats.Data
         public async Task<string> RemoveDataset(int data)
         {
             return await _jsRuntime.InvokeAsync<string>("RemoveDynChart", data);
+        }
+
+        public async Task CopyToClipboard(string element)
+        {
+            await _jsRuntime.InvokeAsync<string>("CopyToClipboard", element);
         }
     }
 

@@ -1034,10 +1034,13 @@ namespace sc2dsstats.Data
                     }
                 }
             }
-            
-            winrate_CACHE.Add(myhash, winrate);
-            winratevs_CACHE.Add(myhash, winratevs);
-            filter_CACHE.Add(myhash, fil.fil);
+
+            //winrate_CACHE.Add(myhash, winrate);
+            winrate_CACHE[myhash] = winrate;
+            //winratevs_CACHE.Add(myhash, winratevs);
+            winratevs_CACHE[myhash] = winratevs;
+            //filter_CACHE.Add(myhash, fil.fil);
+            filter_CACHE[myhash] = fil.fil;
         }
     }
 

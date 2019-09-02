@@ -93,13 +93,15 @@
 <div id="dv_btn" class="container-fluid">
     <div class="row">
         <div>
-            <div class="alert alert-light">
-                <span class="badge badge-dark">@_options.Mode</span>
-                <br />
-                <span class="badge badge-secondary">@_options.Startdate</span>
-                <br />
-                <span class="badge badge-secondary">@_options.Enddate</span>
-            </div>
+            <!--
+    <div class="alert alert-light">
+        <span class="badge badge-dark">@_options.Mode</span>
+        <br />
+        <span class="badge badge-secondary">@_options.Startdate</span>
+        <br />
+        <span class="badge badge-secondary">@_options.Enddate</span>
+    </div>
+        -->
             <div>
                 @foreach (var ent in DSdata.s_races_cmdr)
                 {
@@ -125,6 +127,7 @@
         </div>
         <div class="@ChartClass w-75">
             <canvas id="canvas"></canvas>
+            <button class="btn btn-sm btn-light" @onclick="@(() => CopyToClipboard())">Copy to clipboard</button>
         </div>
 
     </div>
@@ -180,7 +183,7 @@
         chartChanged.Update = !chartChanged.Update;
     }
 
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
         cmdricons = new List<string>();
         _build.DefaultFilter();
@@ -193,7 +196,7 @@
         }
         _options.PropertyChanged += OptionChanged;
 
-        _chart.GetChartBase();
+        await _chart.GetChartBase();
         _options.Player = true;
     }
 
@@ -216,11 +219,16 @@
 
         if (chartrendered == false)
         {
-            _chart.GetChartBase();
+            await _chart.GetChartBase();
             chartrendered = true;
             _options.Filter = false;
             _isLoading = "hidden";
         }
+    }
+
+    async void CopyToClipboard()
+    {
+        await _chart.CopyToClipboard("canvas");
     }
 
     private void Gametime(int i)
@@ -271,7 +279,7 @@
         }
     }
 
-    private void IconClick(string cmdr)
+    private async Task IconClick(string cmdr)
     {
         _isLoading = "visible";
         IsChecked[cmdr] = !IsChecked[cmdr];
@@ -282,12 +290,12 @@
         if (IsChecked[cmdr] == true)
         {
             cmdricons.Add(cmdr);
-            _chart.AddDataset();
+            await _chart.AddDataset();
         }
         else
         {
             cmdricons.Remove(cmdr);
-            _chart.RemoveDataset();
+            await _chart.RemoveDataset();
         }
 
         _options.Icons = cmdricons.Count();
@@ -318,7 +326,7 @@
                 else
                 {
                     _isLoading = "visible";
-                    _chart.RebuildChart();
+                    await _chart.RebuildChart();
                     info2 = "";
                     info3 = "Total: " + _options.fil.Total + " WR: " + _options.fil.WR + "%";
                     chartChanged.Fil = _options.fil;
