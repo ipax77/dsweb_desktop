@@ -104,6 +104,18 @@ namespace s2decode
                     {
                         int playerid = (int)pydic["m_controlPlayerId"];
                         int gameloop = (int)pydic["_gameloop"];
+
+                        if (pydic["m_unitTypeName"].ToString().StartsWith("DeathBurst"))
+                        {
+                            replay.DURATION = gameloop;
+                            if (playerid == 13)
+                                replay.WINNER = 0;
+                            else if (playerid == 14)
+                                replay.WINNER = 1;
+                            break;
+                        }
+
+
                         if (playerid == 0 || playerid > 6) continue;
                         dsplayer pl = replay.PLAYERS.Where(x => x.POS == playerid).FirstOrDefault();
                         if (pl == null) continue;
@@ -125,14 +137,17 @@ namespace s2decode
                                 if (born_unit == "ParasiticBombRelayDummy") continue;
                                 if (born_unit == "Biomass") continue;
 
-                                int fixloop = gameloop;
+                                //int fixloop = gameloop;
+                                int fixloop = pl.LastSpawn;
 
+                                /**
                                 if (pl.SPAWNS.Count() > 0)
                                 {
                                     int maxloop = pl.SPAWNS.ElementAt(pl.SPAWNS.Count() - 1).Key;
                                     if ((gameloop - maxloop) <= 470)
                                         fixloop = maxloop;
                                 }
+                                **/
 
                                 if (!pl.SPAWNS.ContainsKey(fixloop)) pl.SPAWNS.Add(fixloop, new Dictionary<string, int>());
                                 if (!pl.SPAWNS[fixloop].ContainsKey(born_unit)) pl.SPAWNS[fixloop].Add(born_unit, 1);
@@ -239,8 +254,28 @@ namespace s2decode
                     m_stats.VespeneUsedInProgressTechnology = (int)pystats["m_scoreValueVespeneUsedInProgressTechnology"];
                     m_stats.WorkersActiveCount = (int)pystats["m_scoreValueWorkersActiveCount"];
                     **/
-                    pl.STATS[gameloop] = m_stats;
 
+                    if (pl.STATS.Count() > 1)
+                    {
+                        int lastfood = pl.STATS.ElementAt(pl.STATS.Count() - 2).Value.FoodUsed;
+                        if (pl.STATS.Last().Value.FoodUsed > lastfood)
+                            if (gameloop - 160 - pl.LastSpawn > 470)
+                            {
+                                pl.LastSpawn = gameloop - 160;
+                                //pl.ARMY += pl.STATS.Last().Value.MineralsUsedActiveForces + pl.STATS.Last().Value.MineralsUsedCurrentTechnology;
+                                pl.ARMY += m_stats.MineralsUsedActiveForces / 2 + m_stats.MineralsUsedCurrentTechnology;
+
+                                // some units from last spawn still fighting
+                                if (lastfood > 0)
+                                {
+                                    //double wr = lastfood / pl.STATS.Last().Value.FoodUsed;
+
+                                }
+                            }
+                    }
+
+                    pl.STATS[gameloop] = m_stats;
+                    
                     replay.DURATION = gameloop;
                     pl.PDURATION = gameloop;
 
@@ -259,36 +294,22 @@ namespace s2decode
                     if (gas > pl.GAS)
                         pl.GAS = gas;
 
-                    int pos = 0;
-                    if ((gameloop - 480) % 1440 == 0)
-                        pos = 1;
-                    else if ((gameloop - 960) % 1440 == 0)
-                        pos = 2;
-                    else if ((gameloop - 1440) % 1440 == 0)
-                        pos = 3;
 
-                    if (pos > 0)
-                    {
-                        if (replay.PLAYERCOUNT == 4 && pos == 3) pos = 1;
+                    int fixloop = pl.LastSpawn;
 
-                        if (pl.REALPOS == pos || pl.REALPOS == pos + 3 || replay.PLAYERCOUNT == 2) { 
-                            int fixloop = gameloop;
-
-                            if (!pl.SPAWNS.ContainsKey(fixloop))
-                                pl.SPAWNS.Add(fixloop, new Dictionary<string, int>());
+                    if (!pl.SPAWNS.ContainsKey(fixloop))
+                        pl.SPAWNS.Add(fixloop, new Dictionary<string, int>());
     
-                            pl.SPAWNS[fixloop]["Gas"] = pl.GAS;
-                            if (pl.TEAM == 0)
-                                pl.SPAWNS[fixloop]["Mid"] = GetMiddle(replay, true).Key;
-                            else
-                                pl.SPAWNS[fixloop]["Mid"] = GetMiddle(replay, true).Value;
+                    pl.SPAWNS[fixloop]["Gas"] = pl.GAS;
+                    if (pl.TEAM == 0)
+                        pl.SPAWNS[fixloop]["Mid"] = GetMiddle(replay, true).Key;
+                    else
+                        pl.SPAWNS[fixloop]["Mid"] = GetMiddle(replay, true).Value;
 
-                            if (pl.STATS.Count() > 0)
-                            {
-                                pl.SPAWNS[fixloop]["Upgrades"] = pl.STATS.ElementAt(pl.STATS.Count() - 1).Value.MineralsUsedCurrentTechnology;
-                                pl.ARMY += pl.STATS.ElementAt(pl.STATS.Count() - 1).Value.MineralsUsedActiveForces;
-                            }
-                        }
+                    if (pl.STATS.Count() > 0)
+                    {
+                        pl.SPAWNS[fixloop]["Upgrades"] = pl.STATS.ElementAt(pl.STATS.Count() - 1).Value.MineralsUsedCurrentTechnology;
+                        //pl.ARMY += pl.STATS.ElementAt(pl.STATS.Count() - 1).Value.MineralsUsedActiveForces;
                     }
 
                 }
@@ -325,9 +346,6 @@ namespace s2decode
             if (replay.GAMEMODE == "GameModeCommanders" || replay.GAMEMODE == "GameModeCommandersHeroic" || replay.GAMEMODE == "GameModeStandard")
                 replay.ISBRAWL = false;
 
-
-
-            GetMiddle(replay);
             SetUnits(replay);
 
             // fail safe
@@ -441,6 +459,8 @@ namespace s2decode
 
         public static void SetUnits(dsreplay rep)
         {
+            KeyValuePair<int, int> Mid = GetMiddle(rep, true);
+
             foreach (dsplayer pl in rep.PLAYERS)
             {
                 foreach (int gl in pl.SPAWNS.Keys)
@@ -460,6 +480,15 @@ namespace s2decode
                     if (pl.UNITS["ALL"].Count() == 3 && pl.SPAWNS.Count() > 1)
                         pl.UNITS["ALL"] = pl.SPAWNS.ElementAt(pl.SPAWNS.Count() - 2).Value;
                 }
+
+                if (!pl.UNITS.ContainsKey("ALL"))
+                    pl.UNITS.Add("ALL", new Dictionary<string, int>());
+
+                if (pl.TEAM == 0)
+                    pl.UNITS["ALL"]["Mid"] = Mid.Key;
+                else
+                    pl.UNITS["ALL"]["Mid"] = Mid.Value;
+                
 
                 if (pl.STATS.Count() > 0)
                     pl.KILLSUM = pl.STATS.ElementAt(pl.STATS.Count() - 1).Value.MineralsKilledArmy;

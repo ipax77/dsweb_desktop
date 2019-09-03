@@ -205,9 +205,6 @@ namespace s2decode
             }
 
             Interlocked.Increment(ref TOTAL_DONE);
-            double wr = 0;
-            if (TOTAL > 0) wr = TOTAL_DONE * 100 / TOTAL;
-            wr = Math.Round(wr, 2);
 
             if (TOTAL_DONE >= TOTAL)
             {

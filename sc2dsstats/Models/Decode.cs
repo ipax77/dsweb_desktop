@@ -64,6 +64,7 @@ namespace sc2dsstats.Models
 
             Task tsscan = Task.Factory.StartNew(() =>
             {
+                int i = 0;
                 while (!_empty.WaitOne(1000))
                 {
                     double wr = 0;
@@ -76,27 +77,22 @@ namespace sc2dsstats.Models
                     Scan.Info = bab;
                     Console.Write("\r{0}   ", bab);
                     
-                    if (_jobs_decode.Count == 0)
+                    if (_jobs_decode.Count() == 0)
                     {
-                        //Thread.Sleep(3000);
-                        int i = 0;
-                        while (s2dec.END.Equals(DateTime.MinValue))
+                        i++;
+                        if (!s2dec.END.Equals(DateTime.MinValue) || i > 20)
                         {
-                            Thread.Sleep(250);
-                            i++;
-                            if (i > 20)
-                                break;
+                            Console.WriteLine("\r   " + s2dec.TOTAL + "/" + s2dec.TOTAL + " done. (100%)");
+                            Console.WriteLine("Jobs done.");
+                            Scan.Info = s2dec.TOTAL + "/" + s2dec.TOTAL + " done. (100%)";
+                            Scan.Done = 100;
+                            Scan.Running = false;
+                            Elapsed = s2dec.END - s2dec.START;
+                            Reload(Data);
+                            Failed = new List<string>(s2dec.REDO.Keys.ToList());
+                            stateChange.Update = !stateChange.Update;
+                            break;
                         }
-                        Console.WriteLine("\r   " + s2dec.TOTAL + "/" + s2dec.TOTAL + " done. (100%)");
-                        Console.WriteLine("Jobs done.");
-                        Scan.Info = s2dec.TOTAL + "/" + s2dec.TOTAL + " done. (100%)";
-                        Scan.Done = 100;
-                        Scan.Running = false;
-                        Elapsed = s2dec.END - s2dec.START;
-                        Reload(Data);
-                        Failed = new List<string>(s2dec.REDO.Keys.ToList());
-                        stateChange.Update = !stateChange.Update;
-                        break;
                     }
                     stateChange.Update = !stateChange.Update;
                 }

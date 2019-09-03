@@ -18,7 +18,7 @@ namespace sc2dsstats.Models
         public UserConfig Conf { get; set; } = new UserConfig();
         public bool FIRSTRUN { get; set; } = false;
         public bool SAMPLEDATA { get; set; } = false;
-        public static string VERSION { get; } = "v1.1.5";
+        public static string VERSION { get; } = "v1.1.6";
         private bool INIT = false;
 
         public StartUp(IConfiguration config)
@@ -72,6 +72,7 @@ namespace sc2dsstats.Models
         async Task Resize()
         {
             BrowserWindow browserWindow = null;
+            int failsafe = 16;
             await Task.Run(() => {
                 do
                 {
@@ -89,7 +90,8 @@ namespace sc2dsstats.Models
                         {
                         }
                     }
-                } while (browserWindow == null);
+                    failsafe--;
+                } while (browserWindow == null && failsafe > 0);
             });
             
         }

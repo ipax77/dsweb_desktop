@@ -22,7 +22,7 @@ namespace sc2dsstats.Models
         public string REPLAY { get; set; }
         public double GAMETIME { get; set; }
         public int WINNER { get; set; }
-        public int DURATION { get; set; }
+        public int DURATION { get; set; } = 0;
         public List<dsplayer> PLAYERS { get; set; } = new List<dsplayer>();
         public List<string> RACES { get; set; }
         [JsonIgnore]
@@ -368,8 +368,12 @@ namespace sc2dsstats.Models
         public Dictionary<int, Dictionary<string, int>> SPAWNS { get; set; } = new Dictionary<int, Dictionary<string, int>>();
         [JsonIgnore]
         public Dictionary<int, M_stats> STATS { get; set; } = new Dictionary<int, M_stats>();
+        [JsonIgnore]
         public double ELO { get; set; }
+        [JsonIgnore]
         public double ELO_CHANGE { get; set; }
+        [JsonIgnore]
+        public int LastSpawn { get; set; } = 0;
 
         public dsplayer() { }
 
