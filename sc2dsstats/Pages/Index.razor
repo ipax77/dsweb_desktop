@@ -34,6 +34,7 @@ else
     else
     {
         <Scan />
+        <a>@StartUp.FirstRunInfo</a>
     }
 }
 
@@ -47,6 +48,7 @@ else
     protected override async Task OnInitializedAsync()
     {
         await StartUp.Init();
+        StateHasChanged();
         await DSdata.Init();
         t = DateTime.Now - StartUp.Conf.LastUpload;
         Loading = false;

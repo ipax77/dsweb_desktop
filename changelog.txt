@@ -1,4 +1,9 @@
 
+v 1.1.7
+
+- force rescan
+- s2protocol 4.10.2.76052, base build: 76052
+
 v 1.1.6
 
 - s2decode improved

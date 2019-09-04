@@ -18,8 +18,9 @@ namespace sc2dsstats.Models
         public UserConfig Conf { get; set; } = new UserConfig();
         public bool FIRSTRUN { get; set; } = false;
         public bool SAMPLEDATA { get; set; } = false;
-        public static string VERSION { get; } = "v1.1.6";
+        public static string VERSION { get; } = "v1.1.7";
         private bool INIT = false;
+        public string FirstRunInfo { get; set; } = "";
 
         public StartUp(IConfiguration config)
         {
@@ -62,6 +63,27 @@ namespace sc2dsstats.Models
                         File.Create(Program.myJson_file).Dispose();
                     Program.myScan_log = Conf.WorkDir + "/log.txt";
                 });
+
+                if (Conf.ForceRescanV1_7 == true)
+                {
+                    FirstRunInfo = "Version 1.7 has a more accurate way to calculate Army value, middle income and other details. We have to rescan all replays to avoid duplicates.";
+                    if (File.Exists(Program.myJson_file))
+                    {
+                        try
+                        {
+                            File.Move(Program.myJson_file, Program.myJson_file + "_bakV1_7");
+                        }
+                        catch { }
+                    }
+
+                    try
+                    {
+                        File.Create(Program.myJson_file).Dispose();
+                    }
+                    catch { }
+                    Conf.ForceRescanV1_7 = false;
+                    Save();
+                }
             }
 
             await Resize();
