@@ -108,10 +108,12 @@ namespace s2decode
                         if (pydic["m_unitTypeName"].ToString().StartsWith("DeathBurst"))
                         {
                             replay.DURATION = gameloop;
+                            /**
                             if (playerid == 13)
                                 replay.WINNER = 0;
                             else if (playerid == 14)
                                 replay.WINNER = 1;
+                            **/
                             break;
                         }
 

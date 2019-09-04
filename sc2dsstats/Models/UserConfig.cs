@@ -21,6 +21,6 @@ namespace sc2dsstats.Models
         public string Version { get; set; } = "v0.5";
         public DateTime LastUpload { get; set; } = new DateTime(2018, 1, 1);
         public DateTime MMDeleted { get; set; } = new DateTime(2018, 1, 1);
-        public bool ForceRescanV1_7 { get; set; } = true;
+        public bool ForceRescanV1_8 { get; set; } = true;
     }
 }
