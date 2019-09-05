@@ -108,12 +108,11 @@ namespace s2decode
                         if (pydic["m_unitTypeName"].ToString().StartsWith("DeathBurst"))
                         {
                             replay.DURATION = gameloop;
-                            /**
+
                             if (playerid == 13)
-                                replay.WINNER = 0;
-                            else if (playerid == 14)
                                 replay.WINNER = 1;
-                            **/
+                            else if (playerid == 14)
+                                replay.WINNER = 0;
                             break;
                         }
 
@@ -141,15 +140,6 @@ namespace s2decode
 
                                 //int fixloop = gameloop;
                                 int fixloop = pl.LastSpawn;
-
-                                /**
-                                if (pl.SPAWNS.Count() > 0)
-                                {
-                                    int maxloop = pl.SPAWNS.ElementAt(pl.SPAWNS.Count() - 1).Key;
-                                    if ((gameloop - maxloop) <= 470)
-                                        fixloop = maxloop;
-                                }
-                                **/
 
                                 if (!pl.SPAWNS.ContainsKey(fixloop)) pl.SPAWNS.Add(fixloop, new Dictionary<string, int>());
                                 if (!pl.SPAWNS[fixloop].ContainsKey(born_unit)) pl.SPAWNS[fixloop].Add(born_unit, 1);
@@ -296,6 +286,8 @@ namespace s2decode
                     if (gas > pl.GAS)
                         pl.GAS = gas;
 
+                    if (pl.NAME == "PAX" && gas == 4)
+                        Console.WriteLine("bab");
 
                     int fixloop = pl.LastSpawn;
 
@@ -514,12 +506,15 @@ namespace s2decode
 
         public static void FixWinner(dsreplay replay)
         {
-            foreach (dsplayer pl in replay.PLAYERS)
+            if (replay.WINNER < 0)
             {
-                if (pl.RESULT == 1)
+                foreach (dsplayer pl in replay.PLAYERS)
                 {
-                    replay.WINNER = pl.TEAM;
-                    break;
+                    if (pl.RESULT == 1)
+                    {
+                        replay.WINNER = pl.TEAM;
+                        break;
+                    }
                 }
             }
 

@@ -21,7 +21,7 @@ namespace sc2dsstats.Models
         public int ID { get; set; }
         public string REPLAY { get; set; }
         public double GAMETIME { get; set; }
-        public int WINNER { get; set; }
+        public int WINNER { get; set; } = -1;
         public int DURATION { get; set; } = 0;
         public List<dsplayer> PLAYERS { get; set; } = new List<dsplayer>();
         public List<string> RACES { get; set; }

@@ -5,7 +5,6 @@
 @using System.ComponentModel
 @using sc2dsstats.Data
 @using sc2dsstats.Models
-@inject IComponentContext ComponentContext
 @inject ChartService _chart
 @inject ChartStateChange chartChanged
 @inject DSdyn_filteroptions  _options
@@ -206,17 +205,8 @@
     }
 
 
-    protected override async Task OnAfterRenderAsync()
+    protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        // TEMPORARY: Currently we need this guard to avoid making the interop
-        // call during prerendering. Soon this will be unnecessary because we
-        // will change OnAfterRenderAsync so that it won't run during the
-        // prerendering phase.
-        if (!ComponentContext.IsConnected)
-        {
-            return;
-        }
-
         if (chartrendered == false)
         {
             await _chart.GetChartBase();

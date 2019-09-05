@@ -3,7 +3,6 @@
 @using sc2dsstats.Data
 @using sc2dsstats.Interfaces
 @using System.Globalization;
-@inject IComponentContext ComponentContext
 @inject ChartService _chart
 @inject ChartStateChange chartChanged
 @inject DSdyn_filteroptions  _options
@@ -527,19 +526,6 @@
         _options.PropertyChanged += FilOptionChanged;
         options.PropertyChanged += OptionChanged;
         OptionChanged(null, null);
-    }
-
-    protected override async Task OnAfterRenderAsync()
-    {
-        // TEMPORARY: Currently we need this guard to avoid making the interop
-        // call during prerendering. Soon this will be unnecessary because we
-        // will change OnAfterRenderAsync so that it won't run during the
-        // prerendering phase.
-        if (!ComponentContext.IsConnected)
-        {
-            return;
-        }
-
     }
 
     public void ShowGame(int repid) {

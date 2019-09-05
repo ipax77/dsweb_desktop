@@ -123,7 +123,7 @@
         await NewReplay();
     }
 
-    protected override async Task OnAfterRenderAsync()
+    protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (showChart == false)
         {

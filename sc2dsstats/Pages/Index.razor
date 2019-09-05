@@ -1,11 +1,9 @@
 ﻿@page "/"
 @using sc2dsstats.Models;
-@using Microsoft.AspNetCore.Components;
 @using sc2dsstats.Interfaces;
 @using System.ComponentModel;
 @inject StartUp StartUp
 @inject DSdataModel DSdata
-@inject IUriHelper UriHelper
 @inject IDSdata_cache  DScache
 @inject ScanStateChange stateChanged
 @implements IDisposable

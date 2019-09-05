@@ -43,7 +43,7 @@ namespace sc2dsstats
                 .ConfigureWebHostDefaults(webBuilder =>
                 {
                     webBuilder.UseElectron(args).UseStartup<Startup>();
-                    //webBuilder.UseStartup<Startup>()
+                    //webBuilder.UseStartup<Startup>();
                     //.UseElectron(args)
                     //.Build();
                 });

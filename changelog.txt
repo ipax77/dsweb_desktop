@@ -1,4 +1,12 @@
 
+v 1.1.9
+
+- port to dotnet core 3.0 preview 9
+
+v 1.1.8
+
+- bugfix
+
 v 1.1.7
 
 - force rescan

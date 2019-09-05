@@ -3,7 +3,6 @@
 @using System.Threading;
 @using sc2dsstats.Data
 @using sc2dsstats.Models
-@inject IComponentContext ComponentContext
 @inject IJSRuntime JSRuntime
 @inject ChartStateChange chartChanged
 @implements IDisposable
@@ -24,17 +23,8 @@
         chartChanged.PropertyChanged += Update;
     }
 
-    protected override async Task OnAfterRenderAsync()
+    protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        // TEMPORARY: Currently we need this guard to avoid making the interop
-        // call during prerendering. Soon this will be unnecessary because we
-        // will change OnAfterRenderAsync so that it won't run during the
-        // prerendering phase.
-        if (!ComponentContext.IsConnected)
-        {
-            return;
-        }
-
         if (chartrendered == false)
         {
             //infoFromJs = await JSRuntime.InvokeAsync<string>(
