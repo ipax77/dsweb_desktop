@@ -1,4 +1,8 @@
 
+v 1.1.10
+
+- bugfix middle
+
 v 1.1.9
 
 - port to dotnet core 3.0 preview 9

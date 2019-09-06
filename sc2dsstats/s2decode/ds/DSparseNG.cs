@@ -462,11 +462,11 @@ namespace s2decode
                     Dictionary<string, int> units = pl.SPAWNS[gl];
 
                     if (gl >= 20640 && gl <= 22080)
-                        SetBp("MIN15", MIN15, gl, pl, units);
+                        SetBp("MIN15", MIN15, gl, pl, units, rep);
                     else if (gl >= 13440 && gl <= 14880)
-                        SetBp("MIN10", MIN10, gl, pl, units);
+                        SetBp("MIN10", MIN10, gl, pl, units, rep);
                     else if (gl >= 6240 && gl <= 7680)
-                        SetBp("MIN5", MIN5, gl, pl, units);
+                        SetBp("MIN5", MIN5, gl, pl, units, rep);
                 }
                 if (pl.SPAWNS.Count() > 0)
                 {
@@ -492,15 +492,35 @@ namespace s2decode
 
         }
 
-        static void SetBp(string breakpoint, int min, int gameloop, dsplayer pl, Dictionary<string, int> units)
+        static void SetBp(string breakpoint, int min, int gameloop, dsplayer pl, Dictionary<string, int> units, dsreplay rep)
         {
-            if (units.ContainsKey("Mid"))
+            units["Mid"] = 0;
+
+            KeyValuePair<int, int> lastent = new KeyValuePair<int, int>(0, 0);
+            int mid = 0;
+            bool hasInfo = false;
+            foreach (var ent in rep.MIDDLE)
             {
-                int temp = min - gameloop;
-                units["Mid"] += temp;
-                if (units["Mid"] < 0)
-                    units["Mid"] = 0;
+                if (ent.Key > gameloop)
+                {
+                    hasInfo = true;
+                    if (lastent.Value == pl.TEAM)
+                        mid += gameloop - lastent.Key;
+                    break;
+                }
+
+                if (lastent.Key > 0 && lastent.Value == pl.TEAM)
+                    mid += ent.Key - lastent.Key;
+
+                lastent = ent;
             }
+            if (rep.MIDDLE.Count() > 0)
+                if (hasInfo == false && rep.MIDDLE.Last().Value == pl.TEAM)
+                    mid += gameloop - rep.MIDDLE.Last().Key;
+
+            if (mid < 0) mid = 0;
+            units["Mid"] = mid;
+
             pl.UNITS[breakpoint] = units;
         }
 
