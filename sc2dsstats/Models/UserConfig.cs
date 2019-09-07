@@ -16,6 +16,7 @@ namespace sc2dsstats.Models
         public bool Autoupdate { get; set; } = false;
         public bool Autoscan { get; set; } = false;
         public bool Autoupload { get; set; } = false;
+        public bool Autoupload_v1_1_10 { get; set; } = true;
         public bool Uploadcredential { get; set; } = false;
         public bool MMcredential { get; set; } = false;
         public string Version { get; set; } = "v0.5";

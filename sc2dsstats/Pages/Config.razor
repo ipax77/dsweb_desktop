@@ -1,6 +1,7 @@
 @page "/config"
 @using System.IO
 @using sc2dsstats.Models
+@using System.Text.Json
 @inject StartUp  StartUp
 @inject DSdataModel _dsData
 @inject ScanStateChange stateChange
@@ -121,16 +122,17 @@
         <label>Automatically check for new updates.</label>
     </div>
 </div>
+    -->
 <div class="row">
     <div class="custom-control custom-checkbox w-25">
-        <input type="checkbox" class="custom-control-input" name="cb_upload" id="cb_upload" @bind="@StartUp.Conf.Autoupload" />
+        <input type="checkbox" class="custom-control-input" name="cb_upload" id="cb_upload" @bind="@StartUp.Conf.Autoupload_v1_1_10" />
         <label class="custom-control-label" for="cb_upload">Autoupload</label>
     </div>
     <div class="w-auto">
-        <label>Automatically upload your anonymized DS-replay data.</label>
+        <label>Automatically upload your anonymized DS-replay stats.</label>
     </div>
 </div>
-    -->
+
 <br />
 <h5>Credentials</h5>
 <div class="row">
@@ -165,6 +167,18 @@
 </div>
     -->
 <br />
+<h5>Data</h5>
+<div class="row">
+    <div>
+        <button class="btn btn-primary" @onclick="@(() => Reset())">Reset data</button>
+        <a>Warning: you will have to rescan all replays!</a>
+    </div>
+    <div>
+        <button class="btn btn-primary" @onclick="@(() => Export())">Export data</button>
+        <a>Export file will be generated in @Program.workdir export.json</a>
+    </div>
+</div>
+<br />
 <div class="form-group">
     <label for="sel1">CPU Cores - used for decoding new replays</label>
     <select class="form-control w-auto" id="sel1" @bind="@StartUp.Conf.Cores">
@@ -196,6 +210,38 @@
     HashSet<Player> PlayerChanged = new HashSet<Player>();
     HashSet<Replay> ReplayChanged = new HashSet<Replay>();
 
+
+    public void Reset()
+    {
+        if (File.Exists(Program.myJson_file))
+        {
+            File.Delete(Program.myJson_file);
+        }
+    }
+
+    public void Export()
+    {
+        List<string> anonymous = new List<string>();
+        foreach (dsreplay replay in _dsData.Replays)
+        {
+            foreach (dsplayer pl in replay.PLAYERS)
+            {
+                if (StartUp.Conf.Players.Contains(pl.NAME))
+                    pl.NAME = "player";
+                else
+                    pl.NAME = "player" + pl.REALPOS.ToString();
+            }
+            anonymous.Add(JsonSerializer.Serialize(replay));
+        }
+        string exp_csv = Program.workdir + "\\export.json";
+        if (!File.Exists(exp_csv))
+        {
+            File.Delete(exp_csv);
+        }
+        File.WriteAllLines(exp_csv, anonymous);
+
+        _dsData.LoadData();
+    }
 
     public class Player
     {

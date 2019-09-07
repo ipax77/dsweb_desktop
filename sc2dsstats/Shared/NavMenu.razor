@@ -82,19 +82,32 @@
             <li>
                 <br />
                 <div class="btn-group-vertical ml-3">
-                    <div>
-                        <input type="checkbox" checked="@OTF" />
-                        <button type="button" class="btn btn-sm btn-primary" data-toggle="tooltip" data-placement="top" @onclick="@Otf" title="Auto-decode new replays after each game.">
-                            on the fly scan
-                        </button>
+                    <div class="form-group mr-2">
+                        <div class="custom-control custom-checkbox">
+                            <input type="checkbox"
+                                   class="custom-control-input"
+                                   name="otf"
+                                   checked="@OTF"
+                                   id="cb_otf"
+                                   @onchange="@(() => @Otf())" />
+                            <label class="custom-control-label" for="cb_otf">
+                                on the fly scan
+                            </label>
+                        </div>
                     </div>
-                    <div>
-                        <input type="checkbox" checked="@StartUp.SAMPLEDATA" />
-                        <button type="button" class="btn btn-sm btn-primary" data-toggle="tooltip" data-placement="top" @onclick="@Sampledata" title="Use a sample dataset to test the application.">
-                            use sample data
-                        </button>
+                    <div class="form-group mr-2">
+                        <div class="custom-control custom-checkbox">
+                            <input type="checkbox"
+                                   class="custom-control-input"
+                                   name="sample"
+                                   checked="@StartUp.SAMPLEDATA"
+                                   id="cb_sample"
+                                   @onchange="@(() => Sampledata())" />
+                            <label class="custom-control-label" for="cb_sample">
+                                use sample data
+                            </label>
+                        </div>
                     </div>
-
                 </div>
             </li>
         }

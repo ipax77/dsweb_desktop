@@ -18,7 +18,7 @@ namespace sc2dsstats.Models
         public UserConfig Conf { get; set; } = new UserConfig();
         public bool FIRSTRUN { get; set; } = false;
         public bool SAMPLEDATA { get; set; } = false;
-        public static string VERSION { get; } = "v1.1.10";
+        public static string VERSION { get; } = "v1.1.11";
         private bool INIT = false;
         public string FirstRunInfo { get; set; } = "";
 
@@ -66,7 +66,7 @@ namespace sc2dsstats.Models
 
                 if (Conf.ForceRescanV1_8 == true)
                 {
-                    FirstRunInfo = "Version 1.7 has a more accurate way to calculate Army value, middle income and other details. We have to rescan all replays to avoid duplicates.";
+                    FirstRunInfo = "Version 1.1.10 has a more accurate way to calculate Army value, middle income and other details. We have to rescan all replays to avoid duplicates.";
                     if (File.Exists(Program.myJson_file))
                     {
                         try

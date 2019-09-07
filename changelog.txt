@@ -1,4 +1,8 @@
 
+v 1.1.11
+
+- autoupload
+
 v 1.1.10
 
 - bugfix middle

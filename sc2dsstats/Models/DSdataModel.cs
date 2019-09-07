@@ -52,7 +52,7 @@ namespace sc2dsstats.Models
             }
         }
 
-        public async Task LoadData()
+        public async Task LoadData(bool DoUpload = false)
         {
             if (File.Exists(Program.myJson_file))
             {
@@ -97,7 +97,22 @@ namespace sc2dsstats.Models
                 _options.DOIT = true;
                 _options.BeginAtZero = !_options.BeginAtZero;
                     
-                
+                if (DoUpload == true)
+                {
+                    if (_startUp.Conf.Uploadcredential == true && _startUp.Conf.Autoupload_v1_1_10 == true)
+                    {
+                        await Task.Run(() =>
+                        {
+                            try
+                            {
+                                DSrest.AutoUpload(_startUp, this);
+                            } catch
+                            {
+
+                            }
+                        });
+                    }
+                }
             }
         }
 

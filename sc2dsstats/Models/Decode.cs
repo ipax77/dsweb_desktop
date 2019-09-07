@@ -102,7 +102,7 @@ namespace sc2dsstats.Models
 
         private static void Reload(DSdataModel Data)
         {
-            Data.LoadData();
+            Data.LoadData(true);
         }
 
         private static void OnHandlerStart(object obj)

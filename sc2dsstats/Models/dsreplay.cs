@@ -37,7 +37,7 @@ namespace sc2dsstats.Models
         public int REPORTED { get; set; } = 0;
         public bool ISBRAWL { get; set; } = false;
         public string GAMEMODE { get; set; } = "unknown";
-        public string VERSION { get; set; } = "1.5";
+        public string VERSION { get; set; } = "1.6";
 
         public dsreplay()
         {
