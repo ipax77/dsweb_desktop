@@ -88,40 +88,76 @@
                 {
                     var ent = DBFindDic[i];
                     ent.ID = i;
-                <div class="row">
-                    @if (i > 0 && i == DBFindDic.Count() - 1)
-                    {
-                        <button class="btn btn-secondary btn-sm mr-2" style="max-height: 35px !important;" @onclick="@(() => @RemoveDBFind(ent.ID))">-</button>
-                    }
-                    <div class="form-group mr-1">
-                        <label for="filter_@i">
-                            Race @i
-                        </label>
-                        <select class="form-control w-auto" id="sel_@i" @bind="@ent.RACE">
-                            <option selected="selected"></option>
-                            @foreach (var opt in DSdata.s_races)
-                            {
-                                <option value=@opt>@opt</option>
-                            }
-                        </select>
+                    <div class="row">
+                        @if (i > 0 && i == DBFindDic.Count() - 1)
+                        {
+                            <button class="btn btn-secondary btn-sm mr-2" style="max-height: 35px !important;" @onclick="@(() => @RemoveDBFind(ent.ID))">-</button>
+                        }
+                        <div class="form-group mr-1">
+                            <label for="filter_@i">
+                                Race @i
+                            </label>
+                            <select class="form-control w-auto" id="sel_@i" @bind="@ent.RACE">
+                                <option selected="selected"></option>
+                                @foreach (var opt in DSdata.s_races)
+                                {
+                                    <option value=@opt>@opt</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="form-group mr-1">
+                            <label for="filter_@i">
+                                vs Race @i
+                            </label>
+                            <select class="form-control w-auto" id="sel_@i" @bind="@ent.RACEVS">
+                                <option selected="selected"></option>
+                                @foreach (var opt in DSdata.s_races)
+                                {
+                                    <option value=@opt>@opt</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="custom-control custom-checkbox mr-1">
+                            <input type="checkbox" class="custom-control-input" name="cbfil_player_@i" id="cbfil_player_@i" @bind="@ent.PLAYER" />
+                            <label class="custom-control-label" for="cbfil_player_@i">Player</label>
+                        </div>
                     </div>
-                    <div class="form-group mr-1">
-                        <label for="filter_@i">
-                            vs Race @i
-                        </label>
-                        <select class="form-control w-auto" id="sel_@i" @bind="@ent.RACEVS">
-                            <option selected="selected"></option>
-                            @foreach (var opt in DSdata.s_races)
-                            {
-                                <option value=@opt>@opt</option>
-                            }
-                        </select>
+                    <div class="row">
+                        <div>
+                            <div class="custom-control custom-radio mr-1">
+                                <input type="radio" class="custom-control-input" name="cbfil_unit_@i" id="cbfil_unitGr_@i" checked="checked" @onchange="@(() => ent.UNITMOD = ">")" />
+                                <label class="custom-control-label" for="cbfil_unitGr_@i">&gt;</label>
+                            </div>
+                            <div class="custom-control custom-radio mr-1">
+                                <input type="radio" class="custom-control-input" name="cbfil_unit_@i" id="cbfil_unitEq_@i" @onchange="@(() => ent.UNITMOD = "=")" />
+                                <label class="custom-control-label" for="cbfil_unitEq_@i">=</label>
+                            </div>
+                            <div class="custom-control custom-radio mr-1">
+                                <input type="radio" class="custom-control-input" name="cbfil_unit_@i" id="cbfil_unitLo_@i" @onchange="@(() => ent.UNITMOD = "<")" />
+                                <label class="custom-control-label" for="cbfil_unitLo_@i">&lt;</label>
+                            </div>
+                        </div>
+                        <div>
+                            <!--
+                            <div class="input-group mr-1">
+                                <div class="input-group-prepend">
+                                    <span class="input-group-text" id="cbfil_unitL_@i">Unit</span>
+                                </div>
+                                <input type="text" class="form-control" placeholder="RaynorHyperion" name="cbfil_unit_@i" id="cbfil_unit_@i" aria-describedby="cbfil_unitL_@i" @bind="@ent.UNIT" />
+                            </div>
+                            -->
+                            <div>
+                                <MatAutocomplete Collection="@s_units" ItemType="string" @bind-Value="@ent.UNIT" Label="Unit"></MatAutocomplete>
+                            </div>
+                            <div class="input-group mr-1">
+                                <div class="input-group-prepend">
+                                    <span class="input-group-text" id="cbfil_unitCL_@i">Count</span>
+                                </div>
+                                <input type="number" class="form-control" name="cbfil_unitC_@i" id="cbfil_unitC_@i" aria-describedby="dbfil_unitCL_@i" @bind="@ent.UNITCOUNT" />
+                            </div>
+
+                        </div>
                     </div>
-                    <div class="custom-control custom-checkbox mr-1">
-                        <input type="checkbox" class="custom-control-input" name="cbfil_player_@i" id="cbfil_player_@i" @bind="@ent.PLAYER" />
-                        <label class="custom-control-label" for="cbfil_player_@i">Player</label>
-                    </div>
-                </div>
                 }
             </div>
             <div>
@@ -185,6 +221,13 @@
     string mb = "";
     string ladderstring = "";
 
+    string[] s_units = new[]
+    {
+        "One",
+        "Two",
+        "Three"
+    };
+
     public class DBFilter
     {
         public string Value { get; set; } = "";
@@ -199,7 +242,18 @@
         DBFilterDic.Add(0, new DBFilter());
         DBFindDic = new Dictionary<int, DBFind>();
         DBFindDic.Add(0, new DBFind());
-        myReplays = _dsdata.Replays.OrderByDescending(o => o.GAMETIME);
+        myReplays = new List<dsreplay>(_dsdata.Replays.OrderByDescending(o => o.GAMETIME));
+
+
+        HashSet<string> units = new HashSet<string>();
+        foreach (var rep in myReplays)
+            foreach (var pl in rep.PLAYERS)
+                if (pl.UNITS.ContainsKey("ALL"))
+                    foreach (var unit in pl.UNITS["ALL"].Keys)
+                        units.Add(unit);
+
+        s_units = units.ToArray();
+
 
         _options.PropertyChanged += OptionChanged;
     }
@@ -247,7 +301,7 @@
         DBFilterDic.Add(0, new DBFilter());
         DBFindDic = new Dictionary<int, DBFind>();
         DBFindDic.Add(0, new DBFind());
-        myReplays = _dsdata.Replays;
+        myReplays = new List<dsreplay>(_dsdata.Replays);
     }
 
     void AddDBFilter()
@@ -298,6 +352,8 @@
 
     void DoFind()
     {
+        myReplays = new List<dsreplay>(_dsdata.Replays.OrderByDescending(o => o.GAMETIME));
+
         foreach (var dic in DBFindDic.Keys)
         {
             var ent = DBFindDic[dic];
@@ -324,6 +380,15 @@
                 }
             }
 
+            if (ent.UNIT.Length > 0)
+            {
+                if (ent.UNITMOD == ">")
+                    myReplays = myReplays.Where(x => x.PLAYERS.Where(y => y.UNITS["ALL"].ContainsKey(ent.UNIT) && y.UNITS["ALL"][ent.UNIT] > ent.UNITCOUNT).Count() > 0).ToList();
+                else if (ent.UNITMOD == "=")
+                    myReplays = myReplays.Where(x => x.PLAYERS.Where(y => y.UNITS["ALL"].ContainsKey(ent.UNIT) && y.UNITS["ALL"][ent.UNIT] == ent.UNITCOUNT).Count() > 0).ToList();
+                else if (ent.UNITMOD == "<")
+                    myReplays = myReplays.Where(x => x.PLAYERS.Where(y => y.UNITS["ALL"].ContainsKey(ent.UNIT) && y.UNITS["ALL"][ent.UNIT] < ent.UNITCOUNT).Count() > 0).ToList();
+            }
         }
 
     }

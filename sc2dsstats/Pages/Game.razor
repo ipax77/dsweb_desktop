@@ -16,12 +16,17 @@
     <div class="row">
         <!--<button class="btn btn-sm btn-secondary mb-1" @onclick="@(() => CopyToClipboard())">Copy to clipboard</button>-->
         <button class="btn btn-sm btn-secondary mb-1" @onclick="@(() => showDetails = !showDetails)">Show details</button>
+        <button class="btn btn-sm btn-secondary mb-1" @onclick="@(() => showMap = !showMap)">Show map (alpha test)</button>
     </div>
     <div id="copyme" class="container-fluid">
         <div>
             @if (showDetails == true)
             {
                 <GameChart replay="@replay" />
+            }
+            @if (showMap == true)
+            {
+                <GameMap replay="@replay" />
             }
         </div>
         <div class="row">
@@ -271,6 +276,7 @@
     string pldiffcolor = DSdata.color_plbg_def;
     int replayid = 0;
     bool showDetails = false;
+    bool showMap = false;
 
     static double MIN5 = 6720;
     static double MIN10 = 13440;
@@ -310,6 +316,7 @@
     {
         replayid = replay.ID;
         showDetails = false;
+        showMap = false;
         if (replay != null)
         {
             BreakpointMid["ALL"] = replay.DURATION;

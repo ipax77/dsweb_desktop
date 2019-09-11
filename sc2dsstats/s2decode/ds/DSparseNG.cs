@@ -88,7 +88,7 @@ namespace s2decode
             return replay;
         }
 
-        public static dsreplay GetTrackerevents(string replay_file, dynamic trackerevents_dec, dsreplay replay)
+        public static dsreplay GetTrackerevents(string replay_file, dynamic trackerevents_dec, dsreplay replay, bool GetDetail = false)
         {
             bool fix = false;
             if (replay.GAMETIME <= 20190121000000) fix = true;
@@ -126,53 +126,78 @@ namespace s2decode
                         {
                             replay.PLAYERS[playerid - 1].RACE = m.Groups[1].Value;
                         }
-                        else if (pydic.ContainsKey("m_creatorAbilityName") && pydic["m_creatorAbilityName"] == null)
+                        else if (pydic.ContainsKey("m_creatorAbilityName"))
                         {
-                            if (gameloop < 480) continue;
-                            if (pydic["_event"].ToString() == "NNet.Replay.Tracker.SUnitBornEvent")
+                            if (pydic["m_creatorAbilityName"] == null || pydic["m_creatorAbilityName"].ToString() == "")
                             {
-                                string born_unit = pydic["m_unitTypeName"].ToString();
-
-                                if (born_unit == "TrophyRiftPremium") continue;
-                                if (born_unit == "MineralIncome") continue;
-                                if (born_unit == "ParasiticBombRelayDummy") continue;
-                                if (born_unit == "Biomass") continue;
-
-                                //int fixloop = gameloop;
-                                int fixloop = pl.LastSpawn;
-
-                                if (!pl.SPAWNS.ContainsKey(fixloop)) pl.SPAWNS.Add(fixloop, new Dictionary<string, int>());
-                                if (!pl.SPAWNS[fixloop].ContainsKey(born_unit)) pl.SPAWNS[fixloop].Add(born_unit, 1);
-                                else pl.SPAWNS[fixloop][born_unit]++;
-
-                                if (pl.REALPOS == null || pl.REALPOS == 0)
+                                if (gameloop < 480) continue;
+                                if (pydic["_event"].ToString() == "NNet.Replay.Tracker.SUnitBornEvent")
                                 {
-                                    int pos = 0;
+                                    string born_unit = pydic["m_unitTypeName"].ToString();
 
-                                    if (replay.PLAYERCOUNT == 2)
-                                        pos = 1;
-                                    else if ((gameloop - 480) % 1440 == 0)
-                                        pos = 1;
-                                    else if ((gameloop - 481) % 1440 == 0)
-                                        pos = 1;
-                                    else if ((gameloop - 960) % 1440 == 0)
-                                        pos = 2;
-                                    else if ((gameloop - 961) % 1440 == 0)
-                                        pos = 2;
-                                    else if ((gameloop - 1440) % 1440 == 0)
-                                        pos = 3;
-                                    else if ((gameloop - 1441) % 1440 == 0)
-                                        pos = 3;
+                                    if (born_unit == "TrophyRiftPremium") continue;
+                                    if (born_unit == "MineralIncome") continue;
+                                    if (born_unit == "ParasiticBombRelayDummy") continue;
+                                    if (born_unit == "Biomass") continue;
 
-                                    if (replay.PLAYERCOUNT == 4 && pos == 3) pos = 1;
-
-                                    if (pos > 0)
+                                    if (GetDetail == true)
                                     {
-                                        int team = REParea.GetTeam((int)pydic["m_x"], (int)pydic["m_y"]);
-                                        if (team == 1) pl.REALPOS = pos;
-                                        else if (team == 2) pl.REALPOS = pos + 3;
-                                        pl.TEAM = team - 1;
+                                        UnitEvent _unit = new UnitEvent();
+                                        _unit.Gameloop = gameloop;
+                                        _unit.Name = born_unit;
+                                        _unit.Index = (int)pydic["m_unitTagIndex"];
+                                        _unit.RecycleTag = (int)pydic["m_unitTagRecycle"];
+                                        _unit.PlayerId = playerid;
+                                        _unit.x = (int)pydic["m_x"];
+                                        _unit.y = (int)pydic["m_y"];
+                                        replay.UnitsBorn.Add(_unit);
                                     }
+                                    //int fixloop = gameloop;
+                                    int fixloop = pl.LastSpawn;
+
+                                    if (!pl.SPAWNS.ContainsKey(fixloop)) pl.SPAWNS.Add(fixloop, new Dictionary<string, int>());
+                                    if (!pl.SPAWNS[fixloop].ContainsKey(born_unit)) pl.SPAWNS[fixloop].Add(born_unit, 1);
+                                    else pl.SPAWNS[fixloop][born_unit]++;
+
+                                    if (pl.REALPOS == null || pl.REALPOS == 0)
+                                    {
+                                        int pos = 0;
+
+                                        if (replay.PLAYERCOUNT == 2)
+                                            pos = 1;
+                                        else if ((gameloop - 480) % 1440 == 0)
+                                            pos = 1;
+                                        else if ((gameloop - 481) % 1440 == 0)
+                                            pos = 1;
+                                        else if ((gameloop - 960) % 1440 == 0)
+                                            pos = 2;
+                                        else if ((gameloop - 961) % 1440 == 0)
+                                            pos = 2;
+                                        else if ((gameloop - 1440) % 1440 == 0)
+                                            pos = 3;
+                                        else if ((gameloop - 1441) % 1440 == 0)
+                                            pos = 3;
+
+                                        if (replay.PLAYERCOUNT == 4 && pos == 3) pos = 1;
+
+                                        if (pos > 0)
+                                        {
+                                            int team = REParea.GetTeam((int)pydic["m_x"], (int)pydic["m_y"]);
+                                            if (team == 1) pl.REALPOS = pos;
+                                            else if (team == 2) pl.REALPOS = pos + 3;
+                                            pl.TEAM = team - 1;
+                                        }
+                                    }
+                                }
+                            } else
+                            {
+                                if (pl.STATS.Count() > 0)
+                                {
+                                    if (pydic["m_creatorAbilityName"].ToString() == "NeutralUpgradesAutocast")
+                                        if (pydic["m_unitTypeName"].ToString() == "Tier2Dummy")
+                                            pl.STATS.Last().Value.Tier = 2;
+                                        else if (pydic["m_unitTypeName"].ToString() == "Tier3Dummy")
+                                            pl.STATS.Last().Value.Tier = 3;
                                 }
                             }
                         }
@@ -191,6 +216,31 @@ namespace s2decode
 
                     if (Mid.Key > 0)
                         replay.MIDDLE.Add(Mid);
+                }
+                else if (GetDetail == true && pydic.ContainsKey("m_killerPlayerId") && pydic["_event"].ToString() == "NNet.Replay.Tracker.SUnitDiedEvent")
+                {
+                    if ((int)pydic["_gameloop"] > 480)
+                    {
+                        UnitEvent _unit = new UnitEvent();
+                        _unit.Gameloop = (int)pydic["_gameloop"];
+                        if (pydic["m_killerPlayerId"] != null)
+                            _unit.KilledId = (int)pydic["m_killerPlayerId"];
+                        if (pydic["m_killerUnitTagIndex"] != null)
+                            _unit.KilledBy = (int)pydic["m_killerUnitTagIndex"];
+                        _unit.Index = (int)pydic["m_unitTagIndex"];
+                        if (pydic["m_unitTagRecycle"] != null)
+                            _unit.RecycleTag = (int)pydic["m_unitTagRecycle"];
+                        _unit.x = (int)pydic["m_x"];
+                        _unit.y = (int)pydic["m_y"];
+                        _unit.Born = replay.UnitsBorn.Where(x => x.Index == _unit.Index).FirstOrDefault();
+                        if (_unit.Born != null)
+                        {
+                            _unit.Born.Died = _unit;
+                            if (_unit.KilledBy != null)
+                                _unit.Born.Killed = replay.UnitsBorn.Where(x => x.Index == _unit.KilledBy).FirstOrDefault();
+                        }
+                        replay.UnitsDied.Add(_unit);
+                    }
                 }
                 else if (pydic.ContainsKey("m_stats"))
                 {
@@ -286,8 +336,7 @@ namespace s2decode
                     if (gas > pl.GAS)
                         pl.GAS = gas;
 
-                    if (pl.NAME == "PAX" && gas == 4)
-                        Console.WriteLine("bab");
+                    pl.STATS[gameloop].Gas = pl.GAS * 1000;
 
                     int fixloop = pl.LastSpawn;
 

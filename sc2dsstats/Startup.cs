@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using ElectronNET.API;
+using EmbeddedBlazorContent;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Hosting;
@@ -13,6 +14,7 @@ using Microsoft.Extensions.Hosting;
 using sc2dsstats.Data;
 using sc2dsstats.Interfaces;
 using sc2dsstats.Models;
+
 
 namespace sc2dsstats
 {
@@ -63,7 +65,7 @@ namespace sc2dsstats
             app.UseStaticFiles();
 
             app.UseRouting();
-
+            app.UseEmbeddedBlazorContent(typeof(MatBlazor.BaseMatComponent).Assembly);
             app.UseEndpoints(endpoints =>
             {
                 //endpoints.MapBlazorHub<App>(selector: "app");

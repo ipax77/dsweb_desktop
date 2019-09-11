@@ -49,6 +49,8 @@ namespace sc2dsstats.Models
         public string RACE { get; set; } = "";
         public string RACEVS { get; set; } = "";
         public bool PLAYER { get; set; } = false;
-
+        public string UNIT { get; set; } = "";
+        public int UNITCOUNT { get; set; } = 1;
+        public string UNITMOD { get; set; } = ">";
     }
 }

@@ -38,6 +38,10 @@ namespace sc2dsstats.Models
         public bool ISBRAWL { get; set; } = false;
         public string GAMEMODE { get; set; } = "unknown";
         public string VERSION { get; set; } = "1.6";
+        [JsonIgnore]
+        public List<UnitEvent> UnitsBorn { get; set; } = new List<UnitEvent>();
+        [JsonIgnore]
+        public List<UnitEvent> UnitsDied { get; set; } = new List<UnitEvent>();
 
         public dsreplay()
         {
@@ -1041,6 +1045,25 @@ namespace sc2dsstats.Models
         public int VespeneUsedInProgressTechnology { get; set; } = 0;
         public int WorkersActiveCount { get; set; } = 0;
         **/
+        public int Tier { get; set; } = 1;
+        public int Gas { get; set; } = 0;
+    }
+
+    public class UnitEvent
+    {
+        public string Event { get; set; }
+        public int Gameloop { get; set; }
+        public int PlayerId { get; set; } = 0;
+        public int KilledId { get; set; } = 0;
+        public int KilledBy { get; set; }
+        public int Index { get; set; }
+        public int RecycleTag { get; set; }
+        public string Name { get; set; }
+        public int x { get; set; }
+        public int y { get; set; }
+        public UnitEvent Killed { get; set; }
+        public UnitEvent Born { get; set; }
+        public UnitEvent Died { get; set; }
     }
 }
 

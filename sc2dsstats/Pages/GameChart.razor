@@ -1,7 +1,9 @@
 ﻿@page "/gamechart"
 @using System.IO;
+@using System.Threading;
 @using sc2dsstats.Models;
 @using sc2dsstats.Data;
+
 @inject GameChartService _chart
 @inject DSdataModel _dsData
 
@@ -14,86 +16,87 @@
 </head>
 @if (replay != null)
 {
-@if (replay.ID != replayid)
-{
-<div class="d-none">
-    @NewReplay()
-</div>
-}
-<div class="row">
-    <div>
-        <div>
-            @foreach (var ent in mystats.GetType().GetProperties())
-            {
-                <div class="custom-control custom-checkbox">
-                    <input type="checkbox"
-                           class="custom-control-input"
-                           name="stProperties"
-                           checked="@stProperties[ent.Name]"
-                           value=@ent.Name
-                           id="cb_@ent.Name"
-                           @onchange="@(() => AddDataset(@ent.Name, 0))" />
-                    <label class="custom-control-label" for="cb_@ent.Name">
-                        @ent.Name
-                    </label>
-                </div>
-            }
-
+    @if (replay.ID != replayid)
+    {
+        <div class="d-none">
+            @NewReplay()
         </div>
-        <br />
+    }
+    <div class="row">
         <div>
-            @if (replay != null)
-            {
-                @foreach (dsplayer pl in replay.PLAYERS.OrderBy(o => o.REALPOS))
+            <div>
+                @foreach (var ent in mystats.GetType().GetProperties())
                 {
                     <div class="custom-control custom-checkbox">
                         <input type="checkbox"
                                class="custom-control-input"
-                               name="repPlayers"
-                               checked="@stPlayers[pl.REALPOS]"
-                               value="@pl.REALPOS"
-                               id="cb_@pl.NAME"
-                               @onchange="@(() => AddPlayer(pl.REALPOS))" />
-                        <label class="custom-control-label" for="cb_@pl.NAME">
-                            Player @pl.REALPOS (@pl.NAME)
+                               name="stProperties"
+                               checked="@stProperties[ent.Name]"
+                               value=@ent.Name
+                               id="cb_@ent.Name"
+                               @onchange="@(() => AddDataset(@ent.Name, 0))" />
+                        <label class="custom-control-label" for="cb_@ent.Name">
+                            @ent.Name
                         </label>
                     </div>
                 }
-            }
-        </div>
-        <br />
-        <div>
-            <div class="custom-control custom-checkbox">
-                <input type="checkbox"
-                       class="custom-control-input"
-                       name="repMiddle"
-                       checked="@middleChecked"
-                       value="middle"
-                       id="cb_middle"
-                       @onchange="@(() => ShowMiddle())" />
-            <label class=" custom-control-label" for="cb_middle">
-                Middle
-                </label>
+
             </div>
+            <br />
+            <div>
+                @if (replay != null)
+                {
+                    @foreach (dsplayer pl in replay.PLAYERS.OrderBy(o => o.REALPOS))
+                    {
+                        <div class="custom-control custom-checkbox">
+                            <input type="checkbox"
+                                   class="custom-control-input"
+                                   name="repPlayers"
+                                   checked="@stPlayers[pl.REALPOS]"
+                                   value="@pl.REALPOS"
+                                   id="cb_@pl.NAME"
+                                   @onchange="@(() => AddPlayer(pl.REALPOS))" />
+                            <label class="custom-control-label" for="cb_@pl.NAME">
+                                Player @pl.REALPOS (@pl.NAME)
+                            </label>
+                        </div>
+                    }
+                }
+            </div>
+            <br />
+            <div>
+                <div class="custom-control custom-checkbox">
+                    <input type="checkbox"
+                           class="custom-control-input"
+                           name="repMiddle"
+                           checked="@middleChecked"
+                           value="middle"
+                           id="cb_middle"
+                           @onchange="@(() => ShowMiddle())" />
+                    <label class=" custom-control-label" for="cb_middle">
+                        Middle
+                    </label>
+                </div>
+            </div>
+            <br />
+            <h6>adjust Gametime</h6>
+            <div class="slidecontainer">
+                <input type="range" min="1" max="100" @bind="@slidervalue" class="slider" id="myRange" />
+            </div>
+            <button class="btn btn-sm btn-primary" @onclick="@(() => ChangeTime())">Update</button>
         </div>
-        <br />
-        <h6>adjust Gametime</h6>
-        <div class="slidecontainer">
-            <input type="range" min="1" max="100" @bind="@slidervalue" class="slider" id="myRange" />
+        <div class="w-75">
+            @if (loading == true)
+            {
+                <h4>Loading ...</h4>
+            }
+            else if (loadFailed == true)
+            {
+                <h4>Loading replay failed.</h4>
+            }
+            <canvas id="canvas"></canvas>
         </div>
-        <button class="btn btn-sm btn-primary" @onclick="@(() => ChangeTime())">Update</button>
     </div>
-    <div class="w-75">
-        @if (loading == true)
-        {
-            <h4>Loading ...</h4>
-        } else if (loadFailed == true)
-        {
-            <h4>Loading replay failed.</h4>
-        }
-        <canvas id="canvas"></canvas>
-    </div>
-</div>
 }
 @code {
     [Parameter]
@@ -132,6 +135,8 @@
         }
     }
 
+
+
     async Task NewReplay()
     {
         loading = true;
@@ -144,7 +149,8 @@
             reppath += ".SC2Replay";
             if (File.Exists(reppath))
                 await LoadReplay(reppath);
-        } else
+        }
+        else
         {
             mychart = await _chart.GetChartBase();
             await ChangeTime();
@@ -154,6 +160,7 @@
         loading = false;
         if (replay.PLAYERS.FirstOrDefault().STATS.Count() == 0)
             loadFailed = true;
+
         StateHasChanged();
     }
 
@@ -183,7 +190,7 @@
                             myMid[ent] = 10000;
                         else if (mid.Value == 1)
                             myMid[ent] = 20000;
-                        
+
                         lastmid = myMid[ent];
                         break;
                     }
@@ -197,7 +204,8 @@
 
             dataset.data = wr.ToArray();
             mychart = await _chart.AddDataset(dataset);
-        } else
+        }
+        else
         {
             mychart = await _chart.RemoveDataset("Middle");
         }
@@ -215,7 +223,7 @@
 
     async Task LoadReplay(string file)
     {
-        dsreplay myreplay = await Decode.ScanRep(file, _dsData);
+        dsreplay myreplay = await Decode.ScanRep(file, _dsData, true);
         if (myreplay == null) return;
 
         myreplay.ID = replayid;

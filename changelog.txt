@@ -1,4 +1,9 @@
 
+v 1.1.12
+
+- ShowMap alpha 1
+- s2protocol 76114 'preview'
+
 v 1.1.11
 
 - autoupload

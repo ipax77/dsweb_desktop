@@ -22,11 +22,11 @@ namespace sc2dsstats.Models
 
         public static ScanState Scan { get; set; } = new ScanState();
 
-        public static async Task<dsreplay> ScanRep(string file, DSdataModel Data)
+        public static async Task<dsreplay> ScanRep(string file, DSdataModel Data, bool GetDetails = false)
         {
             return await Task.Run(() => {
                 s2dec.LoadEngine(0, Data.ReplayFolder);
-                return s2dec.DecodePython(file, false);
+                return s2dec.DecodePython(file, false, GetDetails);
             });
         }
 

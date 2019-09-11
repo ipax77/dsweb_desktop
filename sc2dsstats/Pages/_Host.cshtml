@@ -1,4 +1,5 @@
 ﻿@page "/"
+@using EmbeddedBlazorContent
 @namespace sc2dsstats.Pages
 @addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
 
@@ -11,6 +12,7 @@
     <base href="~/" />
     <link rel="stylesheet" href="css/bootstrap/bootstrap.min.css" />
     <link href="css/site.css" rel="stylesheet" />
+    @Html.EmbeddedBlazorContent()
 </head>
 <body>
     <app>
@@ -24,5 +26,6 @@
     <script src="~/js/chartjs-plugin-labels.min.js"></script>
     <script src="~/js/html2canvas.min.js"></script>
     <script src="~/js/dschart.js"></script>
+    <script src="_content/Blazor.Extensions.Canvas/blazor.extensions.canvas.js"></script>
 </body>
 </html>

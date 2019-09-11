@@ -77,7 +77,7 @@ namespace s2decode
         }
 
 
-        public dsreplay DecodePython(Object stateInfo, bool toJson = true)
+        public dsreplay DecodePython(Object stateInfo, bool toJson = true, bool GetDetails = false)
         {
             Interlocked.Increment(ref THREADS);
             //Console.WriteLine("Threads running: " + THREADS);
@@ -191,7 +191,7 @@ namespace s2decode
                 }
                 Program.Log("Loading s2protocol trackerevents finished");
 
-                replay = DSparseNG.GetTrackerevents(rep, trackerevents_dec, replay);
+                replay = DSparseNG.GetTrackerevents(rep, trackerevents_dec, replay, GetDetails);
                 //s2parse.GetTrackerevents(rep, protocol.decode_replay_tracker_events(trackerevents_enc));
                 Interlocked.Increment(ref REPID);
                 replay.ID = REPID;
