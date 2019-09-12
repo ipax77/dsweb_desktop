@@ -408,9 +408,12 @@
     public async Task ShowGame(int repid)
     {
         GameClass = "null";
-        replay = myReplays.Where(x => x.ID == repid).ToArray()[0];
-        replay_id = replay.ID;
-        ladderstring = await GetReplayString(replay);
+        replay = myReplays.Where(x => x.ID == repid).FirstOrDefault();
+        if (replay != null)
+        {
+            replay_id = replay.ID;
+            ladderstring = await GetReplayString(replay);
+        }
     }
 
     public void Dispose()

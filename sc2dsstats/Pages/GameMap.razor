@@ -3,8 +3,9 @@
 @using Blazor.Extensions;
 @using Blazor.Extensions.Canvas.Canvas2D;
 @using sc2dsstats.Models;
-
+@using sc2dsstats.Interfaces;
 @inject DSdataModel _dsData
+@inject IDSdata_cache _dataname;
 
 <head>
     <style>
@@ -97,7 +98,7 @@ else if (loadFailed == true)
         {3, "SlateBlue" },
         {4, "green" },
         {5, "MediumSeaGreen" },
-        {6, "DarkKhaki" },
+        {6, "darkgreen" },
         {13, "crimson" },
         {14, "DarkRed" },
         {99, "whitesmoke" }
@@ -112,13 +113,18 @@ else if (loadFailed == true)
             stPlayers.Add(i, false);
         }
 
-        int j = 0;
-        int gl = 0;
-        while (gl < replay.DURATION) {
-            j++;
-            stSpawns[j] = false;
-            gl += 480 * replay.PLAYERS.Count() / 2;
+        int maxspawn = 0;
+        foreach (dsplayer pl in replay.PLAYERS)
+        {
+            if (replay.Spawns.ContainsKey(pl.POS))
+            {
+                int spawns = replay.Spawns[pl.POS].Count();
+                if (spawns > maxspawn)
+                    maxspawn = spawns;
+            }
         }
+        for (int j = 1; j <= maxspawn; j++)
+            stSpawns[j] = false;
 
         await NewReplay();
     }
@@ -157,15 +163,21 @@ else if (loadFailed == true)
             dsplayer pl = replay.PLAYERS.Where(x => x.REALPOS == ent.Key).FirstOrDefault();
             if (pl != null)
             {
-                int pos = pl.REALPOS;
-                if (pos > 3) pos -= 3;
-                int gameloop = sp * (480 * pos);
+                int gameloop = 0;
+                if (replay.Spawns.ContainsKey(pl.POS) && replay.Spawns[pl.POS].Count() > sp - 1)
+                    gameloop = replay.Spawns[pl.POS][sp - 1];
+
+                // DEBUG
+                //await this._context.FillTextAsync(String.Format("{0}", gameloop), 10, 10);
+                //await this._context.SetFillStyleAsync("purple");
+                //await this._context.FillRectAsync(MoveX(145), MoveY(135), 5, 5);
+
 
                 //List<UnitEvent> plUnits = new List<UnitEvent>(replay.UnitsBorn.Where(x => x.PlayerId == pl.POS));
                 //List<UnitEvent> plSpUnits = new List<UnitEvent>(plUnits.Where(x => x.Gameloop >= gameloop - 50 && x.Gameloop <= gameloop + 50));
 
 
-                foreach (var unit in replay.UnitsBorn.Where(x => x.PlayerId == pl.POS && x.Gameloop >= gameloop - 50 && x.Gameloop <= gameloop + 50))
+                foreach (var unit in replay.UnitBorn.Where(x => x.PlayerId == pl.POS && x.Gameloop >= gameloop - 50 && x.Gameloop <= gameloop + 50))
                 {
                     int x = MoveX(unit.x);
                     int y = MoveY(unit.y);
@@ -185,12 +197,14 @@ else if (loadFailed == true)
                     //await this._context.StrokeTextAsync(String.Format("{0} {1}|{2}", unit.Name, unit.x, unit.y), x, y);
 
                     await this._context.SetFillStyleAsync(Color);
-                    await this._context.FillTextAsync(String.Format("{0} {1}|{2}", unit.Name, unit.x, unit.y), x, y);
+                    await this._context.FillTextAsync(String.Format("{0}", _dataname.FixUnitName(unit.Name)), x, y);
+                    //await this._context.FillTextAsync(String.Format("{0} ({1}|{2})", _dataname.FixUnitName(unit.Name), unit.x, unit.y), x, y);
 
-                    if (unit.Died != null)
+                    if (replay.UnitLife.ContainsKey(unit.Index) && replay.UnitLife[unit.Index].ContainsKey(unit.RecycleTag) && replay.UnitLife[unit.Index][unit.RecycleTag].Died != null)
                     {
-                        int dx = MoveX(unit.Died.x);
-                        int dy = MoveY(unit.Died.y);
+                        UnitEvent Died = replay.UnitLife[unit.Index][unit.RecycleTag].Died;
+                        int dx = MoveX(Died.x);
+                        int dy = MoveY(Died.y);
 
                         //dx = unit.Died.x * 10;
                         //dy = unit.Died.y * 10;
@@ -204,14 +218,16 @@ else if (loadFailed == true)
                         await this._context.FillRectAsync(dx, dy, 5, 5);
 
                         string killedby = "";
-                        //if (unit.Killed != null)
-                        //    killedby = " killed by " + unit.Killed.Name + " (p" + unit.Killed.PlayerId + ")";
+                        if (Died.KilledBy > 0 && replay.UnitLife.ContainsKey(Died.KilledBy) && replay.UnitLife[Died.KilledBy].ContainsKey(Died.KillerRecycleTag) && replay.UnitLife[Died.KilledBy][Died.KillerRecycleTag].Born != null)
+                            killedby = " killed by " + _dataname.FixUnitName(replay.UnitLife[Died.KilledBy][Died.KillerRecycleTag].Born.Name) + " (p" + Died.KilledId + ")";
+                        else if (Died.KilledId == 13 || Died.KilledId == 14)
+                            killedby = " killed by neutral defence";
+                        else
+                            killedby = " killed by defence (p" + Died.KilledId + ")";
 
-                        //await this._context.SetFontAsync("8px serif black");
-                        //await this._context.StrokeTextAsync(unit.Name + killedby + " " + unit.Died.x + "|" + unit.Died.y, dx, dy);
 
                         await this._context.SetFillStyleAsync(KillColor);
-                        await this._context.FillTextAsync(unit.Name + killedby + " " + unit.Died.x + "|" + unit.Died.y, dx, dy);
+                        await this._context.FillTextAsync(_dataname.FixUnitName(unit.Name) + killedby, dx, dy);
                     }
                 }
             }
@@ -240,62 +256,6 @@ else if (loadFailed == true)
 
         await this._context.ClearRectAsync(0, 0, 1200, 1200);
 
-    }
-
-    public async Task DrawSpawn(int gameloop)
-    {
-
-        this._context = await this._canvasReference.CreateCanvas2DAsync();
-        //await this._context.SetFillStyleAsync("green");
-
-        //await this._context.FillRectAsync(10, 100, 100, 100);
-
-        //await this._context.SetFontAsync("48px serif");
-        //await this._context.StrokeTextAsync("Hello Blazor!!!", 10, 100);
-
-
-        
-
-        if (replay != null)
-        {
-            foreach (var unit in replay.UnitsBorn.Where(x => x.Gameloop < gameloop && (x.PlayerId == 6 || x.PlayerId == 3)))
-            {
-
-                //(int x, int y) = Rotate(MoveX(unit.x), MoveY(unit.y));
-                int x = MoveX(unit.x);
-                int y = MoveY(unit.y);
-
-                if (unit.PlayerId == 6)
-                    await this._context.SetFillStyleAsync("blue");
-                else if (unit.PlayerId == 3)
-                    await this._context.SetFillStyleAsync("green");
-
-                await this._context.FillRectAsync(x, y, 5, 5);
-                //await this._context.SetFillStyleAsync("8px arial");
-                await this._context.StrokeTextAsync(String.Format("{0} {1}|{2}", unit.Name, unit.x, unit.y), x, y);
-
-                if (unit.Died != null)
-                {
-                    int dx = MoveX(unit.Died.x);
-                    int dy = MoveY(unit.Died.y);
-
-                    await this._context.SetFillStyleAsync("red");
-                    await this._context.FillRectAsync(dx, dy, 5, 5);
-
-                    string killedby = "";
-                    if (unit.Killed != null)
-                        killedby = " killed by " + unit.Killed.Name + " (p" + unit.Killed.PlayerId + ")";
-
-
-                    await this._context.StrokeTextAsync(unit.Name + killedby + " " + unit.Died.x + "|" + unit.Died.y, dx, dy);
-                }
-
-            }
-
-
-
-            StateHasChanged();
-        }
     }
 
     int MoveX(int x)
@@ -372,19 +332,23 @@ else if (loadFailed == true)
         }
         else
         {
-            await DrawSpawn(5024);
         }
         loading = false;
         if (replay.PLAYERS.FirstOrDefault().STATS.Count() == 0)
             loadFailed = true;
 
-        int i = 0;
-        int gl = 0;
-        while (gl < replay.DURATION) {
-            i++;
-            stSpawns[i] = false;
-            gl += 480 * replay.PLAYERS.Count() / 2;
+        int maxspawn = 0;
+        foreach (dsplayer pl in replay.PLAYERS)
+        {
+            if (replay.Spawns.ContainsKey(pl.POS))
+            {
+                int spawns = replay.Spawns[pl.POS].Count();
+                if (spawns > maxspawn)
+                    maxspawn = spawns;
+            }
         }
+        for (int j = 1; j <= maxspawn; j++)
+            stSpawns[j] = false;
 
         StateHasChanged();
     }

@@ -39,9 +39,13 @@ namespace sc2dsstats.Models
         public string GAMEMODE { get; set; } = "unknown";
         public string VERSION { get; set; } = "1.6";
         [JsonIgnore]
-        public List<UnitEvent> UnitsBorn { get; set; } = new List<UnitEvent>();
+        public List<UnitEvent> UnitBorn { get; set; } = new List<UnitEvent>();
         [JsonIgnore]
-        public List<UnitEvent> UnitsDied { get; set; } = new List<UnitEvent>();
+        public Dictionary<int, Dictionary<int, UnitLife>> UnitLife { get; set; } = new Dictionary<int, Dictionary<int, UnitLife>>();
+        [JsonIgnore]
+        public Dictionary<int, List<int>> Spawns { get; set; } = new Dictionary<int, List<int>>();
+        [JsonIgnore]
+        public List<Refinery> Refineries { get; set; } = new List<Refinery>();
 
         public dsreplay()
         {
@@ -1051,19 +1055,33 @@ namespace sc2dsstats.Models
 
     public class UnitEvent
     {
-        public string Event { get; set; }
         public int Gameloop { get; set; }
         public int PlayerId { get; set; } = 0;
         public int KilledId { get; set; } = 0;
         public int KilledBy { get; set; }
+        public int KillerRecycleTag { get; set; }
         public int Index { get; set; }
         public int RecycleTag { get; set; }
-        public string Name { get; set; }
+        public string Name { get; set; } = "";
         public int x { get; set; }
         public int y { get; set; }
-        public UnitEvent Killed { get; set; }
-        public UnitEvent Born { get; set; }
+    }
+
+    public class UnitLife
+    {
+        public int Index { get; set; }
+        public int RecycleTag { get; set; }
+        public UnitEvent Born { get; set; } 
         public UnitEvent Died { get; set; }
+    }
+
+    public class Refinery
+    {
+        public int Index { get; set; }
+        public int RecycleTag { get; set; }
+        public int PlayerId { get; set; }
+        public bool Taken { get; set; } = false;
+        public int Gameloop { get; set; } = 0;
     }
 }
 

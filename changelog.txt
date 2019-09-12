@@ -1,4 +1,9 @@
 
+v 1.1.13
+
+- Gas count update
+- ShowMap beta
+
 v 1.1.12
 
 - ShowMap alpha 1

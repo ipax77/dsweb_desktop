@@ -46,7 +46,7 @@ namespace sc2dsstats.Interfaces
                         out Dictionary<string, Dictionary<string, KeyValuePair<double, int>>> winratevs,
                         out string info
                         );
-
+        string FixUnitName(string unit);
     }
 
     public interface IDSladder
