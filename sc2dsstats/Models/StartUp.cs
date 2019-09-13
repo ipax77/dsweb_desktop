@@ -9,6 +9,7 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using ElectronNET.API;
 using System.Threading;
+using ElectronNET.API.Entities;
 
 namespace sc2dsstats.Models
 {
@@ -18,9 +19,11 @@ namespace sc2dsstats.Models
         public UserConfig Conf { get; set; } = new UserConfig();
         public bool FIRSTRUN { get; set; } = false;
         public bool SAMPLEDATA { get; set; } = false;
-        public static string VERSION { get; } = "v1.1.13";
+        public static string VERSION { get; } = "v1.1.14";
         private bool INIT = false;
         public string FirstRunInfo { get; set; } = "";
+        public string UpdateInfo { get; set; } = VERSION;
+        public bool Resized { get; set; } = false;
 
         public StartUp(IConfiguration config)
         {
@@ -87,8 +90,45 @@ namespace sc2dsstats.Models
             }
 
             await Resize();
-            //AppUpdate appup = new AppUpdate();
-            //appup.Update();
+        }
+
+        public async Task<bool> CheckForUpdate()
+        {
+            if (Resized ==false) return false;
+            UpdateCheckResult result = new UpdateCheckResult();
+            try
+            {
+                result = await Electron.AutoUpdater.CheckForUpdatesAsync();
+            }
+            catch { }
+            Console.WriteLine(result.UpdateInfo.Version);
+            Console.WriteLine(result.UpdateInfo.ReleaseDate);
+             
+            if (VERSION == result.UpdateInfo.Version)
+                return false;
+            else
+            {
+                UpdateInfo = String.Format("{0} ({1}): {2}", result.UpdateInfo.Version, result.UpdateInfo.ReleaseDate, result.UpdateInfo.ReleaseNotes.FirstOrDefault());
+                return true;
+            }
+        }
+
+        public async Task QuitAndInstall()
+        {
+            UpdateCheckResult result = await Electron.AutoUpdater.CheckForUpdatesAndNotifyAsync();
+
+            Electron.AutoUpdater.OnUpdateDownloaded += AutoUpdater_OnUpdateDownloaded;
+        }
+
+        private void AutoUpdater_OnUpdateDownloaded(UpdateInfo obj)
+        {
+            try
+            {
+                Electron.AutoUpdater.QuitAndInstall(false, true);
+            }
+            catch {
+                Electron.AutoUpdater.OnUpdateDownloaded -= AutoUpdater_OnUpdateDownloaded;
+            }
         }
 
         async Task Resize()
@@ -114,6 +154,8 @@ namespace sc2dsstats.Models
                     }
                     failsafe--;
                 } while (browserWindow == null && failsafe > 0);
+                if (failsafe > 0)
+                    Resized = true;
             });
             
         }

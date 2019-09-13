@@ -31,6 +31,24 @@ else
     }
     else
     {
+        if (UpdateAvailable == true)
+        {
+            <h2>New Version available!</h2>
+            <a>@StartUp.UpdateInfo</a>
+            <br />
+            @if (StartUp.Conf.Autoupdate == false)
+            {
+                <button class="btn btn-primary" @onclick="@(async () => await UpdateApp())">Update now</button>
+            }
+            <br />
+            if (UpdateRunning == true)
+            {
+                <h5>The app will restart and install the new version after the download is finished.</h5>
+            }
+        } else
+        {
+            <button class="btn btn-primary" @onclick="@(async () => await CheckUpdates())">Check for Updates</button>
+        }
         <Scan />
         <a>@StartUp.FirstRunInfo</a>
     }
@@ -42,6 +60,8 @@ else
 @code {
     TimeSpan t;
     bool Loading = true;
+    bool UpdateAvailable = false;
+    bool UpdateRunning = false;
 
     protected override async Task OnInitializedAsync()
     {
@@ -49,22 +69,33 @@ else
         StateHasChanged();
         await DSdata.Init();
         t = DateTime.Now - StartUp.Conf.LastUpload;
+        Task.Run(() => { CheckUpdates(); });
         Loading = false;
         stateChanged.PropertyChanged += Update;
 
     }
 
+    async Task CheckUpdates()
+    {
+        Loading = true;
+        UpdateAvailable = await StartUp.CheckForUpdate();
+        if (UpdateAvailable == true && StartUp.Conf.Autoupdate == true)
+            await UpdateApp();
+
+        Loading = false;
+        Update(null, null);
+    }
+
+    async Task UpdateApp()
+    {
+        UpdateRunning = true;
+        Update(null, null);
+        await StartUp.QuitAndInstall();
+    }
+
     private async void Update(object sender, PropertyChangedEventArgs e)
     {
         await InvokeAsync(() => StateHasChanged());
-    }
-
-    async void UpdateApp()
-    {
-        AppUpdate up = new AppUpdate();
-        await up.Test();
-
-
     }
 
     public void Dispose()

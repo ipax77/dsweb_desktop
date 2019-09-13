@@ -1,4 +1,8 @@
 
+v 1.1.14
+
+- User control for App Update
+
 v 1.1.13
 
 - Gas count update
