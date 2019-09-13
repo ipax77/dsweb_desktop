@@ -19,7 +19,7 @@ namespace sc2dsstats.Models
         public UserConfig Conf { get; set; } = new UserConfig();
         public bool FIRSTRUN { get; set; } = false;
         public bool SAMPLEDATA { get; set; } = false;
-        public static string VERSION { get; } = "v1.1.14";
+        public static string VERSION { get; } = "1.1.15";
         private bool INIT = false;
         public string FirstRunInfo { get; set; } = "";
         public string UpdateInfo { get; set; } = VERSION;
