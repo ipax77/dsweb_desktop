@@ -1,14 +1,11 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.RazorPages;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.ComponentModel;
-using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Security.Cryptography;
-using System.Threading.Tasks;
+using pax.s2decode.Models;
 
 namespace sc2dsstats.Data
 {
@@ -125,7 +122,7 @@ namespace sc2dsstats.Data
         public int Icons { get; set; } = 0;
         public bool OPT { get; set; } = false;
         public bool DOIT { get; set; } = true;
-        public Models.dsfilter fil { get; set; } = new Models.dsfilter();
+        public dsfilter fil { get; set; } = new dsfilter();
         public ChartJS Chart { get; set; } = new ChartJS();
         public int Total { get; set; } = 0;
         public Dictionary<string, bool> Gamemodes { get; set; } = new Dictionary<string, bool>();

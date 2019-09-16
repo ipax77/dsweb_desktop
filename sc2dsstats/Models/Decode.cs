@@ -4,16 +4,18 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
+using pax.s2decode.Models;
 
 
 namespace sc2dsstats.Models
 {
     public static class Decode
     {
-        private static s2decode.s2decode s2dec = new s2decode.s2decode();
+        private static pax.s2decode.s2decode s2dec = new pax.s2decode.s2decode();
         private static BlockingCollection<string> _jobs_decode = new BlockingCollection<string>();
         private static ManualResetEvent _empty = new ManualResetEvent(false);
         private static int CORES = 4;
@@ -25,7 +27,7 @@ namespace sc2dsstats.Models
         public static async Task<dsreplay> ScanRep(string file, DSdataModel Data, bool GetDetails = false)
         {
             return await Task.Run(() => {
-                s2dec.LoadEngine(0, Data.ReplayFolder);
+                s2dec.LoadEngine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location));
                 return s2dec.DecodePython(file, false, GetDetails);
             });
         }
@@ -36,7 +38,10 @@ namespace sc2dsstats.Models
             Scan.Done = 0;
             Failed = new List<string>();
             Console.WriteLine("Engine start.");
-            s2dec.LoadEngine(Data.ID, Data.ReplayFolder);
+            s2dec.JsonFile = Program.myJson_file;
+            s2dec.REPID = Data.ID;
+            s2dec.ReplayFolder = Data.ReplayFolder;
+            s2dec.LoadEngine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location));
             //s2dec.LoadEngine();
             s2dec.END = new DateTime();
             s2dec.START = DateTime.UtcNow;

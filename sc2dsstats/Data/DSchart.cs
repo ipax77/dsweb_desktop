@@ -398,7 +398,7 @@ namespace sc2dsstats.Data
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
 
-        public Models.dsfilter Fil { get; set; } = new Models.dsfilter();
+        public pax.s2decode.Models.dsfilter Fil { get; set; } = new pax.s2decode.Models.dsfilter();
 
         public bool Update
         {

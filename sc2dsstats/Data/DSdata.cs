@@ -10,6 +10,7 @@ using sc2dsstats.Models;
 using Newtonsoft.Json;
 using sc2dsstats;
 using System.Threading.Tasks;
+using pax.s2decode.Models;
 
 namespace sc2dsstats.Data
 {
@@ -177,8 +178,8 @@ namespace sc2dsstats.Data
 
     class DSdata_cache : Interfaces.IDSdata_cache
     {
-        public List<Models.dsreplay> REPLAYS { get; private set; } = new List<dsreplay>();
-        public List<Models.dsreplay> FILTERED_REPLAYS { get; private set; } = new List<dsreplay>();
+        public List<dsreplay> REPLAYS { get; private set; } = new List<dsreplay>();
+        public List<dsreplay> FILTERED_REPLAYS { get; private set; } = new List<dsreplay>();
         public dsfilter FIL_INFO { get; private set; } = new dsfilter();
         public double FIL_WR { get; private set; }
 
@@ -197,7 +198,7 @@ namespace sc2dsstats.Data
         // mode, startdate, enddate, filter
         public Dictionary<string, Dictionary<string, Dictionary<string, dsfilter>>> FILTER { get; private set; } = new Dictionary<string, Dictionary<string, Dictionary<string, dsfilter>>>();
 
-        public Dictionary<string, List<Models.dsreplay>> BUILD_REPLAYS { get; private set; } = new Dictionary<string, List<dsreplay>>();
+        public Dictionary<string, List<dsreplay>> BUILD_REPLAYS { get; private set; } = new Dictionary<string, List<dsreplay>>();
         StartUp _startUp;
 
         HashSet<string> ALLUNITS = new HashSet<string>();
@@ -991,8 +992,8 @@ namespace sc2dsstats.Data
                     {
                         breakpoint = breakpoint.AddDays(7);
                         tfil.Enddate = breakpoint;
-                        List<Models.dsreplay> treplays = new List<Models.dsreplay>();
-                        treplays = Models.DBfilter.Filter(replays.ToList(), tfil, _startUp);
+                        List<dsreplay> treplays = new List<dsreplay>();
+                        treplays = DBfilter.Filter(replays.ToList(), tfil, _startUp);
                         
 
                         double games = 0;

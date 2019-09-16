@@ -1,4 +1,9 @@
 
+v 1.1.16
+
+- Update bugfix
+- s2decode moved to seperate library (https://github.com/ipax77/s2decode)
+
 v 1.1.15
 
 - Update test

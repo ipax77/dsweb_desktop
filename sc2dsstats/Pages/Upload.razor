@@ -29,33 +29,34 @@
     All player names (including yours) will be anonymized before sending. <br />
     Check <a href="https://www.pax77.org/dsweb">https://www.pax77.org/dsweb</a> for updates.
 </div>
-<button class="btn btn-primary mb-2" @onclick="@DoUpload">Upload</button>
+<button class="btn btn-primary mb-2" @onclick="@(async() => await DoUpload())">Upload</button>
 <button class="btn btn-secondary btn-sm mb-2" @onclick="@Skip">Skip</button>
 <h5>@TY</h5>
 
 @code {
-string TY = "";
+    string TY = "";
 
-void DoUpload()
-{
-    if (StartUp.Conf.Uploadcredential)
+    async Task DoUpload()
     {
-        bool success = DSrest.Upload(StartUp, DSdata);
-        if (success)
+        if (StartUp.Conf.Uploadcredential)
         {
-            TY = "Upload successful. Thank you!";
-            StartUp.Conf.LastUpload = DateTime.Now;
-            StartUp.Save();
-        }
-        else
+            bool success = await Task.Run(() => { return DSrest.Upload(StartUp, DSdata); });
+            if (success)
+            {
+                TY = "Upload successful. Thank you!";
+                StartUp.Conf.LastUpload = DateTime.Now;
+                StartUp.Save();
+            }
+            else
+            {
+                TY = "Upload failed :( Please try again later.";
+            }
+        } else
         {
-            TY = "Upload failed :( Please try again later.";
+            TY = "Please check 'Allow Uploads' first.";
         }
-    } else
-    {
-        TY = "Please check 'Allow Uploads' first.";
-    }
-    StateHasChanged();
+        await DSdata.LoadData();
+        StateHasChanged();
 }
 
 void Skip()

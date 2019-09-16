@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
+using pax.s2decode.Models;
 
 namespace sc2dsstats.Models
 {
@@ -641,20 +641,6 @@ namespace sc2dsstats.Models
             return fil_replays;
         }
 
-    }
-
-    public class FilHelper
-    {
-        public int Games { get; set; } = 0;
-        public string Duration { get; set; } = "0 min";
-        public string Wr { get; set; } = "50%";
-
-        public FilHelper(int _Games, string _Duration, string _Wr)
-        {
-            Games = _Games;
-            Duration = _Duration;
-            Wr = _Wr;
-        }
     }
 
     internal class FakeMW

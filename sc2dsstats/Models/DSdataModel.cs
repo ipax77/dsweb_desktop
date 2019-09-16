@@ -8,6 +8,7 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
+using pax.s2decode.Models;
 
 namespace sc2dsstats.Models
 {

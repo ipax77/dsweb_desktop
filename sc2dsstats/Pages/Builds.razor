@@ -3,6 +3,7 @@
 @using sc2dsstats.Data
 @using sc2dsstats.Interfaces
 @using System.Globalization;
+@using pax.s2decode.Models;
 @inject ChartService _chart
 @inject ChartStateChange chartChanged
 @inject DSdyn_filteroptions  _options
@@ -466,7 +467,7 @@
     private bool database = false;
     private int id = 0;
     private string GameClass = "colapsed";
-    private Models.dsreplay replay;
+    private dsreplay replay;
     private int replay_id = 0;
     int skip = 0;
     int skip_vs = 0;

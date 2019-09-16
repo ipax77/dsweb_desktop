@@ -6,7 +6,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using sc2dsstats.Data;
 using sc2dsstats.Models;
-using Microsoft.AspNetCore.Mvc;
+using pax.s2decode.Models;
 
 namespace sc2dsstats.Interfaces
 {
@@ -20,9 +20,9 @@ namespace sc2dsstats.Interfaces
 
     public interface IDSdata_cache
     {
-        List<Models.dsreplay> REPLAYS { get; }
-        List<Models.dsreplay> FILTERED_REPLAYS { get; }
-        Models.dsfilter FIL_INFO { get; }
+        List<dsreplay> REPLAYS { get; }
+        List<dsreplay> FILTERED_REPLAYS { get; }
+        dsfilter FIL_INFO { get; }
         double FIL_WR { get; }
 
         Dictionary<string, Dictionary<string, KeyValuePair<double, int>>> winrate_CACHE { get; }
@@ -34,8 +34,8 @@ namespace sc2dsstats.Interfaces
         Dictionary<string, Dictionary<string, Dictionary<string, Dictionary<string, double>>>> BUILDDURCACHE { get; }
         Dictionary<string, Dictionary<string, Dictionary<string, List<dsreplay>>>> BUILDREPLAYSCACHE { get; }
 
-        Dictionary<string, Dictionary<string, Dictionary<string, Models.dsfilter>>> FILTER { get; }
-        Dictionary<string, List<Models.dsreplay>> BUILD_REPLAYS { get; }
+        Dictionary<string, Dictionary<string, Dictionary<string, dsfilter>>> FILTER { get; }
+        Dictionary<string, List<dsreplay>> BUILD_REPLAYS { get; }
 
         Task Init(List<dsreplay> replays);
         Task InitBuilds();

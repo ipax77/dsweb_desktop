@@ -1,18 +1,14 @@
 ﻿using RestSharp;
-using RestSharp.Authenticators;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
-using System.Threading.Tasks;
 using System.IO;
 using System.IO.Compression;
 using Newtonsoft.Json;
-using System.Text.RegularExpressions;
 using System.Collections.Concurrent;
-using sc2dsstats.Models;
-using sc2dsstats;
+using pax.s2decode.Models;
 
 namespace sc2dsstats.Models
 {
@@ -169,8 +165,12 @@ namespace sc2dsstats.Models
             {
             }
         }
-
         public static bool Upload(StartUp startUp, DSdataModel dsData)
+        {
+            return AutoUpload(startUp, dsData);
+        }
+
+        public static bool Upload_off(StartUp startUp, DSdataModel dsData)
         {
             string hash = "UndEsWarSommer";
             string hash2 = "UndEsWarWinter";
@@ -333,12 +333,21 @@ namespace sc2dsstats.Models
             List<string> anonymous = new List<string>();
             foreach (dsreplay replay in temp)
             {
+                Dictionary<string, string> plbackup = new Dictionary<string, string>();
                 foreach (dsplayer pl in replay.PLAYERS)
                 {
+                    string plname = pl.NAME;
                     if (startUp.Conf.Players.Contains(pl.NAME)) pl.NAME = "player";
                     else pl.NAME = "player" + pl.REALPOS.ToString();
+                    plbackup[pl.NAME] = plname;
                 }
                 anonymous.Add(JsonConvert.SerializeObject(replay));
+
+                foreach (dsplayer pl in replay.PLAYERS)
+                {
+                    if (plbackup.ContainsKey(pl.NAME))
+                        pl.NAME = plbackup[pl.NAME];
+                }
             }
             string exp_csv = Program.workdir + "\\export.json";
             if (!File.Exists(exp_csv))
