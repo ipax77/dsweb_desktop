@@ -28,6 +28,10 @@
             <div>
                 @foreach (var ent in mystats.GetType().GetProperties())
                 {
+                    @if (ent.Name == "ArmyDiff" || ent.Name == "KillsDiff")
+                    {
+                        continue;
+                    }
                     <div class="custom-control custom-checkbox">
                         <input type="checkbox"
                                class="custom-control-input"
@@ -226,9 +230,10 @@
 
     async Task LoadReplay(string file)
     {
+        string repid = replay.REPLAY;
         dsreplay myreplay = await Decode.ScanRep(file, _dsData, true);
         if (myreplay == null) return;
-
+        myreplay.REPLAY = repid;
         myreplay.ID = replayid;
         int index = _dsData.Replays.FindIndex(x => x.ID == replay.ID);
         _dsData.Replays[index] = myreplay;

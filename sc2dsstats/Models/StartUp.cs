@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using ElectronNET.API;
 using System.Threading;
 using ElectronNET.API.Entities;
+using Microsoft.AspNetCore.Html;
 
 namespace sc2dsstats.Models
 {
@@ -19,7 +20,7 @@ namespace sc2dsstats.Models
         public UserConfig Conf { get; set; } = new UserConfig();
         public bool FIRSTRUN { get; set; } = false;
         public bool SAMPLEDATA { get; set; } = false;
-        public static string VERSION { get; } = "1.1.16";
+        public static string VERSION { get; } = "1.2.0";
         private bool INIT = false;
         public string FirstRunInfo { get; set; } = "";
         public string UpdateInfo { get; set; } = VERSION;
@@ -36,6 +37,36 @@ namespace sc2dsstats.Models
             temp.Add("Config", Conf);
             var json = JsonConvert.SerializeObject(temp, Formatting.Indented);
             File.WriteAllText(Program.myConfig, json);
+        }
+
+        public bool Reset()
+        {
+            if (File.Exists(Program.myJson_file))
+            {
+                string bak = Program.myJson_file + "_bak";
+                int ii = 0;
+                while (File.Exists(bak))
+                {
+                    bak = Program.myJson_file + "_" + ii + "_bak";
+                    ii++;
+                }
+                try
+                {
+                    File.Move(Program.myJson_file, bak);
+                }
+                catch
+                {
+                    return false;
+                }
+                finally
+                {
+                    File.Delete(Program.myJson_file);
+                    File.Create(Program.myJson_file).Dispose();
+                }
+                Conf.FullSend = true;
+                Save();
+            }
+            return true;
         }
 
         public async Task Init()
@@ -67,14 +98,20 @@ namespace sc2dsstats.Models
                     Program.myScan_log = Conf.WorkDir + "/log.txt";
                 });
 
-                if (Conf.ForceRescanV1_8 == true)
+                
+                if (Conf.NewVersion1_2_0 == true)
                 {
-                    FirstRunInfo = "Version 1.1.10 has a more accurate way to calculate Army value, middle income and other details. We have to rescan all replays to avoid duplicates.";
+                    FirstRunInfo = "<h3>Patchnotes</h3><br />";
+                    FirstRunInfo += "<p>" + 
+                        "- Version 1.2.0 is fixing some Gametime / Unit count issues. We have to rescan all replays to solve this." + "<br />" +
+                        "- In the game info you can now review each players spawn with 'Show map (beta)'" + "<br />" +
+                        "- Port to .NET Core v3.0.0-rc1"
+                        + "</p>";
                     if (File.Exists(Program.myJson_file))
                     {
                         try
                         {
-                            File.Move(Program.myJson_file, Program.myJson_file + "_bakV1_7");
+                            File.Move(Program.myJson_file, Program.myJson_file + "_bakV1_2_0");
                         }
                         catch { }
                     }
@@ -84,9 +121,11 @@ namespace sc2dsstats.Models
                         File.Create(Program.myJson_file).Dispose();
                     }
                     catch { }
-                    Conf.ForceRescanV1_8 = false;
+                    Conf.FullSend = true;
+                    Conf.NewVersion1_2_0 = false;
                     Save();
                 }
+                
             }
 
             await Resize();

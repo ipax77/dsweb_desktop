@@ -356,9 +356,10 @@ else if (loadFailed == true)
 
     async Task LoadReplay(string file)
     {
+        string repid = replay.REPLAY;
         dsreplay myreplay = await Decode.ScanRep(file, _dsData, true);
         if (myreplay == null) return;
-
+        myreplay.REPLAY = repid;
         myreplay.ID = replayid;
         int index = _dsData.Replays.FindIndex(x => x.ID == replay.ID);
         _dsData.Replays[index] = myreplay;

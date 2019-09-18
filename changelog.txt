@@ -1,4 +1,9 @@
 
+v 1.1.7
+
+- Gametime bugfix
+- Spawn count bugfix
+
 v 1.1.16
 
 - Update bugfix

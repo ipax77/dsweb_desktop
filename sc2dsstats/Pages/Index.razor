@@ -51,7 +51,7 @@ else
             <a>Current version is up to date.</a>
         }
         <Scan />
-        <a>@StartUp.FirstRunInfo</a>
+        @((MarkupString)@StartUp.FirstRunInfo)
     }
 }
 

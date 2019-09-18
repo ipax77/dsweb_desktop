@@ -133,7 +133,14 @@
                                     <tr>
                                         @if (replay.PLAYERS.Where(x => x.TEAM == i).FirstOrDefault() != null && replay.PLAYERS.Where(x => x.TEAM == i).FirstOrDefault().UNITS.ContainsKey(Breakpoint) && replay.PLAYERS.Where(x => x.TEAM == i).FirstOrDefault().UNITS[Breakpoint].ContainsKey("Mid"))
                                         {
-                                            <th colspan="2"><span class="badge badge-light">Mid @(Math.Round((double)replay.PLAYERS.Where(x => x.TEAM == i).OrderBy(o => o.REALPOS).FirstOrDefault().UNITS[Breakpoint]["Mid"] * 100 / BreakpointMid[Breakpoint], 2))%</span></th>
+                                            @if (replay.DURATION > BreakpointMid[Breakpoint])
+                                            {
+                                                <th colspan="2"><span class="badge badge-light">Mid @(Math.Round((double)replay.PLAYERS.Where(x => x.TEAM == i).OrderBy(o => o.REALPOS).FirstOrDefault().UNITS[Breakpoint]["Mid"] * 100 / BreakpointMid[Breakpoint], 2))%</span></th>
+                                            }
+                                            else
+                                            {
+                                                <th colspan="2"><span class="badge badge-light">Mid @(Math.Round((double)replay.PLAYERS.Where(x => x.TEAM == i).OrderBy(o => o.REALPOS).FirstOrDefault().UNITS[Breakpoint]["Mid"] * 100 / replay.DURATION, 2))%</span></th>
+                                            }
                                         }
                                         else
                                         {

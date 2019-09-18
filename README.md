@@ -12,7 +12,7 @@ https://github.com/ipax77/dsweb_desktop/releases/download/latest/sc2dsstats-Setu
 # Dependencies / Links
 dsmm - Matchmaking Server (https://github.com/ipax77/dsmm)
 dsweb - Global stats (https://github.com/ipax77/dsweb)
-c# wpf version & REST API server (https://github.com/ipax77/sc2dsstats)
+s2decode - Decoding Starcraft 2 Direct Strike Replays (https://github.com/ipax77/s2decode)
 
 
 # Acknowledgements

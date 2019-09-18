@@ -195,6 +195,21 @@
     </select>
 </div>
 <button class="btn btn-primary" @onclick="@Save">Save</button>
+<div class="mb-3">
+    @if (Failed == true)
+    {
+        <span class="badge badge-danger">
+            Saving failed. Please check your options.
+        </span>
+        <p>@Error</p>
+    }
+    else if (Saved == true)
+    {
+        <span class="badge badge-success">
+            Settings successfully saved.
+        </span>
+    }
+</div>
 
 
 @code {
@@ -212,10 +227,13 @@
 
     public void Reset()
     {
-        if (File.Exists(Program.myJson_file))
-        {
-            File.Delete(Program.myJson_file);
-        }
+        if (StartUp.Reset() == true)
+            Saved = true;
+        else
+            Failed = true;
+
+        _dsData.LoadData();
+        StateHasChanged();
     }
 
     public void Export()
@@ -234,7 +252,7 @@
                 plbackup[pl.NAME] = plname;
             }
             anonymous.Add(JsonSerializer.Serialize(replay));
-            
+
             foreach (dsplayer pl in replay.PLAYERS)
             {
                 if (plbackup.ContainsKey(pl.NAME))

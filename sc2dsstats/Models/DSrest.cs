@@ -291,7 +291,7 @@ namespace sc2dsstats.Models
             string lastrep = "";
             if (temp.Count > 0)
             {
-                lastrep = temp.OrderByDescending(o => o.GAMETIME).ElementAt(0).GAMETIME.ToString().Substring(0, 14);
+                lastrep = temp.OrderByDescending(o => o.GAMETIME).First().GAMETIME.ToString().Substring(0, 14);
             }
 
             DSinfo info = new DSinfo();
@@ -327,7 +327,7 @@ namespace sc2dsstats.Models
             {
                 return false;
             }
-            if (dlastrep == 0) temp = new List<dsreplay>(dsData.Replays);
+            if (dlastrep == 0 || startUp.Conf.FullSend == true) temp = new List<dsreplay>(dsData.Replays);
             else temp = new List<dsreplay>(dsData.Replays.Where(x => x.GAMETIME > dlastrep).ToList());
 
             List<string> anonymous = new List<string>();
@@ -373,13 +373,24 @@ namespace sc2dsstats.Models
                     }
                 }
             }
-            restRequest = new RestRequest("/secure/data/autoupload/" + hash);
+            if (startUp.Conf.FullSend == true)
+                restRequest = new RestRequest("/secure/data/fullsend/" + hash);
+            else
+                restRequest = new RestRequest("/secure/data/autoupload/" + hash);
             restRequest.RequestFormat = DataFormat.Json;
             restRequest.Method = Method.POST;
             restRequest.AddHeader("Authorization", "DSupload77");
             restRequest.AddFile("content", exp_csv_gz);
             response = client.Execute(restRequest);
-            if (response.StatusCode == System.Net.HttpStatusCode.OK) return true;
+            if (response.StatusCode == System.Net.HttpStatusCode.OK)
+            {
+                if (startUp.Conf.FullSend == true)
+                {
+                    startUp.Conf.FullSend = false;
+                    startUp.Save();
+                }
+                return true;
+            }
             else return false;
         }
 
