@@ -2,17 +2,15 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 using System.Text.Json;
 using System.Text.RegularExpressions;
-using sc2dsstats.Models;
-using System.IO;
+using System.Threading.Tasks;
+using static sc2dsstats.Data.ChartService;
 
 namespace sc2dsstats.Data
 {
     public class GameChartService
     {
-        private readonly DSdataModel _dsData;
         private readonly IJSRuntime _jsRuntime;
         private JsInteropClasses _jsIterop;
         public ChartJS mychart { get; set; } = new ChartJS();
@@ -54,7 +52,7 @@ namespace sc2dsstats.Data
             _jsRuntime = jsRuntime;
             _jsIterop = new JsInteropClasses(_jsRuntime);
             mycolorPool = new List<string>(colorPool);
-    }
+        }
 
         public async Task<ChartJS> GetChartBase(bool draw = true)
         {

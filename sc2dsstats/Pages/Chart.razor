@@ -3,11 +3,10 @@
 @using System.ComponentModel
 @using sc2dsstats.Data
 @using sc2dsstats.Models
-@using pax.s2decode.Models;
+@using pax.s2decode.Models
 @inject ChartService _chart
 @inject ChartStateChange chartChanged
 @inject DSdyn_filteroptions  _options
-@inject BuildsService _build
 @inject ScanStateChange _scan
 @implements IDisposable
 
@@ -15,33 +14,36 @@
     <div class="row mb-2">
         <div class="btn-group">
             <div class="mr-2">
-                <button name="btn_mode" class="btn btn-sm btn-primary btn-block" @onclick="@(() => _options.Mode="Winrate")">Winrate</button>
+                <button name="btn_mode" class="btn btn-sm btn-primary btn-block" @onclick="@(() => _options.Mode = "Winrate")">Winrate</button>
             </div>
             <div class="mr-2">
-                <button name="btn_mode" class="btn btn-sm btn-primary btn-block" @onclick="@(() => _options.Mode="MVP")">MVP</button>
+                <button name="btn_mode" class="btn btn-sm btn-primary btn-block" @onclick="@(() => _options.Mode = "MVP")">MVP</button>
             </div>
             <div class="mr-2">
-                <button name="btn_mode" class="btn btn-sm btn-primary btn-block" @onclick="@(() => _options.Mode="DPS")">DPS</button>
+                <button name="btn_mode" class="btn btn-sm btn-primary btn-block" @onclick="@(() => _options.Mode = "DPS")">DPS</button>
             </div>
             <div class="mr-2">
-                <button name="btn_mode" class="btn btn-sm btn-primary btn-block" @onclick="@(() => _options.Mode="Synergy")">Synergy</button>
+                <button name="btn_mode" class="btn btn-sm btn-primary btn-block" @onclick="@(() => _options.Mode = "Synergy")">Synergy</button>
             </div>
             <div class="mr-2">
-                <button name="btn_mode" class="btn btn-sm btn-primary btn-block" @onclick="@(() => _options.Mode="AntiSynergy")">AntiSynergy</button>
+                <button name="btn_mode" class="btn btn-sm btn-primary btn-block" @onclick="@(() => _options.Mode = "AntiSynergy")">AntiSynergy</button>
             </div>
             <div class="mr-2">
-                <button name="btn_mode" class="btn btn-sm btn-primary btn-block" @onclick="@(() => _options.Mode="Timeline")">Timeline</button>
+                <button name="btn_mode" class="btn btn-sm btn-primary btn-block" @onclick="@(() => _options.Mode = "Timeline")">Timeline</button>
             </div>
         </div>
-        <div class="custom-control custom-checkbox mr-2">
-            <input type="checkbox" class="custom-control-input" name="cb_player" id="cb_player" @bind="@_options.Player" />
-            <label class="custom-control-label" for="cb_player">Player</label>
-        </div>
-        <div class="custom-control custom-checkbox mr-2">
-            <input type="checkbox" class="custom-control-input" name="cb_zero" id="cb_zero" @bind="@_options.BeginAtZero" />
-            <label class="custom-control-label" for="cb_zero">BeginatZero</label>
-        </div>
-
+        <MatTooltip Tooltip="Check for replay creater/uploader matchup only or uncheck for all matchups in the replays" Position="@MatTooltipPosition.Bottom">
+            <div class="custom-control custom-checkbox mr-2" @ref="context.Current">
+                <input type="checkbox" class="custom-control-input" name="cb_player" id="cb_player" @bind="@_options.Player" />
+                <label class="custom-control-label" for="cb_player">Player</label>
+            </div>
+        </MatTooltip>
+        <MatTooltip Tooltip="Start the y-axis of the chart at zero" Position="@MatTooltipPosition.Bottom">
+            <div class="custom-control custom-checkbox mr-2" @ref="context.Current">
+                <input type="checkbox" class="custom-control-input" name="cb_zero" id="cb_zero" @bind="@_options.BeginAtZero" />
+                <label class="custom-control-label" for="cb_zero">BeginatZero</label>
+            </div>
+        </MatTooltip>
     </div>
     <div class="row">
         <div class="btn-group">
@@ -66,21 +68,24 @@
         <div class="form-group mr-2" style="visibility: @_isLoading">
             <p>Loading ...</p>
         </div>
+        @if (_options.Cmdrinfo.ContainsKey(interest))
+        {
         <div class="form-group mr-2">
             <span class="badge badge-danger mr-2">
-                Total games<br />@_options.fil.CmdrInfo[interest].Games
+                Total games<br />@_options.Cmdrinfo[interest].Games
             </span>
         </div>
         <div class="form-group mr-2">
             <span class="badge badge-danger mr-2">
-                Total WR<br />@_options.fil.CmdrInfo[interest].Wr
+                Total WR<br />@_options.Cmdrinfo[interest].Winrate
             </span>
         </div>
         <div class="form-group mr-2">
             <span class="badge badge-danger mr-2">
-                Duration<br />@_options.fil.CmdrInfo[interest].Duration
+                Duration<br />@_options.Cmdrinfo[interest].AverageGameDuration
             </span>
         </div>
+        }
     </div>
     <div class="@FilterClass" id="div_filter">
         <div class="card card-body">
@@ -91,17 +96,8 @@
 <div id="dv_btn" class="container-fluid">
     <div class="row">
         <div>
-            <!--
-    <div class="alert alert-light">
-        <span class="badge badge-dark">@_options.Mode</span>
-        <br />
-        <span class="badge badge-secondary">@_options.Startdate</span>
-        <br />
-        <span class="badge badge-secondary">@_options.Enddate</span>
-    </div>
-        -->
             <div>
-                @foreach (var ent in DSdata.s_races_cmdr)
+                @foreach (var ent in DSdata.s_races)
                 {
                     <div class="custom-control custom-checkbox">
                         <input type="checkbox"
@@ -109,7 +105,7 @@
                                name="CmdrIcons"
                                value=@ent
                                id="cb_@ent"
-                               @onchange="@(() => IconClick(@ent))" />
+                               @onchange="@( async () => await IconClick(@ent))" />
                         <label class="custom-control-label" for="cb_@ent">
                             <img alt="img_@ent" longdesc="img_@ent" src="@DSdata.GetIcon(@ent)" width="30" height="30" />
                             @ent
@@ -138,9 +134,12 @@
                 </div>
             </div>
             <div>
+                @if (_options.Cmdrinfo.ContainsKey("ALL"))
+                {
                 <div style="width: 400px; font-size: 12px; overflow: hidden; margin-left: 10px;">
-                    <p>@_options.fil.Info()</p>
+                    <p>@_options.Cmdrinfo["ALL"].FilterInfo</p>
                 </div>
+                }
             </div>
             <button class="btn-sm btn-secondary" href="#chart-wrapper" @onclick="@ToggleCmdrs">Cmdrs played</button>
         </div>
@@ -153,18 +152,15 @@
     [Parameter]
     public string info { get; set; }
 
-    private bool chartrendered = false;
     static string chartdata = String.Empty;
-    string info2 = "";
-    string info3 = "";
     string FilterClass => _options.Filter ? null : "collapse";
     string CmdrClass => cmdrvis ? null : "collapse";
     string ChartClass => cmdrvis ? "collapse" : null;
-    private int IconsChecked = 0;
     List<string> cmdricons;
     string interest = "ALL";
     bool cmdrvis = false;
     string _isLoading = "visible";
+    object _lock;
 
 
     private Dictionary<string, bool> IsChecked = new Dictionary<string, bool>();
@@ -177,18 +173,21 @@
     void ToggleCmdrs()
     {
         cmdrvis = !cmdrvis;
-        chartChanged.Fil = _options.fil;
+        if (_options.Cmdrinfo.ContainsKey("ALL"))
+            chartChanged.CmdrCount = new Dictionary<string, int>(_options.Cmdrinfo["ALL"].CmdrCount);
         chartChanged.Update = !chartChanged.Update;
     }
 
     protected override async Task OnInitializedAsync()
     {
+        _lock = new object();
         cmdricons = new List<string>();
-        _build.DefaultFilter();
+        _options.DefaultFilter();
         _options.Build = "ALL";
-        if (!_options.fil.CmdrInfo.ContainsKey("ALL")) { _options.fil.CmdrInfo.Add("ALL", new FilHelper(7992, "15:47min", "50%")); }
+        if (!_options.Cmdrinfo.ContainsKey("ALL"))
+        { _options.Cmdrinfo.Add("ALL", new CmdrInfo()); }
 
-        foreach (var ent in DSdata.s_races_cmdr)
+        foreach (var ent in DSdata.s_races)
         {
             IsChecked.Add(ent, false);
         }
@@ -201,18 +200,6 @@
     private async void stateChange(object sender, EventArgs args)
     {
         await InvokeAsync(() => StateHasChanged());
-    }
-
-
-    protected override async Task OnAfterRenderAsync(bool firstRender)
-    {
-        if (chartrendered == false)
-        {
-            await _chart.GetChartBase();
-            chartrendered = true;
-            _options.Filter = false;
-            _isLoading = "hidden";
-        }
     }
 
     async void CopyToClipboard()
@@ -271,10 +258,12 @@
     private async Task IconClick(string cmdr)
     {
         _isLoading = "visible";
+        await InvokeAsync(() => StateHasChanged());
         IsChecked[cmdr] = !IsChecked[cmdr];
 
         _options.Icons = IsChecked.Where(x => x.Value == true).ToArray().Count();
         _options.Interest = cmdr;
+        interest = _options.Interest;
 
         if (IsChecked[cmdr] == true)
         {
@@ -293,9 +282,12 @@
         if (cmdricons.Count > 0)
         {
             activecmdr = cmdricons[cmdricons.Count - 1];
-            if (_options.fil.CmdrInfo.ContainsKey(activecmdr))
+            if (_options.Cmdrinfo.ContainsKey(activecmdr))
             {
                 interest = activecmdr;
+            } else
+            {
+                interest = "ALL";
             }
         }
         else
@@ -303,6 +295,8 @@
             interest = "ALL";
         }
         _isLoading = "hidden";
+        
+        await InvokeAsync(() => StateHasChanged());
     }
 
     private async void OptionChanged(object sender, PropertyChangedEventArgs e)
@@ -311,18 +305,15 @@
         {
             if (e != null && e.PropertyName != "Interest")
             {
-                if (e.PropertyName == "Filter") { StateHasChanged(); }
-                else
-                {
+                if (e.PropertyName != "Filter") { 
                     _isLoading = "visible";
-                    _chart.RebuildChart();
-                    info2 = "";
-                    info3 = "Total: " + _options.fil.Total + " WR: " + _options.fil.WR + "%";
-                    chartChanged.Fil = _options.fil;
+                    await InvokeAsync(() => StateHasChanged());
+                    await _chart.RebuildChart();
+                    chartChanged.CmdrCount = new Dictionary<string, int>(_options.Cmdrinfo["ALL"].CmdrCount);
                     chartChanged.Update = !chartChanged.Update;
                     _isLoading = "hidden";
-                    await InvokeAsync(() => StateHasChanged());
                 }
+                await InvokeAsync(() => StateHasChanged());
             }
         }
     }

@@ -3,9 +3,9 @@
 @using Blazor.Extensions;
 @using Blazor.Extensions.Canvas.Canvas2D;
 @using sc2dsstats.Models;
-@using sc2dsstats.Interfaces;
+@using sc2dsstats.Data;
 @using pax.s2decode.Models;
-@inject DSdataModel _dsData
+@inject DSreplays _dsData
 @inject IDSdata_cache _dataname;
 
 <head>
@@ -92,7 +92,7 @@ else if (loadFailed == true)
     Dictionary<int, bool> stSpawns = new Dictionary<int, bool>();
 
     static Dictionary<int, string> stColor = new Dictionary<int, string>()
-    {
+{
         {0,  "whitesmoke"},
         {1, "blue" },
         {2, "DodgerBlue" },

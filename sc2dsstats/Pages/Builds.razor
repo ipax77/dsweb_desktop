@@ -1,7 +1,7 @@
 @page "/builds"
 @using System.ComponentModel
 @using sc2dsstats.Data
-@using sc2dsstats.Interfaces
+@using sc2dsstats.Models
 @using System.Globalization;
 @using pax.s2decode.Models;
 @inject ChartService _chart
@@ -9,7 +9,6 @@
 @inject DSdyn_filteroptions  _options
 @inject IDSdata_cache _DSdata
 @inject ChartStateChange chartChanged
-@inject BuildsService _build
 @implements IDisposable
 
 <div class="container-fluid">
@@ -85,7 +84,7 @@
         <div>
             <p class="align-content-center"><b>Cmdr</b></p>
             <div>
-                @foreach (var ent in DSdata.s_races_cmdr)
+                @foreach (var ent in DSdata.s_races)
                 {
                     <div class="custom-control custom-radio">
                         <input type="radio"
@@ -105,7 +104,7 @@
         <div>
             <p class="align-content-center"><b>Vs</b></p>
             <div>
-                @foreach (var ent in DSdata.s_races_cmdr)
+                @foreach (var ent in DSdata.s_races)
                 {
                     <div class="custom-control custom-radio">
                         <input type="radio"
@@ -179,12 +178,12 @@
                     </label>
                 </div>
                 <!--
-    <div>
-        <p style="margin-left: 5px;">
-            <button class="btn btn-secondary" @onclick="@ShowDatabase">Game details</button>
-        </p>
-    </div>
-        -->
+                <div>
+                    <p style="margin-left: 5px;">
+                        <button class="btn btn-secondary" @onclick="@ShowDatabase">Game details</button>
+                    </p>
+                </div>
+                    -->
             </div>
             <div>
                 <div class="mt-5, ml-5">
@@ -254,9 +253,6 @@
                                 <thead>
                                     <tr><th>Unit</th><th>Count</th></tr>
                                 </thead>
-                                <!--
-                                <tr class="table-primary"><td><font color="@DSdata.color_info">WR: @INFO_CMDR["Winrate"] % Games: @INFO_CMDR["Games"]</font></td><td><font color="@DSdata.color_info">@DUR_CMDR</font></td></tr>
-                                    -->
                                 <tr>
                                     <td>
                                         <span class="badge badge-danger">
@@ -334,8 +330,8 @@
                                         <tr><th>Unit</th><th>Count</th></tr>
                                     </thead>
                                     <!--
-    <tr class="table-primary"><td><font color="@DSdata.color_info">WR: @INFO_CMDR_VS["Winrate"] % Games: @INFO_CMDR_VS["Games"]</font></td><td><font color="@DSdata.color_info">@DUR_CMDR_VS</font></td></tr>
-    -->
+                                    <tr class="table-primary"><td><font color="@DSdata.color_info">WR: @INFO_CMDR_VS["Winrate"] % Games: @INFO_CMDR_VS["Games"]</font></td><td><font color="@DSdata.color_info">@DUR_CMDR_VS</font></td></tr>
+                                    -->
                                     <tr>
                                         <td>
                                             <span class="badge badge-danger">
@@ -455,7 +451,6 @@
     private string BUILD = "";
     private string CMDR = "";
     private string COMP = "";
-    private string TEMPCOLOR = "";
     private double cmax1 = 0;
     private double cmax2 = 0;
     private double cmax3 = 0;
@@ -465,7 +460,6 @@
     private DSdyn dyncmdr = new DSdyn();
     private DSdyn dynvs = new DSdyn();
     private bool database = false;
-    private int id = 0;
     private string GameClass = "colapsed";
     private dsreplay replay;
     private int replay_id = 0;
@@ -475,7 +469,7 @@
 
     void ShowDatabase()
     {
-        chartChanged.Fil = _options.fil;
+        chartChanged.CmdrCount = new Dictionary<string, int>(_options.Cmdrinfo["ALL"].CmdrCount);
         chartChanged.Update = !chartChanged.Update;
         database = !database;
     }
@@ -483,8 +477,7 @@
 
     protected override async Task OnInitializedAsync()
     {
-        CultureInfo.CurrentCulture = CultureInfo.CreateSpecificCulture("en-US");
-
+        _options.DOIT = false;
         List<KeyValuePair<string, double>> _UNITS = new List<KeyValuePair<string, double>>();
         List<KeyValuePair<string, double>> _UNITS_VS = new List<KeyValuePair<string, double>>();
         List<double> _DIFF = new List<double>();
@@ -514,13 +507,14 @@
         options.BUILD_COMPARE = "";
         options.BREAKPOINT = "MIN10";
 
+        
+        _options.DefaultFilter();
         _options.DOIT = false;
-        _build.DefaultFilter();
         _options.Player = true;
         _options.Build = options.BUILD;
         _options.Vs = options.CMDR_VS;
-        _options.DOIT = true;
         _options.Interest = options.CMDR;
+        _options.DOIT = true;
 
         await _DSdata.InitBuilds();
 
@@ -529,13 +523,15 @@
         OptionChanged(null, null);
     }
 
-    public void ShowGame(int repid) {
+    public void ShowGame(int repid)
+    {
         GameClass = "null";
         replay = _DSdata.BUILDREPLAYSCACHE[_options.Build][options.CMDR][options.CMDR_VS].Where(x => x.ID == repid).ToArray()[0];
         replay_id = repid;
     }
 
-    public void ShowGame_vs(int repid) {
+    public void ShowGame_vs(int repid)
+    {
         GameClass = "null";
         replay = _DSdata.BUILDREPLAYSCACHE[options.BUILD_COMPARE][options.CMDR][options.CMDR_VS].Where(x => x.ID == repid).ToArray()[0];
         replay_id = repid;
@@ -587,7 +583,8 @@
 
     private void OptionChanged(object sender, PropertyChangedEventArgs e)
     {
-        if (e != null && (e.PropertyName =="CMDR" || e.PropertyName == "CMDR_VS")) {
+        if (e != null && (e.PropertyName == "CMDR" || e.PropertyName == "CMDR_VS"))
+        {
             skip = 0;
             skip_vs = 0;
         }
@@ -697,3 +694,4 @@
         options.PropertyChanged -= OptionChanged;
     }
 }
+

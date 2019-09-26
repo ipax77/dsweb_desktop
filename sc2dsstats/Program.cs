@@ -1,23 +1,17 @@
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 using ElectronNET.API;
-using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Serilog;
+using System;
+using System.IO;
 
 namespace sc2dsstats
 {
     public class Program
     {
-        public static int DEBUG = 0; // #0 = off, #1 = console, #2 = console+logfile, #3 = debug
-        private static ReaderWriterLockSlim _readWriteLock = new ReaderWriterLockSlim();
-        //public static string workdir = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData) + "\\sc2dsstats_v1.1";
+        public static int DEBUG = 0;
         public static string workdir = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData) + "\\sc2dsstats_web";
         public static string myScan_log = workdir + "/log.txt";
         public static string myJson_file = workdir + "/data.json";
@@ -40,25 +34,20 @@ namespace sc2dsstats
                     config.AddJsonFile("appsettings.json", optional: true, reloadOnChange: true);
                     config.AddJsonFile("config.json", optional: true, reloadOnChange: false);
                 })
+                .ConfigureLogging((hostingContext, logging) =>
+                {
+                    logging.ClearProviders();
+                    logging.AddConfiguration(hostingContext.Configuration.GetSection("Logging"));
+                    logging.AddSerilog(new LoggerConfiguration().WriteTo.File(myScan_log).CreateLogger());
+                    logging.AddConsole();
+                })
                 .ConfigureWebHostDefaults(webBuilder =>
                 {
-                    webBuilder.UseElectron(args).UseStartup<Startup>();
                     //webBuilder.UseStartup<Startup>();
-                    //.UseElectron(args)
-                    //.Build();
+                    webBuilder
+                        .UseStartup<Startup>()
+                        .UseElectron(args);
                 });
 
-        public static object Log(string msg, int Debug = 1)
-        {
-            if (DEBUG > 0 && DEBUG >= Debug)
-                Console.WriteLine(msg);
-            if (DEBUG > 1 && DEBUG >= Debug)
-            {
-                _readWriteLock.EnterWriteLock();
-                File.AppendAllText(myScan_log, msg + Environment.NewLine);
-                _readWriteLock.ExitWriteLock();
-            }
-            return null;
-        }
     }
 }

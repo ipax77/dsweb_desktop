@@ -1,12 +1,10 @@
 ﻿@page "/gamechart"
 @using System.IO;
-@using System.Threading;
-@using sc2dsstats.Models;
 @using pax.s2decode.Models;
 @using sc2dsstats.Data;
 
 @inject GameChartService _chart
-@inject DSdataModel _dsData
+@inject DSreplays _dsData
 
 <head>
     <style>

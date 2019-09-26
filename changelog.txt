@@ -1,8 +1,14 @@
 
-v 1.1.7
+v1.3.0
+
+- Code cleanup
+- Tooltips
+
+v 1.2.0
 
 - Gametime bugfix
 - Spawn count bugfix
+- port to dotnet core 3.0-rc1
 
 v 1.1.16
 

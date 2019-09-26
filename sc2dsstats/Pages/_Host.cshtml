@@ -16,7 +16,6 @@
 </head>
 <body>
     <app>
-        @* Remove the following line of code to disable prerendering *@
         @(await Html.RenderComponentAsync<App>(RenderMode.ServerPrerendered))
     </app>
 

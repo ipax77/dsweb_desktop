@@ -1,4 +1,3 @@
-using System.Threading.Tasks;
 using ElectronNET.API;
 using EmbeddedBlazorContent;
 using Microsoft.AspNetCore.Builder;
@@ -7,9 +6,8 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using sc2dsstats.Data;
-using sc2dsstats.Interfaces;
 using sc2dsstats.Models;
-
+using System.Threading.Tasks;
 
 namespace sc2dsstats
 {
@@ -29,16 +27,14 @@ namespace sc2dsstats
             services.AddRazorPages();
             services.AddServerSideBlazor();
             services.AddSingleton<StartUp>();
-            services.AddSingleton<ScanStateChange>();
             services.AddSingleton<IDSdata_cache, DSdata_cache>();
-            services.AddScoped<dsotfng>();
-            services.AddScoped<DSdataModel>();
+            services.AddSingleton<DSreplays>();
+
+            services.AddScoped<DSdyn_filteroptions>();
             services.AddScoped<ChartService>();
             services.AddScoped<GameChartService>();
-            services.AddScoped<DSdyn>();
             services.AddScoped<ChartStateChange>();
-            services.AddScoped<DSdyn_filteroptions>();
-            services.AddScoped<BuildsService>();
+            services.AddScoped<ScanStateChange>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -47,7 +43,6 @@ namespace sc2dsstats
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
-                //app.UseBrowserLink();
             }
             else
             {
@@ -63,11 +58,9 @@ namespace sc2dsstats
             app.UseEmbeddedBlazorContent(typeof(MatBlazor.BaseMatComponent).Assembly);
             app.UseEndpoints(endpoints =>
             {
-                //endpoints.MapBlazorHub<App>(selector: "app");
                 endpoints.MapBlazorHub();
                 endpoints.MapFallbackToPage("/_Host");
             });
-
             Task.Run(async () => await Electron.WindowManager.CreateWindowAsync());
         }
     }

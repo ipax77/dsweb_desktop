@@ -1,20 +1,20 @@
 @page "/scan"
-@using sc2dsstats.Models
+@using sc2dsstats.Data
 @using System.ComponentModel
-@inject StartUp StartUp
-@inject ScanStateChange StateChange
-@inject DSdataModel  DSdata
+@inject StartUp _startUp
+@inject ScanStateChange _stateChange
+@inject DSreplays  _DSdata
 
 <h3>Scan</h3>
 <div class="jumbotron">
-    New replays found: @DSdata.Todo.Count <br />
-    Expected time needed: @(string.Format("{0:0.00}", (DSdata.Todo.Count * 7.2 / StartUp.Conf.Cores / 60 / 60))) h <br />
+    New replays found: @_DSdata.Todo.Count <br />
+    Expected time needed: @(string.Format("{0:0.00}", (_DSdata.Todo.Count * 7.2 / _startUp.Conf.Cores / 60 / 60))) h <br />
     <br />
     You can always quit the process, next time it will continue at the last position. <br />
 </div>
 <div class="form-group">
     <label for="sel1">CPU Cores</label>
-    <select class="form-control w-auto" id="sel1" @bind="@StartUp.Conf.Cores">
+    <select class="form-control w-auto" id="sel1" @bind="@_startUp.Conf.Cores">
         @for (int i = 1; i <= Environment.ProcessorCount; i++)
         {
             if (i == 2)
@@ -30,7 +30,14 @@
 </div>
 @if (CheckUploadCredential == false)
 {
-    <button class="btn btn-primary mb-2" @onclick="@ScanRepsPre">Scan</button>
+    @if (_stateChange.Scan.Running == false)
+    {
+        <button class="btn btn-primary mb-2" @onclick="@ScanRepsPre">Scan</button>
+    }
+    else
+    {
+        <button class="btn btn-secondary mb-2" @onclick="@Decode.StopIt">Stop</button>
+    }
 }
 else
 {
@@ -76,15 +83,13 @@ else
 
 
 @code {
-    int count = 0;
     string INFO = "";
     string SCAN = "";
-    bool init = false;
     bool CheckUploadCredential = false;
 
     async Task ScanRepsPre()
     {
-        if (StartUp.Conf.Uploadcredential == true)
+        if (_startUp.Conf.Uploadcredential == true)
             await ScanReps();
         else
         {
@@ -95,8 +100,8 @@ else
 
     public async Task AllowUpload()
     {
-        StartUp.Conf.Uploadcredential = true;
-        StartUp.Save();
+        _startUp.Conf.Uploadcredential = true;
+        _startUp.Save();
         CheckUploadCredential = false;
         StateHasChanged();
         await ScanReps();
@@ -111,15 +116,19 @@ else
 
     async Task ScanReps()
     {
-        if (StartUp.SAMPLEDATA == true) StartUp.SAMPLEDATA = false;
-        await DSdata.NewReplays();
-        if (DSdata.Todo.Count > 0)
+        if (_startUp.SAMPLEDATA == true) _startUp.SAMPLEDATA = false;
+        await _DSdata.NewReplays();
+        if (_DSdata.Todo.Count > 0)
         {
-            if (StateChange.Scan.Running == false)
+            if (_stateChange.Scan.Running == false)
             {
-                StateChange.Scan.Running = true;
+                _stateChange.Scan.Running = true;
                 SCAN = "Decoding replays ...";
-                Decode.Doit(DSdata, StateChange, StartUp.Conf.Cores);
+                Decode.Doit(_DSdata, _stateChange, _startUp.Conf.Cores);
+            }
+            else
+            {
+                SCAN = "Scan already running.";
             }
         }
         else
@@ -132,15 +141,15 @@ else
     {
         await InvokeAsync(() =>
         {
-            if (StateChange.Scan.Running == true)
+            if (_stateChange.Scan.Running == true)
             {
                 SCAN = "Decoding replays ..";
-                INFO = StateChange.Scan.Info;
+                INFO = _stateChange.Scan.Info;
             }
             else
             {
                 SCAN = "Jobs done.";
-                INFO = StateChange.Scan.Info;
+                INFO = _stateChange.Scan.Info;
                 INFO += " Elapsed time: " + Decode.Elapsed.ToString("c");
             }
             StateHasChanged();
@@ -152,10 +161,10 @@ else
         if (INFO.Length > 0)
         {
             SCAN = "Decoding replays ...";
-            INFO = StateChange.Scan.Info;
+            INFO = _stateChange.Scan.Info;
         }
 
-        if (StartUp.Conf.Autoscan == true)
+        if (_startUp.Conf.Autoscan == true)
         {
             await ScanReps();
         }
@@ -164,18 +173,18 @@ else
             await FindReps();
         }
 
-        StateChange.PropertyChanged += Update;
+        _stateChange.PropertyChanged += Update;
     }
 
     private async Task FindReps()
     {
-        await DSdata.NewReplays();
+        await _DSdata.NewReplays();
         StateHasChanged();
     }
 
     public void Dispose()
     {
-        //StateChange.PropertyChanged -= Update;
+        //_stateChange.PropertyChanged -= Update;
     }
 
 }

@@ -1,10 +1,14 @@
-﻿using sc2dsstats.Models;
-using Microsoft.JSInterop;
+﻿using Microsoft.JSInterop;
 using Newtonsoft.Json;
+using sc2dsstats.Models;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
+using System.Drawing;
 using System.Globalization;
+using System.IO;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
@@ -12,14 +16,13 @@ namespace sc2dsstats.Data
 {
     public class ChartService
     {
-        private readonly Interfaces.IDSdata_cache _dsdata;
+        private readonly IDSdata_cache _dsdata;
         private DSdyn_filteroptions _options;
         private readonly IJSRuntime _jsRuntime;
         private JsInteropClasses _jsIterop;
+        private List<string> s_races_ordered = new List<string>(DSdata.s_races);
 
-        private List<string> s_races_ordered = new List<string>(DSdata.s_races_cmdr);
-
-        public ChartService(Interfaces.IDSdata_cache dsdata, IJSRuntime jsRuntime, DSdyn_filteroptions options)
+        public ChartService(IDSdata_cache dsdata, IJSRuntime jsRuntime, DSdyn_filteroptions options)
         {
             _dsdata = dsdata;
             _jsRuntime = jsRuntime;
@@ -31,9 +34,10 @@ namespace sc2dsstats.Data
         public async Task GetChartBase(bool draw = true)
         {
             ChartJS mychart = new ChartJS();
-            s_races_ordered = DSdata.s_races_cmdr.ToList();
+            s_races_ordered = DSdata.s_races.ToList();
             mychart.type = "bar";
-            if (_options.Mode == "Synergy" || _options.Mode == "AntiSynergy") mychart.type = "radar";
+            if (_options.Mode == "Synergy" || _options.Mode == "AntiSynergy")
+                mychart.type = "radar";
             else if (_options.Mode == "Timeline")
             {
                 mychart.type = "line";
@@ -52,10 +56,12 @@ namespace sc2dsstats.Data
 
             await GetData(mychart);
             mychart.options = GetOptions();
-            if (mychart.type != "line") DSchart.SortChart(mychart, ref s_races_ordered);
+            if (mychart.type != "line") SortChart(mychart, ref s_races_ordered);
             SetColor(mychart);
             SetCmdrPics(mychart);
             _options.Chart = mychart;
+
+            //if (draw == true) await _jsIterop.ChartChanged(JsonSerializer.Serialize<ChartJS>(_options.Chart));
             if (draw == true) await _jsIterop.ChartChanged(JsonConvert.SerializeObject(_options.Chart, Formatting.Indented));
         }
 
@@ -68,17 +74,20 @@ namespace sc2dsstats.Data
                 oldchart.data.datasets.RemoveAt(0);
                 await GetData(oldchart);
                 //if (oldchart.type == "bar") oldchart.options.title.text = oldchart.options.title.text + " - " + _options.Interest + " vs ...";
-                DSchart.SortChart(oldchart, ref s_races_ordered);
+                SortChart(oldchart, ref s_races_ordered);
                 SetColor(oldchart);
                 SetCmdrPics(oldchart);
                 _options.Chart = oldchart;
+                //await _jsIterop.ChartChanged(JsonSerializer.Serialize(_options.Chart));
                 await _jsIterop.ChartChanged(JsonConvert.SerializeObject(_options.Chart, Formatting.Indented));
-            } else
+            }
+            else
             {
                 oldchart.data.datasets.Add(await GetData());
                 SetColor(oldchart);
                 _options.Chart = oldchart;
-                await _jsIterop.AddDataset(JsonConvert.SerializeObject(_options.Chart.data.datasets[_options.Chart.data.datasets.Count() -1], Formatting.Indented));
+                //await _jsIterop.AddDataset(JsonSerializer.Serialize(_options.Chart.data.datasets[_options.Chart.data.datasets.Count() - 1]));
+                await _jsIterop.AddDataset(JsonConvert.SerializeObject(_options.Chart.data.datasets[_options.Chart.data.datasets.Count() - 1], Formatting.Indented));
             }
         }
 
@@ -90,7 +99,8 @@ namespace sc2dsstats.Data
             {
                 _options.Interest = "";
                 await GetChartBase();
-            } else
+            }
+            else
             {
                 for (int i = 0; i < _options.Chart.data.datasets.Count(); i++)
                 {
@@ -111,11 +121,13 @@ namespace sc2dsstats.Data
             _options.Interest = "";
 
             await GetChartBase(false);
-            
+
             if (oldchart.data.datasets.Count() == 1 && oldchart.data.datasets[0].label == "global")
             {
+                //await _jsIterop.ChartChanged(JsonSerializer.Serialize(_options.Chart));
                 await _jsIterop.ChartChanged(JsonConvert.SerializeObject(_options.Chart, Formatting.Indented));
-            } else
+            }
+            else
             {
                 _options.Chart.data.datasets.RemoveAt(0);
                 ChartJS labelChart = new ChartJS();
@@ -125,9 +137,10 @@ namespace sc2dsstats.Data
                     _options.Chart.data.datasets.Add(await GetData(labelChart));
                 }
                 _options.Chart.data.labels = labelChart.data.labels;
-                DSchart.SortChart(_options.Chart, ref s_races_ordered);
+                SortChart(_options.Chart, ref s_races_ordered);
                 SetColor(_options.Chart);
                 SetCmdrPics(_options.Chart);
+                //await _jsIterop.ChartChanged(JsonSerializer.Serialize(_options.Chart));
                 await _jsIterop.ChartChanged(JsonConvert.SerializeObject(_options.Chart, Formatting.Indented));
             }
         }
@@ -143,7 +156,7 @@ namespace sc2dsstats.Data
             foreach (var ent in mychart.data.datasets)
             {
                 i++;
-                var col = DSchart.GetChartColorFromLabel(ent.label);
+                var col = GetChartColorFromLabel(ent.label);
                 if (mychart.type == "bar")
                 {
                     if (ent.label == "global")
@@ -153,7 +166,7 @@ namespace sc2dsstats.Data
                             Match m = Regex.Match(cmdr, @"^(\w)+");
                             if (m.Success)
                             {
-                                var col_global = DSchart.GetChartColorFromLabel(m.Value);
+                                var col_global = GetChartColorFromLabel(m.Value);
                                 ent.backgroundColor.Add(col_global.backgroundColor);
                             }
                         }
@@ -197,7 +210,7 @@ namespace sc2dsstats.Data
             else
             {
                 ChartJsoptionsBar baroptions = new ChartJsoptionsBar();
-                chartoptions = baroptions;                
+                chartoptions = baroptions;
 
                 ChartJSoptionsScalesY yAxes = new ChartJSoptionsScalesY();
                 yAxes.scaleLabel.labelString = "% - " + _options.Startdate.ToString("yyyy-MM-dd") + " - " + _options.Enddate.ToString("yyyy-MM-dd") + " - " + IsDefaultFilter();
@@ -257,7 +270,8 @@ namespace sc2dsstats.Data
                     }
                 }
                 dataset.label = "global";
-            } else
+            }
+            else
             {
                 foreach (string race in s_races_ordered)
                 {
@@ -290,7 +304,7 @@ namespace sc2dsstats.Data
             List<ChartJSPluginlabelsImage> images = new List<ChartJSPluginlabelsImage>();
             foreach (string lcmdr in chart.data.labels)
             {
-                foreach (string cmdr in DSdata.s_races_cmdr)
+                foreach (string cmdr in DSdata.s_races)
                 {
                     if (lcmdr.StartsWith(cmdr))
                     {
@@ -305,6 +319,230 @@ namespace sc2dsstats.Data
             opt.plugins.labels.images = images;
             chart.options = opt;
 
+        }
+
+        public static ChartJS SortChart(ChartJS chart, ref List<string> s_races_ordered)
+        {
+            if (chart.type == "radar" || chart.type == "line") return chart;
+            List<ChartJSdataset> datasets = new List<ChartJSdataset>(chart.data.datasets);
+            List<ChartJSsorthelper> sortedItems = new List<ChartJSsorthelper>();
+
+            if (datasets.Count > 0)
+            {
+                for (int i = 0; i < chart.data.labels.Count(); i++)
+                {
+                    if (chart.data.datasets[0].data.Count() > i)
+                        sortedItems.Add(new ChartJSsorthelper(chart.data.labels[i], chart.data.datasets[0].data[i]));
+                }
+                sortedItems = sortedItems.OrderBy(o => o.WR).ToList();
+                chart.data.labels = sortedItems.Select(x => x.CMDR).ToArray();
+                chart.data.datasets[0].data = sortedItems.Select(x => x.WR).ToArray();
+
+                if (datasets.Count > 1)
+                {
+                    for (int d = 1; d < datasets.Count(); d++)
+                    {
+                        List<ChartJSsorthelper> temp_sortedItems = new List<ChartJSsorthelper>();
+                        //for (int i = 0; i < DSdata.s_races_cmdr.Count(); i++)
+                        for (int i = 0; i < chart.data.datasets[d].data.Count(); i++)
+                        {
+                            temp_sortedItems.Add(new ChartJSsorthelper(DSdata.s_races[i], chart.data.datasets[d].data[i]));
+                        }
+                        List<ChartJSsorthelper> add_sortedItems = new List<ChartJSsorthelper>();
+                        foreach (string label in chart.data.labels)
+                        {
+                            foreach (ChartJSsorthelper help in temp_sortedItems)
+                            {
+                                if (label.StartsWith(help.CMDR))
+                                {
+                                    add_sortedItems.Add(help);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            List<string> _s_races_ordered = new List<string>();
+            foreach (var ent in sortedItems)
+            {
+                Match m = Regex.Match(ent.CMDR, @"^(\w)+");
+                if (m.Success) _s_races_ordered.Add(m.Value);
+            }
+            s_races_ordered = _s_races_ordered;
+
+
+            return chart;
+        }
+
+        public static ChartJScolorhelper GetChartColor_bak(int myi)
+        {
+            string temp_col;
+            if (myi == 1) temp_col = "26, 94, 203";
+            else if (myi == 2) temp_col = "203, 26, 59";
+            else if (myi == 2) temp_col = "203, 26, 59";
+            else if (myi == 3) temp_col = "47, 203, 26";
+            else if (myi == 4) temp_col = "26, 203, 191";
+            else if (myi == 5) temp_col = "203, 26, 177";
+            else if (myi == 6) temp_col = "203, 194, 26";
+            else temp_col = "72, 69, 9";
+
+            ChartJScolorhelper col = new ChartJScolorhelper();
+            col.backgroundColor = "rgba(" + temp_col + ", 0.5)";
+            col.borderColor = "rgba(" + temp_col + ",1)";
+            col.pointBackgroundColor = "rgba(" + temp_col + ", 0.2)";
+            return col;
+        }
+
+        public static ChartJScolorhelper GetChartColorFromLabel(string cmdr)
+        {
+            string cmdr_col = DSdata.CMDRcolor[cmdr];
+            Color color = ColorTranslator.FromHtml(cmdr_col);
+            string temp_col = color.R + ", " + color.G + ", " + color.B;
+            ChartJScolorhelper col = new ChartJScolorhelper();
+            col.backgroundColor = "rgba(" + temp_col + ", 0.5)";
+            col.borderColor = "rgba(" + temp_col + ",1)";
+            col.barborderColor = "rgb(255, 0, 0)";
+            col.pointBackgroundColor = "rgba(" + temp_col + ", 0.2)";
+            return col;
+        }
+
+        public static ChartJScolorhelper GetChartColor(int myi)
+        {
+
+
+            string temp_col;
+            if (myi == 1) temp_col = "0, 0, 255";
+            else if (myi == 2) temp_col = "204, 0, 0";
+            else if (myi == 2) temp_col = "0, 153, 0";
+            else if (myi == 3) temp_col = "204, 0, 153";
+            else if (myi == 4) temp_col = "0, 204, 255";
+            else if (myi == 5) temp_col = "255, 153, 0";
+            else if (myi == 6) temp_col = "0, 51, 0";
+            else if (myi == 7) temp_col = "0, 101, 0";
+            else if (myi == 8) temp_col = "0, 151, 0";
+            else if (myi == 9) temp_col = "0, 251, 0";
+            else if (myi == 10) temp_col = "0, 51, 50";
+            else if (myi == 11) temp_col = "0, 51, 100";
+            else if (myi == 12) temp_col = "0, 51, 150";
+            else if (myi == 13) temp_col = "0, 51, 200";
+            else if (myi == 14) temp_col = "0, 51, 250";
+            else if (myi == 15) temp_col = "50, 51, 0";
+            else temp_col = "102, 51, 0";
+
+            ChartJScolorhelper col = new ChartJScolorhelper();
+            col.backgroundColor = "rgba(" + temp_col + ", 0.5)";
+            col.borderColor = "rgba(" + temp_col + ",1)";
+            col.barborderColor = "rgb(255, 0, 0)";
+            col.pointBackgroundColor = "rgba(" + temp_col + ", 0.2)";
+            return col;
+        }
+
+        public class ChartJScolorhelper
+        {
+            public string backgroundColor { get; set; }
+            public string borderColor { get; set; }
+            public string pointBackgroundColor { get; set; }
+            public string barborderColor { get; set; }
+        }
+
+        public class ChartJSsorthelper
+        {
+            public string CMDR { get; set; }
+            public double WR { get; set; }
+
+            public ChartJSsorthelper(string _CMDR, double _WR)
+            {
+                CMDR = _CMDR;
+                WR = _WR;
+            }
+        }
+
+        public class JsInteropClasses
+        {
+            private readonly IJSRuntime _jsRuntime;
+
+            public JsInteropClasses(IJSRuntime jsRuntime)
+            {
+                _jsRuntime = jsRuntime;
+            }
+
+            public async Task<string> ChartChanged(string data)
+            {
+                // The handleTickerChanged JavaScript method is implemented
+                // in a JavaScript file, such as 'wwwroot/tickerJsInterop.js'.
+                try
+                {
+                    return await _jsRuntime.InvokeAsync<string>("DynChart", data);
+                }
+                catch
+                {
+                    return String.Empty;
+                }
+            }
+
+            public async Task<string> AddDataset(string data)
+            {
+                try
+                {
+                    return await _jsRuntime.InvokeAsync<string>("AddDynChart", data);
+                }
+                catch
+                {
+                    return String.Empty;
+                }
+            }
+
+            public async Task<string> RemoveDataset(int data)
+            {
+                try
+                {
+                    return await _jsRuntime.InvokeAsync<string>("RemoveDynChart", data);
+                }
+                catch
+                {
+                    return String.Empty;
+                }
+            }
+
+            public async Task CopyToClipboard(string element)
+            {
+                string resp = await _jsRuntime.InvokeAsync<string>("CopyToClipboard", element);
+                Bitmap bmp = null;
+                var bytes = Convert.FromBase64String(resp.Replace("data:image/png;base64,", ""));
+                MemoryStream memoryStream = new MemoryStream(bytes);
+                memoryStream.Position = 0;
+                bmp = (Bitmap)Bitmap.FromStream(memoryStream);
+                memoryStream.Close();
+                memoryStream = null;
+                bytes = null;
+            }
+        }
+    }
+
+    public class ChartStateChange : INotifyPropertyChanged
+    {
+        private bool Update_value = false;
+
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        private void NotifyPropertyChanged([CallerMemberName] String propertyName = "")
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
+
+        public Dictionary<string, int> CmdrCount { get; set; } = new Dictionary<string, int>();
+
+        public bool Update
+        {
+            get { return this.Update_value; }
+            set
+            {
+                if (value != this.Update_value)
+                {
+                    this.Update_value = value;
+                    NotifyPropertyChanged();
+                }
+            }
         }
     }
 }

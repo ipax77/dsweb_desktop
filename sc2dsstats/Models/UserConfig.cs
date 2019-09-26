@@ -1,8 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using sc2dsstats;
 
 namespace sc2dsstats.Models
 {

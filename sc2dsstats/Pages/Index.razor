@@ -1,9 +1,8 @@
 ﻿@page "/"
-@using sc2dsstats.Models;
-@using sc2dsstats.Interfaces;
+@using sc2dsstats.Data;
 @using System.ComponentModel;
 @inject StartUp StartUp
-@inject DSdataModel DSdata
+@inject DSreplays DSdata
 @inject IDSdata_cache  DScache
 @inject ScanStateChange stateChanged
 @implements IDisposable
@@ -45,7 +44,8 @@ else
             {
                 <h5>The app will restart and install the new version after the download is finished.</h5>
             }
-        } else
+        }
+        else
         {
             <button class="btn btn-primary" @onclick="@(async () => await CheckUpdates())">Check for Updates</button>
             <a>Current version is up to date.</a>
@@ -67,13 +67,13 @@ else
     protected override async Task OnInitializedAsync()
     {
         await StartUp.Init();
-        StateHasChanged();
         await DSdata.Init();
+
         t = DateTime.Now - StartUp.Conf.LastUpload;
         Task.Run(() => { CheckUpdates(); });
         Loading = false;
-        stateChanged.PropertyChanged += Update;
 
+        stateChanged.PropertyChanged += Update;
     }
 
     async Task CheckUpdates()

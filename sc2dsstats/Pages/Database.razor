@@ -4,7 +4,7 @@
 @using sc2dsstats.Models;
 @using sc2dsstats.Data;
 @using pax.s2decode.Models;
-@inject DSdataModel _dsdata
+@inject DSreplays _dsdata
 @inject DSdyn_filteroptions  _options
 @inject StartUp  _startUp
 
@@ -219,7 +219,6 @@
     int replay_id = 0;
     ReplayOptions RepOpt = new ReplayOptions();
     string FilterClass => _options.Filter ? null : "collapse";
-    string mb = "";
     string ladderstring = "";
 
     string[] s_units = new[]
@@ -384,11 +383,11 @@
             if (ent.UNIT.Length > 0)
             {
                 if (ent.UNITMOD == ">")
-                    myReplays = myReplays.Where(x => x.PLAYERS.Where(y => y.UNITS["ALL"].ContainsKey(ent.UNIT) && y.UNITS["ALL"][ent.UNIT] > ent.UNITCOUNT).Count() > 0).ToList();
+                    myReplays = myReplays.Where(x => x.PLAYERS.Where(y => y.UNITS.ContainsKey("ALL") && y.UNITS["ALL"].ContainsKey(ent.UNIT) && y.UNITS["ALL"][ent.UNIT] > ent.UNITCOUNT).Count() > 0).ToList();
                 else if (ent.UNITMOD == "=")
-                    myReplays = myReplays.Where(x => x.PLAYERS.Where(y => y.UNITS["ALL"].ContainsKey(ent.UNIT) && y.UNITS["ALL"][ent.UNIT] == ent.UNITCOUNT).Count() > 0).ToList();
+                    myReplays = myReplays.Where(x => x.PLAYERS.Where(y => y.UNITS.ContainsKey("ALL") && y.UNITS["ALL"].ContainsKey(ent.UNIT) && y.UNITS["ALL"][ent.UNIT] == ent.UNITCOUNT).Count() > 0).ToList();
                 else if (ent.UNITMOD == "<")
-                    myReplays = myReplays.Where(x => x.PLAYERS.Where(y => y.UNITS["ALL"].ContainsKey(ent.UNIT) && y.UNITS["ALL"][ent.UNIT] < ent.UNITCOUNT).Count() > 0).ToList();
+                    myReplays = myReplays.Where(x => x.PLAYERS.Where(y => y.UNITS.ContainsKey("ALL") && y.UNITS["ALL"].ContainsKey(ent.UNIT) && y.UNITS["ALL"][ent.UNIT] < ent.UNITCOUNT).Count() > 0).ToList();
             }
         }
 
@@ -401,7 +400,8 @@
             if (e.PropertyName == "Filter") { StateHasChanged(); }
             else
             {
-                myReplays = DBfilter.Filter(_dsdata.Replays, _options, _dsdata._startUp).OrderByDescending(o => o.GAMETIME);
+                (myReplays, _) = DBfilter.Filter(_dsdata.Replays, _options, _dsdata._startUp);
+                myReplays = myReplays.OrderByDescending(o => o.GAMETIME);
             }
         }
     }

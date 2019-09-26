@@ -1,8 +1,7 @@
 ﻿@page "/cmdrs"
 @using System.ComponentModel
-@using System.Threading;
 @using sc2dsstats.Data
-@using sc2dsstats.Models
+@using static sc2dsstats.Data.ChartService;
 @inject IJSRuntime JSRuntime
 @inject ChartStateChange chartChanged
 @implements IDisposable
@@ -41,17 +40,17 @@
 
     void ShowCmdrs()
     {
-        if (chartChanged.Fil.Cmdrs == null) return;
+        if (chartChanged.CmdrCount.Count == 0) return;
         List<double> piedata = new List<double>();
         List<string> pielabels = new List<string>();
         List<string> piecolors = new List<string>();
         int i = 0;
-        foreach (var ent in chartChanged.Fil.Cmdrs.OrderByDescending(o => o.Value))
+        foreach (var ent in chartChanged.CmdrCount.OrderByDescending(o => o.Value))
         {
             i++;
             piedata.Add(ent.Value);
             pielabels.Add(ent.Key);
-            piecolors.Add(DSchart.GetChartColorFromLabel(ent.Key).borderColor);
+            piecolors.Add(ChartService.GetChartColorFromLabel(ent.Key).borderColor);
         }
         PieChart piechart = new PieChart();
         piechart.piedata = piedata;
