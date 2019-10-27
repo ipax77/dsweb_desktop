@@ -1,0 +1,70 @@
+﻿@page "/dummy"
+
+<h3>Dummy</h3>
+
+<div class="container-fluid">
+    <MatButton OnClick="@OpenDialog" Raised="true">Pick one</MatButton>
+</div>
+
+<MatDialog @bind-IsOpen="@dialogIsOpen">
+    <MatDialogTitle>Summary</MatDialogTitle>
+    <MatDialogContent>
+        <span class="badge badge-danger">Alert!</span>
+        <MatRipple>
+            <table>
+                <thead>
+                    <tr>
+                        <th>test1</th>
+                        <th>test2</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>1</td>
+                        <td>2</td>
+                    </tr>
+                    <tr>
+                        <td>1</td>
+                        <td>2</td>
+                    </tr>
+                    <tr>
+                        <td>1</td>
+                        <td>2</td>
+                    </tr>
+                    <tr>
+                        <td>1</td>
+                        <td>2</td>
+                    </tr>
+                    <tr>
+                        <td>1</td>
+                        <td>2</td>
+                    </tr>
+                    <tr>
+                        <td>1</td>
+                        <td>2</td>
+                    </tr>
+                </tbody>
+            </table>
+        </MatRipple>
+    </MatDialogContent>
+    <MatDialogActions>
+        <MatButton OnClick="@OkClick">Close</MatButton>
+    </MatDialogActions>
+</MatDialog>
+
+@code
+{
+    bool dialogIsOpen = false;
+
+    void OpenDialog()
+    {
+        dialogIsOpen = true;
+    }
+
+    void OkClick()
+    {
+        dialogIsOpen = false;
+    }
+
+}
+

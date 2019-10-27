@@ -1,4 +1,7 @@
 
+v1.3.1
+- s2protocol 76811 'preview'
+
 v1.3.0
 
 - Code cleanup

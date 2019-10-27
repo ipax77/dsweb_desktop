@@ -44,6 +44,7 @@ namespace sc2dsstats.Data
             Scan.Done = 0;
             Failed = new List<string>();
             Console.WriteLine("Engine start.");
+            //s2dec.DEBUG = 1;
             s2dec.JsonFile = Program.myJson_file;
             s2dec.REPID = Data.ID;
             s2dec.ReplayFolder = Data.ReplayFolder;

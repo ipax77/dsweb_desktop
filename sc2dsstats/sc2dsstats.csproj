@@ -1059,6 +1059,12 @@
     <None Update="pylib\site-packages\s2protocol\versions\protocol76114.pyc">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <None Update="pylib\site-packages\s2protocol\versions\protocol76811.py">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="pylib\site-packages\s2protocol\versions\protocol76811.pyc">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 
 </Project>
