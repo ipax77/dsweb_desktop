@@ -1,4 +1,9 @@
 
+v1.3.2
+
+- fixed workingsetslot crash
+- fixed config -> new replay folder
+
 v1.3.1
 - s2protocol 76811 'preview'
 

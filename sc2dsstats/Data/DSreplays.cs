@@ -18,7 +18,7 @@ namespace sc2dsstats.Data
         public Dictionary<string, string> ReplayFolder { get; set; } = new Dictionary<string, string>();
 
         public int ID { get; set; } = 0;
-        private bool INIT = false;
+        public bool INIT = false;
 
         public StartUp _startUp;
         IDSdata_cache _dsdata;
@@ -44,7 +44,7 @@ namespace sc2dsstats.Data
                 var plainTextBytes = Encoding.UTF8.GetBytes(reppath);
                 MD5 md5 = new MD5CryptoServiceProvider();
                 string reppath_md5 = BitConverter.ToString(md5.ComputeHash(plainTextBytes));
-                ReplayFolder.Add(reppath, reppath_md5);
+                ReplayFolder[reppath] = reppath_md5;
             }
         }
 

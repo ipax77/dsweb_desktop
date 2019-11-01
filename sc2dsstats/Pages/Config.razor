@@ -410,6 +410,7 @@
             StartUp.Conf.Players = newPlayers.ToList();
             StartUp.Conf.Replays = newReplays.ToList();
 
+            _dsData.INIT = false;
             _dsData.Init();
 
             StartUp.Save();
