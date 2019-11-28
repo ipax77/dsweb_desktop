@@ -1,4 +1,8 @@
 
+v1.3.5
+- s2protocol 77379
+- Game Map v2 p1
+
 v1.3.2
 
 - fixed workingsetslot crash
