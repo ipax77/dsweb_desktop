@@ -4,6 +4,7 @@
 @using pax.s2decode.Models;
 @inject StartUp  _startUp
 @inject ChartService _chart
+@inject NavigationManager NavigationManager;
 
 @if (replay != null)
 {
@@ -24,7 +25,10 @@
             }
             @if (showMap == true)
             {
-                <GameMap replay="@replay" />
+                <!--
+                    <GameMap replay="@replay" />
+                -->
+                NavigationManager.NavigateTo("/gamemap/" + replay.ID);
             }
         </div>
         <div class="row">

@@ -1,0 +1,548 @@
+﻿@page "/bestbuild"
+@layout BattleLayout
+@using System.Numerics
+@using paxgame3.Client.Models
+@using paxgame3.Client.Data
+@using paxgame3.Client.Service
+@using System.Collections.Concurrent
+@using System.ComponentModel
+@using sc2dsstats.Data;
+@using pax.s2decode.Models;
+@inject StartUp _startUp
+@inject Refresh _refresh
+@inject RefreshBB _refreshBB
+@inject RefreshPl  _refreshPl
+@implements IDisposable
+
+@if (startFight == false)
+{
+    <div class="container-fluid">
+        <div class="d-flex flex-row flex-wrap" style="background-color: aliceblue; border-radius: 20px; max-width: 1200px !important;">
+            <div class="p-2 mt-2 mr-2">
+                <label class="col-form-label">Build Race</label>
+                <select class="custom-select" @onchange="ChangePlayerRace">
+                    <option value="@UnitRace.Terran">Terran</option>
+                    <option value="@UnitRace.Protoss">Protoss</option>
+                    <option value="@UnitRace.Zerg">Zerg</option>
+                </select>
+            </div>
+            <div class="p-2 mt-2 mr-2">
+                <label class="col-form-label">Opponent Race</label>
+                <select class="custom-select" @onchange="ChangeOppRace">
+                    <option value="@UnitRace.Zerg">Zerg</option>
+                    <option value="@UnitRace.Terran">Terran</option>
+                    <option value="@UnitRace.Protoss">Protoss</option>
+                </select>
+            </div>
+        </div>
+        <div class="d-flex flex-row flex-wrap" style="background-color: aliceblue; border-radius: 20px; max-width: 1200px !important;">
+            <div class="p-2 ml-2 mt-2 mr-2">
+                <MatSelect Label="Game Mode" Enhanced="true" @bind-Value="_player.Mode.Mode" Outlined="true">
+                    <MatOption Value="Bot#1">Zerg Bot</MatOption>
+                    <MatOption Value="Bot#2">Terran Bot</MatOption>
+                    <MatOption Value="Bot#3">Random Bot</MatOption>
+                </MatSelect>
+            </div>
+            <div class="p-2 mt-2 mr-2">
+                <MatNumericUpDownField Label="Builds"
+                                       @bind-Value=@builds
+                                       DecimalPlaces=0
+                                       Outlined="true"
+                                       Minimum=1 Maximum=null>
+                </MatNumericUpDownField>
+            </div>
+            <div class="p-2 mt-2 mr-2">
+                <MatNumericUpDownField Label="Positions"
+                                       @bind-Value=@positions
+                                       DecimalPlaces=0
+                                       Outlined="true"
+                                       Minimum=1 Maximum=null>
+                </MatNumericUpDownField>
+            </div>
+            <div class="p-2 mt-2 mr-2">
+                <MatNumericUpDownField Label="CPU Cores"
+                                       @bind-Value=@cores
+                                       DecimalPlaces=0
+                                       Outlined="true"
+                                       Minimum=1 Maximum=Environment.ProcessorCount>
+                </MatNumericUpDownField>
+            </div>
+        </div>
+    </div>
+    <div class="container-fluid">
+        <div class="row justify-content-start">
+            <div class="col-auto align-self-end" style="margin-bottom: 300px !important;">
+                @if (SpawnsChecked.Count() > 0)
+                {
+                    var plsp = plSpawnsChecked.FirstOrDefault(x => x.Value == true);
+                    if (!plsp.Equals(default(KeyValuePair<int, bool>)))
+                    {
+                        @foreach (var ent in SpawnsChecked.ToArray())
+                        {
+                            if (plSpawns[plsp.Key].Contains(ent.Key))
+                            {
+                                <div class="custom-control custom-checkbox">
+                                    <input type="checkbox"
+                                           class="custom-control-input"
+                                           name="stSpawn"
+                                           value="@ent.Key"
+                                           checked="@SpawnsChecked[ent.Key]"
+                                           id="cb_spawns_@ent.Key"
+                                           @onchange="@(() => AddSpawn(ent.Key))" />
+                                    <label class=" custom-control-label" for="cb_spawns_@ent.Key">
+                                        Spawn @ent.Key
+                                    </label>
+                                </div>
+                            }
+                        }
+                    }
+                    <br />
+                    @foreach (var ent in plSpawnsChecked.ToArray())
+                    {
+                        <div class="custom-control custom-checkbox">
+                            <input type="checkbox"
+                                   class="custom-control-input"
+                                   name="repPlayers"
+                                   checked="@plSpawnsChecked[ent.Key]"
+                                   value="@ent.Key"
+                                   id="cb_@ent.Key"
+                                   @onchange="@(() => AddPlayer(ent.Key))" />
+                            <label class="custom-control-label" for="cb_@ent.Key">
+                                Player @ent.Key
+                            </label>
+                        </div>
+                    }
+                    <br />
+                }
+            </div>
+            <div class="col-auto">
+                <BuildArea PlayerID="_player.ID" BestBuildMode="true" />
+
+                <div class="container-fluid" style="margin-top: 65px !important;">
+                    <div>
+                        @if (BestBuildService.Running == false)
+                        {
+                            <MatSlideToggle @bind-Checked="@bestPosition" Label="best Position"></MatSlideToggle>
+                            <button class="btn btn-primary" @onclick="Swap">Swap Player/Opponent</button>
+                            if (bestPosition == false)
+                            {
+                                <button class="btn btn-primary" @onclick="@(() => GenBestBuildPossible())">Get Best Build</button>
+                            }
+                            else
+                            {
+                                <button class="btn btn-primary" @onclick="@(() => GenBestPositionPossible())">Get Best Position</button>
+                            }
+                        }
+                        else
+                        {
+                            <button class="btn btn-primary" @onclick="@(() => BestBuildService.StopIt())">Stop Calculating</button>
+                        }
+                        <button class="btn btn-primary" @onclick="@(() => StartFight())">Show Fight</button>
+                        @if (_refreshBB.BestBuild != null && _refreshBB.WorstBuild != null)
+                        {
+                            <button class="btn btn-primary" @onclick="@(() => _refreshBB.BestBuild.SetBuild(_opp))">Show Best build</button>
+                            <button class="btn btn-primary" @onclick="@(() => _refreshBB.WorstBuild.SetBuild(_opp))">Show Worst build</button>
+                        }
+                        @if (_refreshBB.BestStats != null && _refreshBB.BestStatsOpp != null)
+                        {
+                            <div style="max-width: 1000px !important;">
+                                <div class="row">
+                                    <label class="col">Best Build Mineral Value Killed / Lost</label>
+                                    <label class="col">Worst Build Mineral Value Killed</label>
+                                    <label class="col">Done / Total</label>
+                                    <label class="col">Time</label>
+                                </div>
+                                <div class="row">
+                                    <h4 class="col"><span class="badge badge-success">@_refreshBB.BestStats.MineralValueKilled</span> / <span class="badge badge-danger">@_refreshBB.BestStatsOpp.MineralValueKilled</span></h4>
+                                    <h4 class="col"><span class="badge badge-danger">@_refreshBB.WorstStats.MineralValueKilled</span></h4>
+                                    <h4 class="col"><span class="badge badge-info">@_refreshBB.TOTAL_DONE / @_refreshBB.TOTAL</span></h4>
+                                    @if (BestBuildService.END != DateTime.MinValue)
+                                    {
+                                        <h4 class="col">@((BestBuildService.END - BestBuildService.START).TotalSeconds)s</h4>
+                                    }
+                                    <h4 class="col"></h4>
+                                </div>
+                            </div>
+                        }
+                    </div>
+
+                </div>
+                <BuildArea PlayerID="_opp.ID" BestBuildMode="true" ReverseBuild="true" />
+            </div>
+        </div>
+    </div>
+}
+else
+{
+    <BattleArea _game="_player.Game" _player="_player" />
+}
+
+@code {
+
+    [Parameter]
+    public Dictionary<int, List<Unit>> Spawns { get; set; } = new Dictionary<int, List<Unit>>();
+
+    [Parameter]
+    public Dictionary<int, HashSet<int>> plSpawns { get; set; } = new Dictionary<int, HashSet<int>>();
+
+    [Parameter]
+    public dsreplay replay { get; set; }
+
+    bool startFight = false;
+    bool bestPosition = false;
+    Player _player;
+    Player _opp;
+
+    decimal? builds = 100;
+    decimal? positions = 200;
+    decimal? cores = Environment.ProcessorCount;
+
+    Dictionary<int, bool> SpawnsChecked = new Dictionary<int, bool>();
+    Dictionary<int, bool> plSpawnsChecked = new Dictionary<int, bool>();
+
+    private IEnumerable<string> RacesAvailable1 = new string[]
+    {
+        "Protoss",
+        "Terran",
+        "Zerg"
+    };
+    private IEnumerable<string> RacesAvailable2 = new string[]
+    {
+        "Protoss",
+        "Terran",
+        "Zerg"
+    };
+
+
+    protected override void OnInitialized()
+    {
+        _player = new Player();
+        _player.Name = "Player#1";
+        _player.Pos = 1;
+        _player.ID = 66;
+        _player.Race = UnitRace.Zerg;
+        _player.inGame = true;
+        _player.Units = new List<Unit>(UnitPool.Units.Where(x => x.Race == _player.Race));
+
+        _opp = new Player();
+        _opp.Name = "Player#2";
+        _opp.Pos = 4;
+        _opp.ID = 67;
+        _opp.Race = UnitRace.Zerg;
+        _opp.inGame = true;
+        _opp.Units = new List<Unit>(UnitPool.Units.Where(x => x.Race == _opp.Race));
+
+        _startUp.Players[_player.ID] = _player;
+        _startUp.Players[_opp.ID] = _opp;
+
+        _player.Game = new GameHistory();
+        _player.Game.ID = _startUp.GetGameID();
+        _player.Game.Players.Add(_player);
+        _player.Game.Players.Add(_opp);
+
+
+        _player.GameID = _player.Game.ID;
+        _opp.Game = _player.Game;
+        _opp.GameID = _player.Game.ID;
+
+        _player.Units = new List<Unit>(UnitPool.Units.Where(x => x.Race == _player.Race && x.Cost > 0));
+        _opp.Units = new List<Unit>(UnitPool.Units.Where(x => x.Race == _opp.Race && x.Cost > 0));
+
+        _refreshBB.Update = !_refreshBB.Update;
+
+        _refresh.PropertyChanged += Update;
+        _refreshBB.PropertyChanged += UpdateBB;
+
+        NewReplay();
+    }
+
+    void ChangePlayerRace(ChangeEventArgs e)
+    {
+        UnitRace race = UnitRace.Terran;
+        string value = (string)e.Value;
+        if (value == "Protoss")
+            race = UnitRace.Protoss;
+        else if (value == "Zerg")
+            race = UnitRace.Zerg;
+
+        _player.Upgrades = new List<UnitUpgrade>();
+        _player.AbilityUpgrades = new List<UnitAbility>();
+        _player.MineralsCurrent = 0;
+
+        _player.Race = race;
+        _player.Units = new List<Unit>(UnitPool.Units.Where(x => x.Race == race && x.Cost > 0));
+
+        StateHasChanged();
+        _refreshBB.Update = !_refreshBB.Update;
+    }
+
+    void ChangeOppRace(ChangeEventArgs e)
+    {
+        UnitRace race = UnitRace.Terran;
+        string value = (string)e.Value;
+        if (value == "Protoss")
+            race = UnitRace.Protoss;
+        else if (value == "Zerg")
+            race = UnitRace.Zerg;
+
+        _opp.Upgrades = new List<UnitUpgrade>();
+        _opp.AbilityUpgrades = new List<UnitAbility>();
+        _opp.MineralsCurrent = 0;
+
+        _opp.Race = race;
+        _opp.Units = new List<Unit>(UnitPool.Units.Where(x => x.Race == race && x.Cost > 0));
+
+        StateHasChanged();
+        _refreshBB.Update = !_refreshBB.Update;
+    }
+
+
+    async Task Swap()
+    {
+
+        Player bakplayer = _player.Deepcopy();
+        Player bakopp = _opp.Deepcopy();
+        _player = bakopp;
+        _opp = bakplayer;
+        _player.Pos = 1;
+        _opp.Pos = 4;
+
+        foreach (Unit unit in _opp.Units.Where(x => x.Status != UnitStatuses.Available))
+        {
+            //unit.BuildPos = new Vector2(unit.BuildPos.X + Battlefield.Xmax - 10, unit.BuildPos.Y);
+            unit.BuildPos = BestBuildService.mirrorImage(unit.BuildPos);
+            unit.Owner = 4;
+            unit.Ownerplayer = _opp;
+        }
+
+        foreach (Unit unit in _player.Units.Where(x => x.Status != UnitStatuses.Available))
+        {
+            // TODO justify move direction!
+            //unit.BuildPos = new Vector2(unit.BuildPos.X - Battlefield.Xmax + 10, unit.BuildPos.Y);
+            unit.BuildPos = BestBuildService.mirrorImage(unit.BuildPos);
+            unit.Owner = 1;
+            unit.Ownerplayer = _player;
+        }
+
+        //_player.MineralsCurrent *= -1;
+        //_opp.MineralsCurrent *= -1;
+
+        _startUp.Players[_player.ID] = _player;
+        _startUp.Players[_opp.ID] = _opp;
+
+
+
+        _refreshPl.Players[_player.Pos] = _player;
+        _refreshPl.Players[_opp.Pos] = _opp;
+
+        _refreshPl.Update = !_refreshPl.Update;
+        StateHasChanged();
+    }
+
+    async Task NewReplay()
+    {
+
+        //(Spawns, plSpawns) = BestBuildService.GetUnits(_player.Game.ID);
+        _opp.MineralsCurrent = 0;
+        _player.MineralsCurrent = 0;
+
+        SpawnsChecked.Clear();
+        plSpawnsChecked.Clear();
+        foreach (var ent in Spawns)
+            SpawnsChecked[ent.Key] = false;
+
+        foreach (var ent in plSpawns)
+            plSpawnsChecked[ent.Key] = false;
+
+        await AddPlayer(replay.PLAYERS.First().POS);
+        await AddSpawn(plSpawns[replay.PLAYERS.First().POS].First());
+    }
+
+    async Task AddSpawn(int sp)
+    {
+        SpawnsChecked[sp] = !SpawnsChecked[sp];
+        bool bab = SpawnsChecked[sp];
+
+        foreach (var ent in SpawnsChecked.Keys.ToArray())
+            SpawnsChecked[ent] = false;
+
+        SpawnsChecked[sp] = bab;
+
+        if (bab == true)
+        {
+            var ent = plSpawnsChecked.FirstOrDefault(x => x.Value == true);
+            if (!ent.Equals(default(KeyValuePair<int, bool>)))
+            {
+                if (ent.Key <= 3)
+                {
+                    _opp.Units.Clear();
+                    _opp.MineralsCurrent = 0;
+                    UnitRace race = UnitRace.Terran;
+                    foreach (var unit in Spawns[sp].Where(x => x.Owner == ent.Key))
+                    {
+                        Unit myunit = unit.DeepCopy();
+                        //myunit.Owner = ent.Key + 3;
+                        myunit.Owner = 4;
+                        myunit.Ownerplayer = _opp;
+                        if (myunit.Bonusdamage != null)
+                            myunit.Bonusdamage.Ownerplayer = _opp;
+                        race = myunit.Race;
+                        _opp.Units.Add(myunit);
+                        _opp.MineralsCurrent -= myunit.Cost;
+                    }
+                    _opp.Units.AddRange(UnitPool.Units.Where(x => x.Race == race && x.Cost > 0));
+                }
+                else if (ent.Key > 3)
+                {
+                    _player.Units.Clear();
+                    _player.MineralsCurrent = 0;
+                    UnitRace race = UnitRace.Terran;
+                    foreach (var unit in Spawns[sp].Where(x => x.Owner == ent.Key))
+                    {
+                        Unit myunit = unit.DeepCopy();
+                        //myunit.Owner = ent.Key - 3;
+                        myunit.Owner = 1;
+                        myunit.Ownerplayer = _player;
+                        if (myunit.Bonusdamage != null)
+                            myunit.Bonusdamage.Ownerplayer = _player;
+                        _player.Units.Add(myunit);
+                        _player.MineralsCurrent -= myunit.Cost;
+                    }
+                    _player.Units.AddRange(UnitPool.Units.Where(x => x.Race == race && x.Cost > 0));
+                }
+            }
+        }
+        _refreshPl.Players[_opp.Pos] = _opp;
+        _refreshPl.Players[_player.Pos] = _player;
+        _refreshPl.Update = !_refreshPl.Update;
+    }
+
+    async Task AddPlayer(int pos)
+    {
+        plSpawnsChecked[pos] = !plSpawnsChecked[pos];
+        bool bab = plSpawnsChecked[pos];
+
+        foreach (var ent in plSpawnsChecked.Keys.ToArray())
+            plSpawnsChecked[ent] = false;
+
+        plSpawnsChecked[pos] = bab;
+
+        UnitRace race = UnitRace.Terran;
+        dsplayer pl = replay.PLAYERS.FirstOrDefault(x => x.POS == pos);
+        if (pl != null)
+        {
+            if (pl.RACE == "Protoss")
+                race = UnitRace.Protoss;
+            else if (pl.RACE == "Terran")
+                race = UnitRace.Terran;
+            else if (pl.RACE == "Zerg")
+                race = UnitRace.Zerg;
+        }
+
+        if (bab == true)
+        {
+            var ent = SpawnsChecked.FirstOrDefault(x => x.Value == true);
+            if (!ent.Equals(default(KeyValuePair<int, bool>)))
+            {
+                if (pos <= 3)
+                {
+                    _opp.Units.Clear();
+                    _opp.MineralsCurrent = 0;
+                    foreach (var unit in Spawns[ent.Key].Where(x => x.Owner == pos))
+                    {
+                        Unit myunit = unit.DeepCopy();
+                        //myunit.Owner = pos + 3;
+                        myunit.Owner = 4;
+                        myunit.Ownerplayer = _opp;
+                        if (myunit.Bonusdamage != null)
+                            myunit.Bonusdamage.Ownerplayer = _opp;
+                        race = myunit.Race;
+                        _opp.Units.Add(myunit);
+                        _opp.MineralsCurrent -= myunit.Cost;
+                    }
+                    _opp.Race = race;
+                    _opp.Units.AddRange(UnitPool.Units.Where(x => x.Race == race && x.Cost > 0));
+                }
+                else if (pos > 3)
+                {
+                    _player.Units.Clear();
+                    _player.MineralsCurrent = 0;
+                    foreach (var unit in Spawns[ent.Key].Where(x => x.Owner == pos))
+                    {
+                        Unit myunit = unit.DeepCopy();
+                        //myunit.Owner = pos - 3;
+                        myunit.Owner = 1;
+                        myunit.Ownerplayer = _player;
+                        if (myunit.Bonusdamage != null)
+                            myunit.Bonusdamage.Ownerplayer = _player;
+                        _player.Units.Add(myunit);
+                        _player.MineralsCurrent -= myunit.Cost;
+                    }
+                    _player.Race = race;
+                    _player.Units.AddRange(UnitPool.Units.Where(x => x.Race == race && x.Cost > 0));
+                }
+            }
+        }
+        _refreshPl.Players[_opp.Pos] = _opp;
+        _refreshPl.Players[_player.Pos] = _player;
+        _refreshPl.Update = !_refreshPl.Update;
+    }
+
+    async Task GenBestBuildPossible()
+    {
+        _player.Stats = new Dictionary<int, paxgame3.Client.Models.M_stats>();
+        _opp.AbilityUpgrades = new List<UnitAbility>();
+        _opp.Upgrades = new List<UnitUpgrade>();
+        _opp.Stats = new Dictionary<int, paxgame3.Client.Models.M_stats>();
+        _opp.Units = new List<Unit>(UnitPool.Units.Where(x => x.Race == _opp.Race));
+
+        _opp.MineralsCurrent = _player.MineralsCurrent * -1;
+        Task.Run(async () =>
+        {
+            await BestBuildService.GetBestBuild(_player.Game, _startUp, _refreshBB, (int)builds, (int)positions);
+        });
+        StateHasChanged();
+    }
+
+    async Task GenBestPositionPossible()
+    {
+        _player.Stats = new Dictionary<int, paxgame3.Client.Models.M_stats>();
+        _opp.Stats = new Dictionary<int, paxgame3.Client.Models.M_stats>();
+
+        Task.Run(async () =>
+        {
+            await BestBuildService.GetBestPosition(_player.Game, _startUp, _refreshBB, (int)positions);
+        });
+        StateHasChanged();
+    }
+
+    async Task StartFight()
+    {
+        //GameService.Bot(_player, _opp);
+
+        ConcurrentDictionary<int, AddUnit> addunits;
+        addunits = await GameService2.GenFight(_player.Game);
+        _player.Game.Units = new List<Unit>(_player.Game.battlefield.Units);
+        _player.Game.Style = await GameService2.GenStyle(_player.Game, addunits);
+        //_player.Game.Units.AddRange(temp);
+        startFight = !startFight;
+        await StatsService.GenRoundStats(_player.Game);
+    }
+
+    public void Update(object sender, PropertyChangedEventArgs e)
+    {
+        startFight = false;
+        InvokeAsync(() => StateHasChanged());
+    }
+
+    public void UpdateBB(object sender, PropertyChangedEventArgs e)
+    {
+        InvokeAsync(() => StateHasChanged());
+    }
+
+    public void Dispose()
+    {
+        _refresh.PropertyChanged -= Update;
+        _refreshBB.PropertyChanged -= UpdateBB;
+    }
+}

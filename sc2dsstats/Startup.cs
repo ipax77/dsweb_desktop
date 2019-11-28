@@ -5,9 +5,12 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using paxgame3.Client.Data;
 using sc2dsstats.Data;
 using sc2dsstats.Models;
 using System.Threading.Tasks;
+using MatBlazor;
+using System.Globalization;
 
 namespace sc2dsstats
 {
@@ -35,11 +38,28 @@ namespace sc2dsstats
             services.AddScoped<GameChartService>();
             services.AddScoped<ChartStateChange>();
             services.AddScoped<ScanStateChange>();
+
+            services.AddScoped<Refresh>();
+            services.AddScoped<RefreshBB>();
+            services.AddScoped<RefreshPl>();
+
+            services.AddMatToaster(config =>
+            {
+                config.Position = MatToastPosition.BottomRight;
+                config.PreventDuplicates = true;
+                config.NewestOnTop = true;
+                config.ShowCloseButton = true;
+                config.MaximumOpacity = 95;
+                config.VisibleStateDuration = 5000;
+            });
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
+            CultureInfo.DefaultThreadCurrentCulture = CultureInfo.InvariantCulture;
+            CultureInfo.DefaultThreadCurrentUICulture = CultureInfo.InvariantCulture;
+
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
@@ -58,6 +78,7 @@ namespace sc2dsstats
             app.UseEmbeddedBlazorContent(typeof(MatBlazor.BaseMatComponent).Assembly);
             app.UseEndpoints(endpoints =>
             {
+                endpoints.MapControllers();
                 endpoints.MapBlazorHub();
                 endpoints.MapFallbackToPage("/_Host");
             });

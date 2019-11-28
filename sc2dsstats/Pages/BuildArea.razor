@@ -1,0 +1,655 @@
+﻿@inherits BuildAreaBase
+@page "/buildarea2"
+@page "/buildarea2/{PlayerID:double}"
+@using  System.Numerics
+@using  paxgame3.Client.Models
+@using  paxgame3.Client.Data
+@layout BattleLayout
+
+<style>
+    .unitclass {
+        cursor: pointer;
+        background: #191365;
+        color: #adb2b4;
+        width: 120px;
+        border-width: 2px !important;
+        border-color: darkblue !important;
+        box-shadow: 3px 3px 2px black;
+    }
+
+    .unitcontainerclass {
+        background: #191365;
+        color: #adb2b4;
+        width: 120px;
+        border-width: 2px !important;
+        border-color: darkblue !important;
+    }
+
+    .buildarea {
+        width: 1500px;
+        min-width: 1500px;
+        height: 450px;
+        background-color: black;
+        white-space: nowrap !important;
+    }
+
+    .buildarea_layer {
+        position: absolute !important;
+        display: inline-block !important;
+        white-space: nowrap !important;
+
+    }
+
+    .unitbuildclass_sizeone {
+        height: 35px !important;
+        width: 35px !important;
+        float: left;
+        display: inline-block !important;
+        border: 1px dashed #75868a;
+        background: transparent;
+        background-color: burlywood;
+        text-decoration: none;
+        color: burlywood;
+        overflow: hidden;
+        transform: rotate(45deg);
+    }
+
+    .unitbuildclass_div_sizeone {
+        width: 35px;
+        height: 35px;
+        display: inline-block !important;
+        vertical-align: middle;
+        transform: rotate(-45deg);
+    }
+
+    .unitbuildclass_sizetwo {
+        position: relative;
+        height: 70px !important;
+        width: 70px !important;
+        border: 1px dashed #75868a;
+        background: transparent;
+        /*background-color: burlywood;*/
+        transform: rotate(45deg);
+    }
+
+    .unitbuildclass_div_sizetwo {
+        width: 65px;
+        height: 65px;
+        transform: rotate(-45deg);
+    }
+/*
+    .unitbuildclass_sizetwo:after { content: '';
+        position: absolute;
+        border-left: 2px red solid;
+        height: 70px;
+        width: 70px;
+        transform: translateX(-50%);
+    }
+
+    .unitbuildclass_sizetwo:before { content: '';
+        position: absolute;
+        border-bottom: 2px green solid;
+        height: 70px;
+        width: 70px;
+        transform: translateY(-50%);
+    }
+*/
+    .unitbuildclass_sizethree {
+        height: 105px !important;
+        width: 105px !important;
+        float: left;
+        display: inline-block !important;
+        border: 1px dashed #75868a;
+        background: transparent;
+        background-color: burlywood;
+        text-decoration: none;
+        color: burlywood;
+        overflow: hidden;
+        transform: rotate(45deg);
+    }
+
+    .unitbuildclass_div_sizethree {
+        width: 105px;
+        height: 105px;
+        display: inline-block !important;
+        vertical-align: middle;
+        transform: rotate(-45deg);
+    }
+
+
+
+    .canbuild:hover {
+        background-color: green;
+    }
+
+    .cannotbuild:hover {
+        background-color: darkblue;
+    }
+
+    .unitclass_notenoughmoney {
+        background: #ff0000;
+        color: #adb2b4;
+        width: 120px;
+        box-shadow: 5px 5px 2px blue;
+    }
+
+    .unitclass_researched {
+        background: #0b7427;
+        color: #adb2b4;
+        width: 120px;
+        box-shadow: 5px 5px 2px blue;
+    }
+
+    .unitclass_availablesoon {
+        background: #39403f;
+        color: #adb2b4;
+        width: 120px;
+        box-shadow: 5px 5px 2px blue;
+    }
+
+    .canbuild:hover {
+        background-color: green;
+    }
+
+    .cannotbuild:hover {
+        background-color: darkblue;
+    }
+
+</style>
+
+@if (!startFight)
+{
+    @if (BestBuildMode == false)
+    {
+        <div class="container-fluid sticky-top">
+            <div class="row justify-content-between">
+                <div class="col" style="width: 120px !important; height: 80px !important;">
+                    <div>
+                        <span class="badge badge-success">Minerals: @_player.MineralsCurrent</span>
+                    </div>
+                    @if (ContainerUnit != null)
+                    {
+                        <div class="rounded border unitcontainerclass" title="@ContainerUnit.Name">
+                            <span class="badge @ContainerClass">@ContainerInfo</span>
+                            <p>@ContainerUnit.Name @ContainerUnit.Cost</p>
+                            <img src="@ContainerUnit.Image" />
+                        </div>
+                    }
+                </div>
+                <div class="col d-none d-md-block">
+                    <button class="btn btn-warning" @onclick="@(async () => await StartFight())">Start fight!</button>
+                </div>
+                <div class="col d-md-none">
+                    <button class="btn btn-primary" @onclick="@(async () => await StartFight())">Start fight!</button>
+                </div>
+            </div>
+        </div>
+    }
+<div class="container-fluid">
+    <h5>BuildArea<button class="btn btn-sm button-secondary mr-1" @onclick="@(() => ShowHideAbilityUpgrade_bool = !ShowHideAbilityUpgrade_bool)">Show/Hide</button></h5>
+    @if (ShowHideAbilityUpgrade_bool == true)
+    {
+        <div>
+            <h4>Upgrades available</h4>
+            <div class="row">
+                @foreach (UnitUpgrades upgrade in UpgradesAvailable)
+                {
+                    (int cost, int lvl) = @GetUpgradeCost(upgrade);
+                    <div>
+                        @if (BestBuildMode == false && _player.MineralsCurrent < cost)
+                        {
+                            <div class="rounded border p-2 m-2 unitclass_notenoughmoney" title="@upgrade">
+                                <p>@upgrade Minerals: @cost</p>
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="rounded border p-2 m-2 unitclass" title="@upgrade" @onclick="@(() => UpgradeUnit(upgrade))">
+                                <p>@upgrade Minerals: @cost</p>
+                            </div>
+                        }
+                    </div>
+                }
+
+
+            </div>
+            <div class="row">
+                <h6>Ability Upgrades</h6>
+            </div>
+            <div class="row">
+                <!-- TODO Tier -->
+                @foreach (UnitAbility ability in AbilityPool.AbilitiesAvailable[_player.Race])
+                {
+                    @if (_player.AbilityUpgrades.SingleOrDefault(x => x.Ability == ability.Ability) != null)
+                    {
+                        <div class="rounded border p-2 m-2 unitclass_researched" title="@ability.Ability">
+                            <p>@ability.Ability Minerals: @ability.Cost</p>
+                        </div>
+                    }
+                    else if (!AbilityUpgradesAvailable.Contains(ability.Ability))
+                    {
+                        <div class="rounded border p-2 m-2 unitclass_availablesoon" title="@ability.Ability">
+                            <p>@ability.Ability Minerals: @ability.Cost</p>
+                        </div>
+                    }
+                    else if (ability.Cost > 0 && AbilityUpgradesAvailable.Contains(ability.Ability) && _player.AbilityUpgrades.SingleOrDefault(x => x.Ability == ability.Ability) == null)
+                    {
+                        <div>
+                            @if (BestBuildMode == false && _player.MineralsCurrent < ability.Cost)
+                            {
+                                <div class="rounded border p-2 m-2 unitclass_notenoughmoney" title="@ability.Ability">
+                                    <p>@ability.Ability Minerals: @ability.Cost</p>
+                                </div>
+                            }
+                            else
+                            {
+                                <div class="rounded border p-2 m-2 unitclass" title="@ability.Ability" @onclick="@(() => AbilityUpgradeUnit(ability))">
+                                    <p>@ability.Ability Minerals: @ability.Cost</p>
+                                </div>
+                            }
+                        </div>
+                    }
+                }
+            </div>
+        </div>
+    }
+    <h6>Available Units<button class="btn btn-sm button-secondary mr-1" @onclick="@(() => ShowHideAvailableUnits_bool = !ShowHideAvailableUnits_bool)">Show/Hide</button></h6>
+    <div style="position: sticky !important; left: 10px !important;">
+        @if (ShowHideAvailableUnits_bool == true)
+        {
+            <div class="row">
+                @foreach (Unit unit in _player.Units.Where(x => x.Status == UnitStatuses.Available))
+                {
+                    @if (BestBuildMode == false && _player.MineralsCurrent < unit.Cost)
+                    {
+                        <div class="px-2 mx-2">
+                            <div class="rounded border border-primary p-2 m-2 unitclass_notenoughmoney" title="@unit.Name" @ondblclick="@(() => OpenDialog(unit))">
+                                <p>@unit.Name @unit.Cost</p>
+                                <img src="@unit.Image" />
+                            </div>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="rounded border p-2 m-2 unitclass">
+                            <div title="@unit.Name" @onclick="@(() => BuyUnit(unit))" @ondblclick="@(() => OpenDialog(unit))">
+                                <p>@unit.Name @unit.Cost</p>
+                                <div style="background-color: burlywood;">
+                                    <img src="@unit.Image" width="20" height="20" />
+                                </div>
+                            </div>
+                        </div>
+                    }
+                }
+                <div>
+                    <h5>Sell Unit(s)</h5>
+                    <div class="unitbuildclass" @onclick="@(() => SellUnit())">
+
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+    <h5>Build area <span class="badge badge-info">Minerals: @_player.MineralsCurrent</span></h5>
+    <div class="buildarea">
+        <!--
+    <div class="no-gutters buildarea_layer">
+        @for (int i = 0; i < 6; i++)
+        {
+            float mleft = 0;
+            float mtop = (distone / 2) * -1;
+            if (i > 0)
+                mtop = distthree / 2;
+            @if (i % 2 == 0)
+            {
+                mleft = diagthree / 2;
+            }
+
+            <div class="row flex-nowrap" style="margin-top: @(mtop)px !important; margin-left: @(mleft)px !important;">
+                @for (int j = 0; j < Battlefield.Ymax / 3; j++)
+                {
+                    if (i % 2 == 0 && j == (Battlefield.Ymax / 3) - 1)
+                    {
+                        continue;
+                    }
+                    // TODO
+                    float mcellleft = 14.75f;
+                    if (j > 0)
+                        mcellleft = diagthree - sizethree;
+
+
+                    float X = (float)i + 0.25f;
+                    float Y = (j * 2) + 0.25f;
+                    if (i % 2 != 0)
+                    {
+                        Y -= 1;
+                    }
+
+                    if (_player.Pos > 3)
+                    {
+                        X = X + (float)Battlefield.Xmax - 10;
+                    }
+                    Unit unit = _player.Units.Where(x => x.Status != UnitStatuses.Available && x.BuildPos.X == X && x.BuildPos.Y == Y).FirstOrDefault();
+                    Vector2 vec = new Vector2(X, Y);
+                    string hoverclass = "canbuild";
+                    //int zindex = zindexthree;
+                    int zindex = -5;
+                    if (unit != null)
+                    {
+                        hoverclass = "cannotbuild";
+                        zindex = 10;
+                    }
+                    <div class="unitbuildclass_sizethree @hoverclass" style="margin-left: @(mcellleft)px !important; z-index: @(zindex) !important;" @onclick="@(() => BuildCellClicked(unit, vec))" @ondblclick="@(() => OpenDialog(unit))">
+                        <div class="unitbuildclass_div_sizethree">
+                            @if (unit != null)
+                            {
+                                <img class="ml-2" src="@unit.Image" />
+                            }
+                            else
+                            {
+                            }
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+    </div>
+        -->
+        <div class="no-gutters buildarea_layer">
+            @for (int i = 0; i < 9; i++)
+            {
+                float mleft = 0;
+                float mtop = (distone / 2) * -1;
+                if (i > 0)
+                    mtop = disttwo / 2;
+                @if (i % 2 == 0)
+                {
+                    mleft = diagtwo / 2;
+                }
+
+                <div class="row flex-nowrap" style="margin-top: @(mtop)px !important; margin-left: @(mleft)px !important;">
+                    @for (int j = 0; j < Battlefield.Ymax / 2; j++)
+                    {
+                        if (i % 2 == 0 && j == (Battlefield.Ymax / 2) - 1)
+                        {
+                            continue;
+                        }
+                        float mcellleft = 7.25f;
+                        if (j > 0)
+                            mcellleft = diagtwo - sizetwo;
+
+
+                        float X = (float)i + 1;
+                        float Y = (j * 2) + 1.5f;
+                        if (i % 2 != 0)
+                        {
+                            Y -= 1;
+
+                        }
+
+                        if (_player.Pos > 3)
+                        {
+                            X = X + (float)Battlefield.Xmax - 10;
+                        }
+                        Unit unit = _player.Units.Where(x => x.Status != UnitStatuses.Available && x.BuildPos.X == X && x.BuildPos.Y == Y).FirstOrDefault();
+                        Vector2 vec = new Vector2(X, Y);
+                        string hoverclass = "canbuild";
+                        int zindex = zindextwo;
+                        if (unit != null)
+                        {
+                            hoverclass = "cannotbuild";
+                            zindex = 10;
+                        }
+                        <div class="unitbuildclass_sizetwo @hoverclass" style="margin-left: @(mcellleft)px !important; z-index: @(zindex) !important;" @onclick="@(() => BuildCellClicked(unit, vec))" @ondblclick="@(() => OpenDialog(unit))">
+                            <div class="unitbuildclass_div_sizetwo">
+                                @if (unit != null)
+                                {
+                                    <img src="@unit.Image" />
+                                }
+                                else
+                                {
+                                }
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+        </div>
+        <div class="no-gutters buildarea_layer">
+            @for (int i = 0; i < 19; i++)
+            {
+                float mleft = 0;
+                float mtop = 0;
+                if (i > 0)
+                    mtop = distone / 2;
+                @if (i % 2 == 0)
+                {
+                    mleft = diagone / 2;
+                }
+                <div class="row flex-nowrap" style="margin-top: @(mtop)px !important; margin-left: @(mleft)px !important;">
+                    @for (int j = 0; j < Battlefield.Ymax; j++)
+                    {
+                        float mcellleft = 0;
+                        if (j > 0)
+                            mcellleft = diagone - sizeone;
+
+                        float X = ((float)i / 2) + 0.5f;
+                        float Y = j + 0.5f;
+                        if (i % 2 != 0)
+                            Y -= 0.5f;
+
+                        if (_player.Pos > 3)
+                        {
+                            X = X + (float)Battlefield.Xmax - 10;
+                        }
+                        Unit unit = _player.Units.Where(x => x.Status != UnitStatuses.Available && x.BuildPos.X == X && x.BuildPos.Y == Y).FirstOrDefault();
+                        Vector2 vec = new Vector2(X, Y);
+
+                        string hoverclass = "canbuild";
+                        if (unit != null)
+                        {
+                            hoverclass = "cannotbuild";
+
+                        }
+                        int zindex = zindexone;
+                        if (unit != null)
+                        {
+                            hoverclass = "cannotbuild";
+                            zindex = 10;
+                        }
+                        <div class="unitbuildclass_sizeone @hoverclass" style="margin-left: @(mcellleft)px !important; z-index: @(zindex) !important;" @onclick="@(() => BuildCellClicked(unit, vec))" @ondblclick="@(() => OpenDialog(unit))">
+                            <div class="unitbuildclass_div_sizeone">
+                                @if (unit != null)
+                                {
+                                    <img class="ml-2 position-absolute" src="@unit.Image" />
+                                    if (unit.Image == "images/pax_na_tiny.png")
+                                    {
+                                        <div class="position-absolute mt-1" style="color: black; font-size: xx-small; max-width: 49px;">
+                                            @unit.Name
+                                        </div>
+                                    }
+                                }
+                                else
+                                {
+
+                                }
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@if (BestBuildMode == false)
+{
+<div style="margin-top: 65px !important;">
+    <button class="btn btn-sm btn-primary" @onclick="@(() => showEnemyBuild = !showEnemyBuild)">Show/Hide enemy build</button>
+</div>
+    @if (showEnemyBuild == true)
+    {
+        <!-- TODO -->
+        <BuildArea PlayerID="@_player.Game.Players.Single(x => x.Pos == 4).ID" />
+    }
+
+}
+}
+else
+{
+    <BattleArea _game="_player.Game" _player="_player" />
+}
+
+
+@if (DialogUnit != null)
+{
+    <MatDialog @bind-IsOpen="@dialogIsOpen">
+        <MatDialogTitle>@DialogUnit.ID @DialogUnit.Name</MatDialogTitle>
+        <MatDialogContent>
+            <MatCard class="demo-mat-card">
+                <div class="demo-mat-card-content">
+                    <MatHeadline6 class="demo-mat-card-clean-margin">
+                        Cost @DialogUnit.Cost
+                    </MatHeadline6>
+                    <MatSubtitle2 class="demo-mat-card-clean-margin">
+                        @if (DialogUnit.Attributes != null)
+                        {
+                            @foreach (var att in DialogUnit.Attributes)
+                            {
+                                <a>@att &nbsp;</a>
+                            }
+                        }
+                    </MatSubtitle2>
+                </div>
+                <MatCardContent>
+                    <MatBody2 class="demo-mat-card-content demo-mat-card-clean-margin">
+                        <div>
+                            <img src="@DialogUnit.Image.Replace("_tiny", "")" />
+                        </div>
+                        <div>
+                            <label>Helthpoints</label>
+                            <span class="badge-info">@DialogUnit.Healthpoints</span>
+                            <label>Damage</label>
+                            <span class="badge-info">@DialogUnit.Attacdamage</span>
+                            <label>Attacspeed</label>
+                            <span class="badge-info">@Math.Round(DialogUnit.Attacspeed, 2)</span>
+                            <label>Attacrange</label>
+                            <span class="badge-info">@DialogUnit.Attacrange</span>
+                            <label>Armor</label>
+                            <span class="badge-info">@DialogUnit.Armor</span>
+                        </div>
+                        @if (DialogUnit.Kills > 0)
+                        {
+                            <label>Kills</label>
+                            <span class="badge-info">@DialogUnit.Kills</span>
+                        }
+                    </MatBody2>
+                    @if (DialogUnit.Bonusdamage != null)
+                    {
+                        <MatBody2>
+                            <label>Bonusdamage vs @DialogUnit.Bonusdamage.Attribute</label>
+                            <span class="badge-info">+@DialogUnit.Bonusdamage.Damage</span>
+                        </MatBody2>
+                    }
+                    @if (DialogUnit.Abilities.Count() > 0)
+                    {
+                        <h5>Abilities</h5>
+                        <MatBody2>
+                            @foreach (UnitAbility ability in DialogUnit.Abilities)
+                            {
+                                <div>
+                                    <label>@ability.Ability</label>
+                                </div>
+                                <div>
+                                    <a>@ability.Desc</a>
+                                    @if (ability.Duration != TimeSpan.Zero)
+                                    {
+                                        <a>Duration: @ability.Duration.TotalSeconds s</a>
+                                    }
+                                    @if (ability.Cooldown != TimeSpan.Zero)
+                                    {
+                                        <a>Cooldown: @ability.Cooldown.TotalSeconds s</a>
+                                    }
+                                </div>
+                                <div>
+                                    @if ((DialogUnit.Status == UnitStatuses.Placed || DialogUnit.Status == UnitStatuses.Spawned) && AbilitiesSingleDeactivated.ContainsKey(DialogUnit.ID) && AbilitiesSingleDeactivated[DialogUnit.ID].ContainsKey(ability.Ability))
+                                    {
+                                        <MatSlideToggle @bind-Checked="AbilitiesSingleDeactivated[DialogUnit.ID][ability.Ability]" @onclick="@(() => DeactivateAbilitySingle(ability, DialogUnit))" Label="Deactivate"></MatSlideToggle>
+                                    }
+                                    else if (DialogUnit.Status == UnitStatuses.Available && AbilitiesGlobalDeactivated.ContainsKey(ability.Ability))
+                                    {
+                                        <MatSlideToggle @bind-Checked="AbilitiesGlobalDeactivated[ability.Ability]" @onclick="@(() => DeactivateAbilityGlobal(ability))" Label="Deactivate Global"></MatSlideToggle>
+                                    }
+                                </div>
+                            }
+                        </MatBody2>
+                    }
+                </MatCardContent>
+                <MatCardActions>
+                    <MatCardActionButtons>
+                    </MatCardActionButtons>
+                    <MatCardActionIcons>
+                    </MatCardActionIcons>
+                </MatCardActions>
+            </MatCard>
+        </MatDialogContent>
+        <MatDialogActions>
+            <MatButton OnClick="@OkClick">Close</MatButton>
+        </MatDialogActions>
+    </MatDialog>
+}
+
+@if (DialogSellUnit != null)
+{
+    <MatDialog @bind-IsOpen="@dialogSellIsOpen">
+        <MatDialogTitle>@DialogSellUnit.Name</MatDialogTitle>
+        <MatDialogContent>
+            <MatCard class="demo-mat-card">
+                <div class="demo-mat-card-content">
+                    <MatHeadline6 class="demo-mat-card-clean-margin">
+                        Cost @DialogSellUnit.Cost
+                    </MatHeadline6>
+                    <MatSubtitle2 class="demo-mat-card-clean-margin">
+                        @if (DialogSellUnit.Attributes != null)
+                        {
+                            @foreach (var att in DialogSellUnit.Attributes)
+                            {
+                                <a>@att &nbsp;</a>
+                            }
+                        }
+                    </MatSubtitle2>
+                </div>
+                <MatCardContent>
+                    <MatBody2 class="demo-mat-card-content demo-mat-card-clean-margin">
+                        <div>
+                            <img src="@DialogSellUnit.Image.Replace("_tiny", "")" />
+                        </div>
+                    </MatBody2>
+                    <MatBody2>
+                        <a>Warning: If you sell a unit you only get 70% of its cost back!</a>
+                        @if (DialogSellUnit.Status == UnitStatuses.Available)
+                        {
+                            <h5>Warning: You will sell all Units of Type @DialogSellUnit.Name!</h5>
+                        }
+                    </MatBody2>
+                </MatCardContent>
+                <MatCardActions>
+                    <MatCardActionButtons>
+                    </MatCardActionButtons>
+                    <MatCardActionIcons>
+                    </MatCardActionIcons>
+                </MatCardActions>
+            </MatCard>
+        </MatDialogContent>
+        <MatDialogActions>
+            @if (DialogSellUnit.ID != 0)
+            {
+                <MatButton OnClick="@DoSellUnit">Sell</MatButton>
+            }
+            <MatButton OnClick="@OkClick">Close</MatButton>
+        </MatDialogActions>
+    </MatDialog>
+}
+
+<MatToastContainer />
+
