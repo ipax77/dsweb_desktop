@@ -276,7 +276,7 @@ namespace paxgame3.Client.Data
             Marine.Image = "images/pax_marine_tiny.png";
             Marine.Speed = 3.15f;
             Marine.Visionrange = 9;
-            Marine.Cost = 55;
+            Marine.Cost = 50;
             Marine.Size = 0.5f;
 
             Unit Marauder = new Unit();

@@ -1,12 +1,15 @@
 ﻿using paxgame3.Client.Models;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text.Json;
+using System.Text.RegularExpressions;
 
 namespace paxgame3.Client.Data
 {
     public static class UpgradePool
     {
         public static List<Upgrade> Upgrades = new List<Upgrade>();
+        static Regex rxUpgrade = new Regex(@"^(Protoss|Terran|Zerg)(.*)Level(\d)(.*)$");
 
         public static void Init()
         {
@@ -119,11 +122,80 @@ namespace paxgame3.Client.Data
                 WriteIndented = true
             };
 
+
+
             //var json = JsonSerializer.Serialize(Upgrades, opt);
             //File.WriteAllText("/data/upgrades.json", json);
 
         }
+
+        public static UnitUpgrade Map (string repUpgrade)
+        {
+            UnitUpgrade myupgrade = null;
+
+            string race = "";
+            int level = 0;
+            string type = "";
+            string add = "";
+
+            Match match = rxUpgrade.Match(repUpgrade);
+            if (match.Success)
+            {
+                race = match.Groups[1].Value.ToString();
+                type = match.Groups[2].Value.ToString();
+                level = int.Parse(match.Groups[3].Value);
+                add = match.Groups[4].Value;
+
+                UnitRace myrace = UnitRace.Terran;
+                if (race == "Protoss")
+                    myrace = UnitRace.Protoss;
+                else if (race == "Terran")
+                    myrace = UnitRace.Terran;
+                else if (race == "Zerg")
+                    myrace = UnitRace.Zerg;
+
+                UnitUpgrades upgradename = UnitUpgrades.GroundArmor;
+                // Protoss
+                if (type == "AirArmor")
+                    upgradename = UnitUpgrades.AirArmor;
+                else if (type == "AirWeapons")
+                    upgradename = UnitUpgrades.AirAttac;
+                else if (type == "GroundArmor")
+                    upgradename = UnitUpgrades.GroundArmor;
+                else if (type == "GroundWeapons")
+                    upgradename = UnitUpgrades.GroundAttac;
+                else if (type == "Shields")
+                    upgradename = UnitUpgrades.ShieldArmor;
+                // Terran
+                else if (type == "InfantryArmor")
+                    upgradename = UnitUpgrades.GroundArmor;
+                else if (type == "InfantryWeapons")
+                    upgradename = UnitUpgrades.GroundAttac;
+                else if (type == "VehicleandShipPlating" || type == "VehicleAndShipPlating")
+                    upgradename = UnitUpgrades.VehicelArmor;
+                else if (type == "VehicleWeapons")
+                    upgradename = UnitUpgrades.VehicelAttac;
+                // Zerg
+                else if (type == "FlyerAttacks")
+                    upgradename = UnitUpgrades.AirAttac;
+                else if (type == "FlyerCarapace")
+                    upgradename = UnitUpgrades.AirArmor;
+                else if (type == "GroundCarapace")
+                    upgradename = UnitUpgrades.GroundArmor;
+                else if (type == "MeleeAttacks")
+                    upgradename = UnitUpgrades.GroundMeleeAttac;
+                else if (type == "MissileAttacks")
+                    upgradename = UnitUpgrades.GroundAttac;
+
+                Upgrade u = UpgradePool.Upgrades.SingleOrDefault(x => x.Race == myrace && x.Name == upgradename);
+                if (u != null)
+                {
+                    myupgrade = new UnitUpgrade();
+                    myupgrade.Upgrade = u.Name;
+                    myupgrade.Level = level;
+                }
+            }
+            return myupgrade;
+        }
     }
-
-
 }

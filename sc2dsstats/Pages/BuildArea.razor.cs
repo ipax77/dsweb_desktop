@@ -11,6 +11,7 @@ using paxgame3.Client.Data;
 using paxgame3.Client.Models;
 using paxgame3.Client.Service;
 using sc2dsstats.Data;
+using pax.s2decode.Models;
 
 namespace sc2dsstats.Pages
 {
@@ -27,6 +28,9 @@ namespace sc2dsstats.Pages
 
         [Parameter]
         public bool ReverseBuild { get; set; } = false;
+
+        [Parameter]
+        public dsplayer dsPlayer { get; set; }
 
         [Inject] StartUp _startUp { get; set; }
 
@@ -485,8 +489,10 @@ namespace sc2dsstats.Pages
                 if (doUpdateBB == true)
                 {
                     _refreshBB.BestBuild.SetBuild(_player).GetAwaiter().GetResult();
-
+                    _startUp.Players[_player.ID] = _player;
                     // -----
+                    UpgradesAvailable.Clear();
+                    AbilityUpgradesAvailable.Clear();
                     foreach (Unit myunit in _player.Units)
                     {
                         UpgradesAvailable.Add(myunit.AttacType);
@@ -528,6 +534,8 @@ namespace sc2dsstats.Pages
             _player = _refreshPl.Players[_player.Pos];
 
             // -----
+            UpgradesAvailable.Clear();
+            AbilityUpgradesAvailable.Clear();
             foreach (Unit myunit in _player.Units)
             {
                 UpgradesAvailable.Add(myunit.AttacType);

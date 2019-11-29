@@ -1,4 +1,8 @@
 
+v1.4.0
+
+- Game Map v2 p2
+
 v1.3.5
 - s2protocol 77379
 - Game Map v2 p1

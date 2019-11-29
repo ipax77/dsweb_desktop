@@ -290,71 +290,78 @@
             </div>
         }
     </div>
-    <h5>Build area <span class="badge badge-info">Minerals: @_player.MineralsCurrent</span></h5>
+    @if (dsPlayer != null)
+    {
+        <h5>Build area Player @dsPlayer.REALPOS <span class="badge badge-info">Minerals: @_player.MineralsCurrent</span></h5>
+    }
+    else
+    {
+        <h5>Build area <span class="badge badge-info">Minerals: @_player.MineralsCurrent</span></h5>
+    }
     <div class="buildarea">
         <!--
-    <div class="no-gutters buildarea_layer">
-        @for (int i = 0; i < 6; i++)
-        {
-            float mleft = 0;
-            float mtop = (distone / 2) * -1;
-            if (i > 0)
-                mtop = distthree / 2;
-            @if (i % 2 == 0)
+        <div class="no-gutters buildarea_layer">
+            @for (int i = 0; i < 6; i++)
             {
-                mleft = diagthree / 2;
-            }
-
-            <div class="row flex-nowrap" style="margin-top: @(mtop)px !important; margin-left: @(mleft)px !important;">
-                @for (int j = 0; j < Battlefield.Ymax / 3; j++)
+                float mleft = 0;
+                float mtop = (distone / 2) * -1;
+                if (i > 0)
+                    mtop = distthree / 2;
+                @if (i % 2 == 0)
                 {
-                    if (i % 2 == 0 && j == (Battlefield.Ymax / 3) - 1)
-                    {
-                        continue;
-                    }
-                    // TODO
-                    float mcellleft = 14.75f;
-                    if (j > 0)
-                        mcellleft = diagthree - sizethree;
-
-
-                    float X = (float)i + 0.25f;
-                    float Y = (j * 2) + 0.25f;
-                    if (i % 2 != 0)
-                    {
-                        Y -= 1;
-                    }
-
-                    if (_player.Pos > 3)
-                    {
-                        X = X + (float)Battlefield.Xmax - 10;
-                    }
-                    Unit unit = _player.Units.Where(x => x.Status != UnitStatuses.Available && x.BuildPos.X == X && x.BuildPos.Y == Y).FirstOrDefault();
-                    Vector2 vec = new Vector2(X, Y);
-                    string hoverclass = "canbuild";
-                    //int zindex = zindexthree;
-                    int zindex = -5;
-                    if (unit != null)
-                    {
-                        hoverclass = "cannotbuild";
-                        zindex = 10;
-                    }
-                    <div class="unitbuildclass_sizethree @hoverclass" style="margin-left: @(mcellleft)px !important; z-index: @(zindex) !important;" @onclick="@(() => BuildCellClicked(unit, vec))" @ondblclick="@(() => OpenDialog(unit))">
-                        <div class="unitbuildclass_div_sizethree">
-                            @if (unit != null)
-                            {
-                                <img class="ml-2" src="@unit.Image" />
-                            }
-                            else
-                            {
-                            }
-                        </div>
-                    </div>
+                    mleft = diagthree / 2;
                 }
-            </div>
-        }
-    </div>
-        -->
+
+                <div class="row flex-nowrap" style="margin-top: @(mtop)px !important; margin-left: @(mleft)px !important;">
+                    @for (int j = 0; j < Battlefield.Ymax / 3; j++)
+                    {
+                        if (i % 2 == 0 && j == (Battlefield.Ymax / 3) - 1)
+                        {
+                            continue;
+                        }
+                        // TODO
+                        float mcellleft = 14.75f;
+                        if (j > 0)
+                            mcellleft = diagthree - sizethree;
+
+
+                        float X = (float)i + 0.25f;
+                        float Y = (j * 2) + 0.25f;
+                        if (i % 2 != 0)
+                        {
+                            Y -= 1;
+                        }
+
+                        if (_player.Pos > 3)
+                        {
+                            X = X + (float)Battlefield.Xmax - 10;
+                        }
+                        Unit unit = _player.Units.Where(x => x.Status != UnitStatuses.Available && x.BuildPos.X == X && x.BuildPos.Y == Y).FirstOrDefault();
+                        Vector2 vec = new Vector2(X, Y);
+                        string hoverclass = "canbuild";
+                        //int zindex = zindexthree;
+                        int zindex = -5;
+                        if (unit != null)
+                        {
+                            hoverclass = "cannotbuild";
+                            zindex = 10;
+                        }
+                        <div class="unitbuildclass_sizethree @hoverclass" style="margin-left: @(mcellleft)px !important; z-index: @(zindex) !important;" @onclick="@(() => BuildCellClicked(unit, vec))" @ondblclick="@(() => OpenDialog(unit))">
+                            <div class="unitbuildclass_div_sizethree">
+                                @if (unit != null)
+                                {
+                                    <img class="ml-2" src="@unit.Image" />
+                                }
+                                else
+                                {
+                                }
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+        </div>
+            -->
         <div class="no-gutters buildarea_layer">
             @for (int i = 0; i < 9; i++)
             {
@@ -503,7 +510,7 @@ else
 
 @if (DialogUnit != null)
 {
-    <MatDialog @bind-IsOpen="@dialogIsOpen">
+    <MatDialog @bind-IsOpen="@dialogIsOpen" Style="z-index: 11;">
         <MatDialogTitle>@DialogUnit.ID @DialogUnit.Name</MatDialogTitle>
         <MatDialogContent>
             <MatCard class="demo-mat-card">
@@ -601,7 +608,7 @@ else
 
 @if (DialogSellUnit != null)
 {
-    <MatDialog @bind-IsOpen="@dialogSellIsOpen">
+    <MatDialog @bind-IsOpen="@dialogSellIsOpen" Style="z-index: 11;">
         <MatDialogTitle>@DialogSellUnit.Name</MatDialogTitle>
         <MatDialogContent>
             <MatCard class="demo-mat-card">

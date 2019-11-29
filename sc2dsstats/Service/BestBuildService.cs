@@ -39,6 +39,8 @@ namespace paxgame3.Client.Service
 
         public static Vector2 center = new Vector2(128, 119);
 
+        
+
         public static async Task GetBestBuild(GameHistory _game, StartUp _startUp, RefreshBB _refresh, int builds = 100, int positions = 200, int cores = 8)
         {
             if (Running == true)
@@ -421,14 +423,120 @@ namespace paxgame3.Client.Service
             return new Vector2(x, y);
         }
 
-        public static (Dictionary<int, List<Unit>>, Dictionary<int, HashSet<int>>) GetUnits(List<UnitEvent> UnitEvents, double gameid)
+        public static int UpgradeUnit(UnitUpgrades upgrade, Player _player)
+        {
+            (int cost, int lvl) = GetUpgradeCost(upgrade, _player);
+
+            Upgrade myupgrade = UpgradePool.Upgrades.Where(x => x.Race == _player.Race && x.Name == upgrade).FirstOrDefault();
+            if (myupgrade == null) return 0;
+
+            UnitUpgrade plup = _player.Upgrades.Where(x => x.Upgrade == myupgrade.Name).FirstOrDefault();
+            if (plup != null)
+            {
+                if (plup.Level < 3)
+                    plup.Level++;
+            }
+            else
+            {
+                UnitUpgrade newup = new UnitUpgrade();
+                newup.Upgrade = myupgrade.Name;
+                newup.Level = 1;
+                _player.Upgrades.Add(newup);
+            }
+            return cost;
+        }
+
+        public static (int, int) GetUpgradeCost(UnitUpgrades upgrade, Player _player)
+        {
+            Upgrade myupgrade = UpgradePool.Upgrades.Where(x => x.Race == _player.Race && x.Name == upgrade).FirstOrDefault();
+
+            if (myupgrade == null) return (0, 0);
+
+            if (_player.Upgrades != null && _player.Upgrades.Count() > 0)
+            {
+                UnitUpgrade plup = _player.Upgrades.Where(x => x.Upgrade == myupgrade.Name).FirstOrDefault();
+                if (plup != null)
+                {
+                    if (plup.Level == 3)
+                    {
+                        return (0, plup.Level);
+                    }
+                    else
+                        return (myupgrade.Cost.SingleOrDefault(x => x.Key == plup.Level + 1).Value, plup.Level);
+                }
+            }
+
+            return (myupgrade.Cost[0].Value, 1);
+        }
+
+        public static int AbilityUpgradeUnit(UnitAbility ability, Player _player)
+        {
+            _player.AbilityUpgrades.Add(ability);
+
+            if (ability.Type.Contains(UnitAbilityTypes.Image))
+                foreach (Unit unit in _player.Units.Where(x => x.Abilities.SingleOrDefault(y => y.Ability == ability.Ability) != null))
+                    unit.Image = ability.Image;
+
+            return ability.Cost;
+        }
+
+        public static Dictionary<int, Dictionary<int, List<UnitAbility>>> GetAbilityUpgrades(dsreplay replay)
+        {
+            Dictionary<int, Dictionary<int, List<UnitAbility>>> Upgrades = new Dictionary<int, Dictionary<int, List<UnitAbility>>>();
+            foreach (dsplayer pl in replay.PLAYERS)
+            {
+                Upgrades[pl.POS] = new Dictionary<int, List<UnitAbility>>();
+                foreach (var ent in pl.AbilityUpgrades)
+                {
+                    int gameloop = ent.Key;
+                    foreach (var upgrades in ent.Value)
+                    {
+                        UnitAbility a = AbilityPool.Map(upgrades);
+                        if (a != null)
+                        {
+                            if (!Upgrades[pl.POS].ContainsKey(gameloop))
+                                Upgrades[pl.POS][gameloop] = new List<UnitAbility>();
+                            Upgrades[pl.POS][gameloop].Add(a);
+                        }
+                    }
+                }
+            }
+            return Upgrades;
+        }
+
+        public static Dictionary<int, Dictionary<int, List<UnitUpgrade>>> GetUpgrades (dsreplay replay)
+        {
+            Dictionary<int, Dictionary<int, List<UnitUpgrade>>> Upgrades = new Dictionary<int, Dictionary<int, List<UnitUpgrade>>>();
+            foreach (dsplayer pl in replay.PLAYERS)
+            {
+                Upgrades[pl.POS] = new Dictionary<int, List<UnitUpgrade>>();
+                foreach (var ent in pl.Upgrades)
+                {
+                    int gameloop = ent.Key;
+                    foreach (var upgrades in ent.Value)
+                    {
+                        UnitUpgrade u = UpgradePool.Map(upgrades);
+                        if (u != null)
+                        {
+                            if (!Upgrades[pl.POS].ContainsKey(gameloop))
+                                Upgrades[pl.POS][gameloop] = new List<UnitUpgrade>();
+                            Upgrades[pl.POS][gameloop].Add(u);
+                        }
+                    }
+                }
+            }
+            return Upgrades;
+        }
+
+        public static (Dictionary<int, List<Unit>>, Dictionary<int, HashSet<int>>) GetUnits(dsreplay replay, double gameid)
         {
             //var json = File.ReadAllText("/data/unitst1p3.json");
             //var bab = JsonSerializer.Deserialize<List<UnitEvent>>(json);
 
             List<Unit> Units = new List<Unit>();
             List<Vector2> vecs = new List<Vector2>();
-            
+            List<UnitEvent> UnitEvents  = replay.UnitBorn;
+
             int maxdiff = 0;
             int temploop = 0;
             Dictionary<int, List<Unit>> spawns = new Dictionary<int, List<Unit>>();
@@ -448,13 +556,14 @@ namespace paxgame3.Client.Service
                 temploop = unit.Gameloop;
 
                 int pos = unit.PlayerId;
+                int realpos = replay.PLAYERS.SingleOrDefault(x => x.POS == pos).REALPOS;
                 /*
                 if (unit.PlayerId > 3)
                     pos = unit.PlayerId - 3;
                 else if (unit.PlayerId <= 3)
                     pos = unit.PlayerId + 3;
                 */
-                spawns.Last().Value.Add(UnitEventToUnit(unit, pos, gameid));
+                spawns.Last().Value.Add(UnitEventToUnit(unit, realpos, gameid));
 
                 if (!plspawns.ContainsKey(pos))
                     plspawns[pos] = new HashSet<int>();
@@ -487,7 +596,7 @@ namespace paxgame3.Client.Service
 
             // Fix Names
             if (unit.Name.EndsWith("Lightweight"))
-                unit.Name.Replace("Lightweight", "");
+                unit.Name = unit.Name.Replace("Lightweight", "");
 
             float verynewx = 0;
             float verynewy = 0;

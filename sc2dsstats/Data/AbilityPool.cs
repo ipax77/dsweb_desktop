@@ -318,5 +318,33 @@ namespace paxgame3.Client.Data
             IAbilities.AddRange(Abilities);
 
         }
+
+        public static UnitAbility Map (string abString)
+        {
+            UnitAbility myability = null;
+
+            UnitAbilities myabilities = UnitAbilities.AdrenalGlands;
+
+            if (abString == "AdeptPiercingAttack")
+                myabilities = UnitAbilities.ResonatingGlaives;
+            else if (abString == "BlinkTech")
+                myabilities = UnitAbilities.Blink;
+            else if (abString == "Stimpack")
+                myabilities = UnitAbilities.Stimpack;
+            else if (abString == "ShieldWall")
+                myabilities = UnitAbilities.CombatShield;
+            else if (abString == "zerglingmovementspeed")
+                myabilities = UnitAbilities.MetabolicBoost;
+            else if (abString == "zerglingattackspeed")
+                myabilities = UnitAbilities.AdrenalGlands;
+            else if (abString == "CentrificalHooks")
+                myabilities = UnitAbilities.CentrifugalHooks;
+            else
+                return null;
+
+            myability = AbilityPool.Abilities.SingleOrDefault(x => x.Ability == myabilities).DeepCopy();
+
+            return myability;
+        }
     }
 }
