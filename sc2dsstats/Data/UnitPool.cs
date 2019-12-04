@@ -50,6 +50,9 @@ namespace paxgame3.Client.Data
             p1.ID = 40;
             p1.Attributes = new List<UnitAttributes>() { UnitAttributes.Biological, UnitAttributes.Light };
             p1.Abilities.Add(AbilityPool.Abilities.Where(x => x.Ability == UnitAbilities.ShieldRegeneration).FirstOrDefault().DeepCopy());
+            p1.Abilities.Add(AbilityPool.Abilities.Where(x => x.Ability == UnitAbilities.Charge).FirstOrDefault().DeepCopy());
+            p1.Abilities.Add(AbilityPool.Abilities.Where(x => x.Ability == UnitAbilities.ChargeBase).FirstOrDefault().DeepCopy());
+            p1.Abilities.Add(AbilityPool.Abilities.Where(x => x.Ability == UnitAbilities.SunderingImpact).FirstOrDefault().DeepCopy());
             p1.AttacType = UnitUpgrades.GroundAttac;
             p1.ArmorType = UnitUpgrades.GroundArmor;
             p1.Race = UnitRace.Protoss;

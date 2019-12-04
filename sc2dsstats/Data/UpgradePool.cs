@@ -24,8 +24,8 @@ namespace paxgame3.Client.Data
             Upgrade u1 = new Upgrade();
             u1.Name = UnitUpgrades.GroundArmor;
             u1.Race = UnitRace.Terran;
-            KeyValuePair<int, int> lvl1 = new KeyValuePair<int, int>(1, 125);
-            KeyValuePair<int, int> lvl2 = new KeyValuePair<int, int>(2, 175);
+            KeyValuePair<int, int> lvl1 = new KeyValuePair<int, int>(1, 100);
+            KeyValuePair<int, int> lvl2 = new KeyValuePair<int, int>(2, 125);
             KeyValuePair<int, int> lvl3 = new KeyValuePair<int, int>(3, 250);
             u1.Cost.Add(lvl1);
             u1.Cost.Add(lvl2);
@@ -35,8 +35,8 @@ namespace paxgame3.Client.Data
             Upgrade u2 = new Upgrade();
             u2.Name = UnitUpgrades.GroundAttac;
             u2.Race = UnitRace.Terran;
-            KeyValuePair<int, int> lvl11 = new KeyValuePair<int, int>(1, 125);
-            KeyValuePair<int, int> lvl22 = new KeyValuePair<int, int>(2, 175);
+            KeyValuePair<int, int> lvl11 = new KeyValuePair<int, int>(1, 100);
+            KeyValuePair<int, int> lvl22 = new KeyValuePair<int, int>(2, 125);
             KeyValuePair<int, int> lvl33 = new KeyValuePair<int, int>(3, 250);
             u2.Cost.Add(lvl11);
             u2.Cost.Add(lvl22);
@@ -58,11 +58,11 @@ namespace paxgame3.Client.Data
             u25.Name = UnitUpgrades.GroundAttac;
             u25.Race = UnitRace.Zerg;
             KeyValuePair<int, int> lvl251 = new KeyValuePair<int, int>(1, 125);
-            KeyValuePair<int, int> lvl252 = new KeyValuePair<int, int>(2, 175);
-            KeyValuePair<int, int> lvl253 = new KeyValuePair<int, int>(3, 250);
-            u25.Cost.Add(lvl111);
-            u25.Cost.Add(lvl222);
-            u25.Cost.Add(lvl333);
+            KeyValuePair<int, int> lvl252 = new KeyValuePair<int, int>(2, 150);
+            KeyValuePair<int, int> lvl253 = new KeyValuePair<int, int>(3, 200);
+            u25.Cost.Add(lvl251);
+            u25.Cost.Add(lvl252);
+            u25.Cost.Add(lvl253);
             u25.ID = 11;
 
             Upgrade u4 = new Upgrade();
@@ -70,7 +70,7 @@ namespace paxgame3.Client.Data
             u4.Race = UnitRace.Zerg;
             KeyValuePair<int, int> lvl01 = new KeyValuePair<int, int>(1, 150);
             KeyValuePair<int, int> lvl02 = new KeyValuePair<int, int>(2, 175);
-            KeyValuePair<int, int> lvl03 = new KeyValuePair<int, int>(3, 250);
+            KeyValuePair<int, int> lvl03 = new KeyValuePair<int, int>(3, 225);
             u4.Cost.Add(lvl01);
             u4.Cost.Add(lvl02);
             u4.Cost.Add(lvl03);
@@ -116,6 +116,7 @@ namespace paxgame3.Client.Data
             Upgrades.Add(p1);
             Upgrades.Add(p2);
             Upgrades.Add(p3);
+            Upgrades.Add(u25);
 
             JsonSerializerOptions opt = new JsonSerializerOptions()
             {

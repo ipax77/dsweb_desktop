@@ -51,7 +51,7 @@ namespace paxgame3.Client.Models
 
         public int ID { get; set; }
         public List<UnitAttributes> Attributes { get; set; } = new List<UnitAttributes>();
-        public int Tier { get; set; }
+        public int Tier { get; set; } = 1;
         public UnitRace Race { get; set; }
         public UnitUpgrades AttacType { get; set; }
         public UnitUpgrades ArmorType { get; set; }

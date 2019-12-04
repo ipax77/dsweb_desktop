@@ -175,8 +175,6 @@ namespace paxgame3.Client.Service
 
             _game.battlefield = new Battlefield();
             _game.battlefield.Units = new List<Unit>();
-            foreach (Unit unit in _game.battlefield.Units)
-                _game.battlefield.Units.Add(unit.DeepCopy());
             _game.battlefield.Units = GameService2.ShuffleUnits(_game.Players);
 
             for (int i = 0; i < POSITIONS; i++)
@@ -236,7 +234,10 @@ namespace paxgame3.Client.Service
         {
             GameHistory _game = obj as GameHistory;
             Player opp = _game.Players.Single(x => x.Pos == 4);
-            OppService.BotRandom(_game.ID, opp, _game.Players.First().MineralsCurrent - MaxValue).GetAwaiter();
+            int minerals = _game.Players.SingleOrDefault(x => x.Pos == 1).MineralsCurrent;
+            if (minerals < 0)
+                minerals *= -1;
+            OppService.BotRandom(_game.ID, opp, minerals - MaxValue).GetAwaiter();
             _game.battlefield.Units = GameService2.ShuffleUnits(_game.Players);
 
             for (int i = 0; i < POSITIONS; i++)
@@ -471,11 +472,31 @@ namespace paxgame3.Client.Service
 
         public static int AbilityUpgradeUnit(UnitAbility ability, Player _player)
         {
-            _player.AbilityUpgrades.Add(ability);
+            _player.AbilityUpgrades.Add(ability.DeepCopy());
+            if (ability.Tandem != null)
+                foreach (UnitAbilities myab in ability.Tandem)
+                {
+                    UnitAbility tandemability = AbilityPool.Abilities.SingleOrDefault(x => x.Ability == myab);
+                    if (tandemability != null)
+                    {
+                        _player.AbilityUpgrades.Add(tandemability.DeepCopy());
+                        if (tandemability.Type.Contains(UnitAbilityTypes.Image))
+                            foreach (Unit unit in _player.Units.Where(x => x.Abilities.SingleOrDefault(y => y.Ability == tandemability.Ability) != null))
+                                unit.Image = tandemability.Image;
+
+                    }
+                }
+
+            if (ability.Ability == UnitAbilities.Tier3)
+                _player.Tier = 3;
+            else if (ability.Ability == UnitAbilities.Tier2)
+                _player.Tier = 2;
 
             if (ability.Type.Contains(UnitAbilityTypes.Image))
                 foreach (Unit unit in _player.Units.Where(x => x.Abilities.SingleOrDefault(y => y.Ability == ability.Ability) != null))
                     unit.Image = ability.Image;
+
+            
 
             return ability.Cost;
         }
@@ -497,7 +518,7 @@ namespace paxgame3.Client.Service
                             if (!Upgrades[pl.POS].ContainsKey(gameloop))
                                 Upgrades[pl.POS][gameloop] = new List<UnitAbility>();
                             Upgrades[pl.POS][gameloop].Add(a);
-                        }
+                        } 
                     }
                 }
             }
@@ -583,7 +604,7 @@ namespace paxgame3.Client.Service
             if (pos > 3)
                 newx = ((vec.X - 62.946175f) / 2);
             else if (pos <= 3)
-                newx = (vec.X - 177.49748f) / 2;
+                newx = ((vec.X - 177.49748f) / 2);
 
             float newy = vec.Y - 107.686295f;
 
@@ -685,7 +706,7 @@ namespace paxgame3.Client.Service
                 if (pos <= 3)
                     verynewx = verynewx + Battlefield.Xmax - 10;
 
-                punit.BuildPos = new Vector2(verynewx, verynewy);
+                punit.BuildPos = new Vector2(verynewx, verynewy + 2);
                 punit.Owner = pos;
                 punit.Status = UnitStatuses.Placed;
                 

@@ -16,6 +16,7 @@
 
 @if (startFight == false)
 {
+    <span class="btn btn-primary"><a href="#">Home</a></span>
     <div class="container-fluid">
         <div class="d-flex flex-row flex-wrap" style="background-color: aliceblue; border-radius: 20px; max-width: 1200px !important;">
             <div class="p-2 mt-2 mr-2">
@@ -33,6 +34,9 @@
                     <option value="@UnitRace.Terran">Terran</option>
                     <option value="@UnitRace.Protoss">Protoss</option>
                 </select>
+            </div>
+            <div class="mt-5 mr-2">
+                <MatSlideToggle @bind-Checked="@isDSTMap" @onclick="@DST" Label="DST"></MatSlideToggle>
             </div>
         </div>
         <div class="d-flex flex-row flex-wrap" style="background-color: aliceblue; border-radius: 20px; max-width: 1200px !important;">
@@ -71,7 +75,7 @@
     </div>
     <div class="container-fluid">
         <div class="row justify-content-start">
-            <div class="col-auto align-self-end" style="margin-bottom: 300px !important;">
+            <div class="col-auto align-self-end" style="margin-bottom: 450px !important;">
                 @if (SpawnsChecked.Count() > 0)
                 {
                     var plsp = plSpawnsChecked.FirstOrDefault(x => x.Value == true);
@@ -117,9 +121,23 @@
                 }
             </div>
             <div class="col-auto">
-                <BuildArea PlayerID="_player.ID" BestBuildMode="true" dsPlayer="_playerds" />
-
-                <div class="container-fluid" style="margin-top: 65px !important;">
+                <div class="row flex-nowrap justify-content-start">
+                    <div class="col-auto">
+                        <BuildArea PlayerID="_player.ID" BestBuildMode="true" dsPlayer="_playerds" />
+                    </div>
+                    <div class="col-auto align-self-end" style="margin-bottom: 5px; margin-left: -5px;">
+                        <img src="images/pax_arrown_down.png" />
+                    </div>
+                </div>
+                <div class="row flex-nowrap justify-content-start">
+                    <div class="col-auto">
+                        <BuildArea PlayerID="_opp.ID" BestBuildMode="true" ReverseBuild="true" dsPlayer="_oppds" />
+                    </div>
+                    <div class="col-auto align-self-end" style="margin-bottom: 296px; margin-left: -15px;">
+                        <img src="images/pax_arrown_up.png" />
+                    </div>
+                </div>
+                <div class="container-fluid mt-3 mb-5">
                     <div>
                         @if (BestBuildService.Running == false)
                         {
@@ -141,8 +159,8 @@
                         <button class="btn btn-primary" @onclick="@(() => StartFight())">Show Fight</button>
                         @if (_refreshBB.BestBuild != null && _refreshBB.WorstBuild != null)
                         {
-                            <button class="btn btn-primary" @onclick="@(() => _refreshBB.BestBuild.SetBuild(_opp))">Show Best build</button>
-                            <button class="btn btn-primary" @onclick="@(() => _refreshBB.WorstBuild.SetBuild(_opp))">Show Worst build</button>
+                            <button class="btn btn-primary" @onclick="@(() => { _refreshBB.BestBuild.SetBuild(_opp); _refreshBB.Update = !_refreshBB.Update; })">Show Best build</button>
+                            <button class="btn btn-primary" @onclick="@(() => { _refreshBB.WorstBuild.SetBuild(_opp); _refreshBB.Update = !_refreshBB.Update; })">Show Worst build</button>
                         }
                         @if (_refreshBB.BestStats != null && _refreshBB.BestStatsOpp != null)
                         {
@@ -168,14 +186,13 @@
                     </div>
 
                 </div>
-                <BuildArea PlayerID="_opp.ID" BestBuildMode="true" ReverseBuild="true" dsPlayer="_oppds" />
             </div>
         </div>
     </div>
 }
 else
 {
-    <BattleArea _game="_player.Game" _player="_player" Colorize="Colorize"/>
+    <BattleArea _game="_player.Game" _player="_player" Colorize="Colorize" />
 }
 
 @code {
@@ -201,6 +218,8 @@ else
     Player _opp;
     dsplayer _playerds;
     dsplayer _oppds;
+    double GameID = 0;
+    bool isDSTMap = false;
 
 
     decimal? builds = 100;
@@ -217,13 +236,13 @@ else
         "Protoss",
         "Terran",
         "Zerg"
-    };
+        };
     private IEnumerable<string> RacesAvailable2 = new string[]
     {
         "Protoss",
         "Terran",
         "Zerg"
-    };
+        };
 
 
     protected override void OnInitialized()
@@ -231,15 +250,15 @@ else
         _player = new Player();
         _player.Name = "Player#1";
         _player.Pos = 1;
-        _player.ID = 66;
-        _player.Race = UnitRace.Zerg;
+        _player.ID = _startUp.GetPlayerID();
+        _player.Race = UnitRace.Terran;
         _player.inGame = true;
         _player.Units = new List<Unit>(UnitPool.Units.Where(x => x.Race == _player.Race));
 
         _opp = new Player();
         _opp.Name = "Player#2";
         _opp.Pos = 4;
-        _opp.ID = 67;
+        _opp.ID = _startUp.GetPlayerID();
         _opp.Race = UnitRace.Zerg;
         _opp.inGame = true;
         _opp.Units = new List<Unit>(UnitPool.Units.Where(x => x.Race == _opp.Race));
@@ -248,7 +267,11 @@ else
         _startUp.Players[_opp.ID] = _opp;
 
         _player.Game = new GameHistory();
-        _player.Game.ID = _startUp.GetGameID();
+        if (replay != null)
+            _player.Game.ID = replay.ID;
+        else
+            _player.Game.ID = _startUp.GetGameID();
+        GameID = _player.Game.ID;
         _player.Game.Players.Add(_player);
         _player.Game.Players.Add(_opp);
 
@@ -260,12 +283,36 @@ else
         _player.Units = new List<Unit>(UnitPool.Units.Where(x => x.Race == _player.Race && x.Cost > 0));
         _opp.Units = new List<Unit>(UnitPool.Units.Where(x => x.Race == _opp.Race && x.Cost > 0));
 
+        _startUp.Players[_player.ID] = _player;
+        _startUp.Players[_opp.ID] = _opp;
+        _refreshPl.Players[_player.Pos] = _player;
+        _refreshPl.Players[_opp.Pos] = _opp;
         _refreshBB.Update = !_refreshBB.Update;
 
         _refresh.PropertyChanged += Update;
         _refreshBB.PropertyChanged += UpdateBB;
 
         NewReplay();
+    }
+
+    void DST()
+    {
+        if (isDSTMap == true)
+        {
+            foreach (Unit unit in _player.Units)
+                unit.BuildPos = new Vector2(unit.BuildPos.X + 4, unit.BuildPos.Y - 4);
+
+            foreach (Unit unit in _opp.Units)
+                unit.BuildPos = new Vector2(unit.BuildPos.X + 4, unit.BuildPos.Y - 4);
+        }
+        else
+        {
+            foreach (Unit unit in _player.Units)
+                unit.BuildPos = new Vector2(unit.BuildPos.X - 4, unit.BuildPos.Y + 4);
+
+            foreach (Unit unit in _opp.Units)
+                unit.BuildPos = new Vector2(unit.BuildPos.X - 4, unit.BuildPos.Y + 4);
+        }
     }
 
     void ChangePlayerRace(ChangeEventArgs e)
@@ -283,6 +330,10 @@ else
 
         _player.Race = race;
         _player.Units = new List<Unit>(UnitPool.Units.Where(x => x.Race == race && x.Cost > 0));
+
+        _startUp.Players[_player.ID] = _player;
+        _refreshPl.Players[_player.Pos] = _player;
+        _refreshPl.Update = !_refreshPl.Update;
 
         StateHasChanged();
         _refreshBB.Update = !_refreshBB.Update;
@@ -303,6 +354,10 @@ else
 
         _opp.Race = race;
         _opp.Units = new List<Unit>(UnitPool.Units.Where(x => x.Race == race && x.Cost > 0));
+
+        _startUp.Players[_opp.ID] = _opp;
+        _refreshPl.Players[_opp.Pos] = _opp;
+        _refreshPl.Update = !_refreshPl.Update;
 
         StateHasChanged();
         _refreshBB.Update = !_refreshBB.Update;
@@ -341,8 +396,6 @@ else
 
         _startUp.Players[_player.ID] = _player;
         _startUp.Players[_opp.ID] = _opp;
-
-
 
         _refreshPl.Players[_player.Pos] = _player;
         _refreshPl.Players[_opp.Pos] = _opp;
@@ -396,80 +449,26 @@ else
                 }
                 if (pl.REALPOS <= 3)
                 {
-                    _opp.Units.Clear();
-                    _opp.Upgrades.Clear();
-                    _opp.AbilityUpgrades.Clear();
-                    _opp.MineralsCurrent = 0;
-
-                    foreach (var unit in Spawns[sp].Where(x => x.Owner == ent.Key))
-                    {
-                        Unit myunit = unit.DeepCopy();
-                        //myunit.Owner = ent.Key + 3;
-                        myunit.Owner = 4;
-                        myunit.Ownerplayer = _opp;
-                        if (myunit.Bonusdamage != null)
-                            myunit.Bonusdamage.Ownerplayer = _opp;
-                        _opp.Units.Add(myunit);
-                        _opp.MineralsCurrent -= myunit.Cost;
-                    }
-                    _opp.Race = race;
-                    _opp.Units.AddRange(UnitPool.Units.Where(x => x.Race == race && x.Cost > 0));
-                    foreach (var dic in Upgrades[ent.Key].OrderBy(x => x.Key))
-                    {
-                        if (dic.Key > sp)
-                            break;
-                        foreach (UnitUpgrade upgrade in dic.Value)
-                            _opp.MineralsCurrent -= BestBuildService.UpgradeUnit(upgrade.Upgrade, _opp);
-                    }
-                    foreach (var dic in AbilityUpgrades[ent.Key].OrderBy(x => x.Key))
-                    {
-                        if (dic.Key > sp)
-                            break;
-                        foreach (UnitAbility upgrade in dic.Value)
-                            _opp.MineralsCurrent -= BestBuildService.AbilityUpgradeUnit(upgrade, _opp);
-                    }
+                    LoadSpawn(_opp, sp, ent.Key, race, pl);
                 }
                 else if (pl.REALPOS > 3)
                 {
-                    _player.Units.Clear();
-                    _player.Upgrades.Clear();
-                    _player.AbilityUpgrades.Clear();
-                    _player.MineralsCurrent = 0;
-                    foreach (var unit in Spawns[sp].Where(x => x.Owner == ent.Key))
-                    {
-                        Unit myunit = unit.DeepCopy();
-                        //myunit.Owner = ent.Key - 3;
-                        myunit.Owner = 1;
-                        myunit.Ownerplayer = _player;
-                        if (myunit.Bonusdamage != null)
-                            myunit.Bonusdamage.Ownerplayer = _player;
-                        _player.Units.Add(myunit);
-                        _player.MineralsCurrent -= myunit.Cost;
-                    }
-                    _player.Race = race;
-                    _player.Units.AddRange(UnitPool.Units.Where(x => x.Race == race && x.Cost > 0));
-                    foreach (var dic in Upgrades[ent.Key].OrderBy(x => x.Key))
-                    {
-                        if (dic.Key > sp)
-                            break;
-                        foreach (UnitUpgrade upgrade in dic.Value)
-                            _player.MineralsCurrent -= BestBuildService.UpgradeUnit(upgrade.Upgrade, _player);
-                    }
-                    foreach (var dic in AbilityUpgrades[ent.Key].OrderBy(x => x.Key))
-                    {
-                        if (dic.Key > sp)
-                            break;
-                        foreach (UnitAbility upgrade in dic.Value)
-                            _player.MineralsCurrent -= BestBuildService.AbilityUpgradeUnit(upgrade, _player);
-                    }
+                    LoadSpawn(_player, sp, ent.Key, race, pl);
                 }
             }
-        } else
+        }
+        else
         {
             _opp.Units.Clear();
+            _opp.Upgrades.Clear();
+            _opp.AbilityUpgrades.Clear();
             _opp.MineralsCurrent = 0;
+            _opp.Tier = 1;
             _player.Units.Clear();
+            _player.Upgrades.Clear();
+            _player.AbilityUpgrades.Clear();
             _player.MineralsCurrent = 0;
+            _player.Tier = 1;
         }
         _startUp.Players[_player.ID] = _player;
         _startUp.Players[_opp.ID] = _opp;
@@ -507,95 +506,73 @@ else
             {
                 if (pl.REALPOS <= 3)
                 {
-                    _opp.Units.Clear();
-                    _opp.Upgrades.Clear();
-                    _opp.AbilityUpgrades.Clear();
-                    _opp.MineralsCurrent = 0;
-                    foreach (var unit in Spawns[ent.Key].Where(x => x.Owner == pos))
-                    {
-                        Unit myunit = unit.DeepCopy();
-                        //myunit.Owner = pos + 3;
-                        myunit.Owner = 4;
-                        myunit.Ownerplayer = _opp;
-                        if (myunit.Bonusdamage != null)
-                            myunit.Bonusdamage.Ownerplayer = _opp;
-                        _opp.Units.Add(myunit);
-                        _opp.MineralsCurrent -= myunit.Cost;
-                    }
-                    _opp.Race = race;
-                    _opp.Units.AddRange(UnitPool.Units.Where(x => x.Race == race && x.Cost > 0));
-                    foreach (var dic in Upgrades[pos].OrderBy(x => x.Key))
-                    {
-                        if (dic.Key > ent.Key)
-                            break;
-                        foreach (UnitUpgrade upgrade in dic.Value)
-                            _opp.MineralsCurrent -= BestBuildService.UpgradeUnit(upgrade.Upgrade, _opp);
-                    }
-                    foreach (var dic in AbilityUpgrades[pos].OrderBy(x => x.Key))
-                    {
-                        if (dic.Key > ent.Key)
-                            break;
-                        foreach (UnitAbility upgrade in dic.Value)
-                            _opp.MineralsCurrent -= BestBuildService.AbilityUpgradeUnit(upgrade, _opp);
-                    }
-                    _oppds = pl;
+                    LoadSpawn(_opp, ent.Key, pos, race, pl);
                 }
                 else if (pl.REALPOS > 3)
                 {
-                    _player.Units.Clear();
-                    _player.Upgrades.Clear();
-                    _player.AbilityUpgrades.Clear();
-                    _player.MineralsCurrent = 0;
-                    foreach (var unit in Spawns[ent.Key].Where(x => x.Owner == pos))
-                    {
-                        Unit myunit = unit.DeepCopy();
-                        //myunit.Owner = pos - 3;
-                        myunit.Owner = 1;
-                        myunit.Ownerplayer = _player;
-                        if (myunit.Bonusdamage != null)
-                            myunit.Bonusdamage.Ownerplayer = _player;
-                        _player.Units.Add(myunit);
-                        _player.MineralsCurrent -= myunit.Cost;
-                    }
-                    _player.Race = race;
-                    _player.Units.AddRange(UnitPool.Units.Where(x => x.Race == race && x.Cost > 0));
-                    foreach (var dic in Upgrades[pos].OrderBy(x => x.Key))
-                    {
-                        if (dic.Key > ent.Key)
-                            break;
-                        foreach (UnitUpgrade upgrade in dic.Value)
-                            _player.MineralsCurrent -= BestBuildService.UpgradeUnit(upgrade.Upgrade, _player);
-                    }
-                    foreach (var dic in AbilityUpgrades[pos].OrderBy(x => x.Key))
-                    {
-                        if (dic.Key > ent.Key)
-                            break;
-                        foreach (UnitAbility upgrade in dic.Value)
-                            _player.MineralsCurrent -= BestBuildService.AbilityUpgradeUnit(upgrade, _player);
-                    }
-                    _playerds = pl;
+                    LoadSpawn(_player, ent.Key, pos, race, pl);
                 }
             }
-        } else
+        }
+        else
         {
-            if (pl.REALPOS <= 3)
-            {
-                _opp.Units.Clear();
-                _opp.MineralsCurrent = 0;
-                _opp.Units.AddRange(UnitPool.Units.Where(x => x.Race == race && x.Cost > 0));
-            }
-            else if (pl.REALPOS > 3)
-            {
-                _player.Units.Clear();
-                _player.MineralsCurrent = 0;
-                _player.Units.AddRange(UnitPool.Units.Where(x => x.Race == race && x.Cost > 0));
-            }
+            _opp.Units.Clear();
+            _opp.Upgrades.Clear();
+            _opp.AbilityUpgrades.Clear();
+            _opp.MineralsCurrent = 0;
+            _opp.Tier = 1;
+            _player.Units.Clear();
+            _player.Upgrades.Clear();
+            _player.AbilityUpgrades.Clear();
+            _player.MineralsCurrent = 0;
+            _player.Tier = 1;
+            _player.Units.AddRange(UnitPool.Units.Where(x => x.Race == race && x.Cost > 0));
+            _opp.Units.AddRange(UnitPool.Units.Where(x => x.Race == race && x.Cost > 0));
         }
         _startUp.Players[_player.ID] = _player;
         _startUp.Players[_opp.ID] = _opp;
         _refreshPl.Players[_opp.Pos] = _opp;
         _refreshPl.Players[_player.Pos] = _player;
         _refreshPl.Update = !_refreshPl.Update;
+    }
+
+    void LoadSpawn(Player player, int gameloop, int pos, UnitRace race, dsplayer pl)
+    {
+        player.Units.Clear();
+        player.Upgrades.Clear();
+        player.AbilityUpgrades.Clear();
+        player.MineralsCurrent = 0;
+        foreach (var unit in Spawns[gameloop].Where(x => x.Owner == pl.REALPOS))
+        {
+            Unit myunit = unit.DeepCopy();
+            myunit.Owner = player.Pos;
+            myunit.Ownerplayer = player;
+            if (myunit.Bonusdamage != null)
+                myunit.Bonusdamage.Ownerplayer = player;
+            if (isDSTMap == true)
+                myunit.BuildPos = new Vector2(myunit.BuildPos.X + 4, myunit.BuildPos.Y - 4);
+            player.Units.Add(myunit);
+            player.MineralsCurrent -= myunit.Cost;
+        }
+        player.Race = race;
+        player.Gameloop = gameloop;
+        player.Units.AddRange(UnitPool.Units.Where(x => x.Race == race && x.Cost > 0));
+        foreach (var dic in Upgrades[pos].OrderBy(x => x.Key))
+        {
+            if (dic.Key > gameloop)
+                break;
+            foreach (UnitUpgrade upgrade in dic.Value)
+                player.MineralsCurrent -= BestBuildService.UpgradeUnit(upgrade.Upgrade, player);
+        }
+        foreach (var dic in AbilityUpgrades[pos].OrderBy(x => x.Key))
+        {
+            if (dic.Key > gameloop)
+                break;
+            foreach (UnitAbility upgrade in dic.Value)
+                player.MineralsCurrent -= BestBuildService.AbilityUpgradeUnit(upgrade, player);
+        }
+        _playerds = pl;
+        _refreshPl.dsPlayers[player.Pos] = pl;
     }
 
     async Task GenBestBuildPossible()
@@ -608,7 +585,7 @@ else
 
         _opp.MineralsCurrent = _player.MineralsCurrent * -1;
         _player.Game = new GameHistory();
-        _player.Game.ID = _startUp.GetGameID();
+        _player.Game.ID = GameID;
         _player.Game.Players.Add(_player);
         _player.Game.Players.Add(_opp);
 
@@ -628,7 +605,7 @@ else
         _player.Stats = new Dictionary<int, paxgame3.Client.Models.M_stats>();
         _opp.Stats = new Dictionary<int, paxgame3.Client.Models.M_stats>();
         _player.Game = new GameHistory();
-        _player.Game.ID = _startUp.GetGameID();
+        _player.Game.ID = GameID;
         _player.Game.Players.Add(_player);
         _player.Game.Players.Add(_opp);
 
@@ -651,7 +628,7 @@ else
         _player = _startUp.Players[_player.ID];
         _opp = _startUp.Players[_opp.ID];
         _player.Game = new GameHistory();
-        _player.Game.ID = _startUp.GetGameID();
+        _player.Game.ID = GameID;
         _player.Game.Players.Add(_player);
         _player.Game.Players.Add(_opp);
 

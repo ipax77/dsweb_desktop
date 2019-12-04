@@ -178,12 +178,13 @@ namespace paxgame3.Client.Service
                             if (DEBUG) _logger.LogDebug(unit.ID + " Deactivating ability " + ability.Ability);
                             ability.Duration = TimeSpan.Zero;
                             ability.Deactivate(unit);
-                            ability.Cooldown = AbilityPool.Abilities.SingleOrDefault(x => x.Ability == ability.Ability).Cooldown;
                         }
                     }
 
                     if (ability.Cooldown != TimeSpan.Zero)
                     {
+                        if (ability.Ability == UnitAbilities.SunderingImpact)
+                            Console.WriteLine(unit.ID + " => " + ability.Cooldown.TotalSeconds);
                         ability.Cooldown -= Battlefield.Ticks;
                         if (ability.Cooldown <= TimeSpan.Zero)
                             ability.Cooldown = TimeSpan.Zero;

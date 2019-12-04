@@ -387,14 +387,14 @@ namespace paxgame3.Client.Service
 
         public static async Task PositionRandom(List<Unit> Units, int pos)
         {
-            int[,] Pos = new int[20, Battlefield.Ymax];
+            int[,] Pos = new int[20, Battlefield.Ymax - 5];
             for (int i = 0; i < 20; i++)
-                for (int j = 0; j < Battlefield.Ymax; j++)
+                for (int j = 0; j < Battlefield.Ymax - 5; j++)
                     Pos[i, j] = 0;
 
-            int[,] PosTwo = new int[9, Battlefield.Ymax / 2];
+            int[,] PosTwo = new int[9, (Battlefield.Ymax / 2) - 3];
             for (int i = 0; i < 9; i++)
-                for (int j = 0; j < Battlefield.Ymax / 2; j++)
+                for (int j = 0; j < (Battlefield.Ymax / 2) - 3; j++)
                     PosTwo[i, j] = 0;
 
             int mod = 0;
@@ -411,12 +411,12 @@ namespace paxgame3.Client.Service
                     {
                         Random rnd = new Random();
                         int i = rnd.Next(0, 19);
-                        int j = rnd.Next(0, Battlefield.Ymax);
+                        int j = rnd.Next(0, Battlefield.Ymax - 5);
                         int d = rnd.Next(7, 33);
                         if (Pos[i, j] == 0)
                         {
                             float X = ((float)i / 2) + 0.5f;
-                            float Y = j + 0.5f;
+                            float Y = j + 0.5f + 2;
                             if (i % 2 != 0)
                                 Y -= 0.5f;
 
@@ -433,10 +433,10 @@ namespace paxgame3.Client.Service
                                     do
                                     {
                                         i = rnd.Next(0, 9);
-                                        j = rnd.Next(0, Battlefield.Ymax);
+                                        j = rnd.Next(0, Battlefield.Ymax - 5);
                                     } while (Pos[i, j] == 1);
                                     float Xd = ((float)i / 2) + 0.5f;
-                                    float Yd = j + 0.5f;
+                                    float Yd = j + 0.5f + 2;
                                     if (i % 2 != 0)
                                         Yd -= 0.5f;
 
@@ -497,16 +497,16 @@ namespace paxgame3.Client.Service
                     {
                         Random rnd = new Random();
                         int i = rnd.Next(0, 8);
-                        int j = rnd.Next(0, (Battlefield.Ymax / 2) - 1);
+                        int j = rnd.Next(0, (Battlefield.Ymax / 2) - 1 - 3);
                         int d = rnd.Next(7, 33);
                         if (PosTwo[i, j] == 0)
                         {
-                            if (i % 2 == 0 && j == (Battlefield.Ymax / 2) - 1)
+                            if (i % 2 == 0 && j == (Battlefield.Ymax / 2) - 1 - 3)
                             {
                                 continue;
                             }
                             float X = (float)i + 1;
-                            float Y = (j * 2) + 1.5f;
+                            float Y = (j * 2) + 1.5f + 2;
                             if (i % 2 != 0)
                             {
                                 Y -= 1;
@@ -525,12 +525,12 @@ namespace paxgame3.Client.Service
                                     do
                                     {
                                         i = rnd.Next(0, 8);
-                                        j = rnd.Next(0, (Battlefield.Ymax / 2) - 1);
+                                        j = rnd.Next(0, (Battlefield.Ymax / 2) - 1 - 3);
                                     } while ((i % 2 == 0 && j == (Battlefield.Ymax / 2) - 1) && PosTwo[i, j] == 1);
 
 
                                     float Xd = (float)i + 1;
-                                    float Yd = (j * 2) + 1.5f;
+                                    float Yd = (j * 2) + 1.5f + 2;
                                     if (i % 2 != 0)
                                     {
                                         Yd -= 1;

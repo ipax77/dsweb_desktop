@@ -13,6 +13,43 @@ namespace paxgame3.Client.Service
 {
     public static class AbilityDeActivateService
     {
+        public static void ActivateCharge(UnitAbility ability, Unit unit, Unit vs, Battlefield battlefield)
+        {
+            if (vs != null && Vector2.Distance(unit.RealPos, vs.RealPos) <= 4)
+            {
+                ability.isActive = true;
+                unit.Speed = ability.MoveSpeedModifier;
+                UnitAbility impact = unit.Abilities.SingleOrDefault(x => x.Ability == UnitAbilities.SunderingImpact);
+                if (impact != null)
+                    impact.Radius = 1;
+            }
+        }
+
+        public static void DeactivateCharge(UnitAbility ability, Unit unit)
+        {
+            unit.Speed = UnitPool.Units.SingleOrDefault(x => x.Name == unit.Name).Speed;
+        }
+
+        public static void ActivateSunderingImpact(UnitAbility myability, Unit unit, Unit vs, Battlefield battlefield)
+        {
+            UnitAbility charge = unit.Abilities.SingleOrDefault(x => x.Ability == UnitAbilities.Charge);
+            if (myability.Radius == 1 && charge != null && charge.isActive == true && charge.Duration > TimeSpan.Zero)
+            {
+                myability.isActive = true;
+                unit.Attacdamage += myability.AttacDamageModifier;
+                myability.Radius = 0;
+            } else
+            {
+                unit.Attacdamage = UnitPool.Units.SingleOrDefault(x => x.Name == unit.Name).Attacdamage;
+            }
+        }
+
+        public static void DeactivateSunderingImpact(UnitAbility ability, Unit unit)
+        {
+            unit.Attacdamage = UnitPool.Units.SingleOrDefault(x => x.Name == unit.Name).Attacdamage;
+            ability.Deactivated = false;
+        }
+
         public static void ActivateTransfusion(UnitAbility ability, Unit unit, Unit vs, Battlefield battlefield, List<Unit> enemies, List<Unit> allies)
         {
             if (unit.Energybar >= ability.EnergyCost)
@@ -245,6 +282,8 @@ namespace paxgame3.Client.Service
                     ent.Target = null;
 
                     Vector2 BlinkDirection = MoveService.RotatePoint(unit.RealPos, ent.RealPos, 180);
+                    //float distance = Vector2.Distance(unit.RealPos, BlinkDirection);
+                    //float t = 1 / distance;
                     float t = 1;
                     Vector2 BlinkPos = new Vector2();
                     BlinkPos.X = (1 - t) * ent.RealPos.X + t * BlinkDirection.X;
@@ -270,6 +309,7 @@ namespace paxgame3.Client.Service
             kd8.Pos = intpos;
             kd8.RelPos = MoveService.GetRelPos(pos);
             battlefield.Units.Add(kd8);
+
         }
 
         public static void ActivateConcussiveShells(Unit unit)

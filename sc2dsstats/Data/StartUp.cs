@@ -23,7 +23,7 @@ namespace sc2dsstats.Data
         public UserConfig Conf { get; set; } = new UserConfig();
         public bool FIRSTRUN { get; set; } = false;
         public bool SAMPLEDATA { get; set; } = false;
-        public static string VERSION { get; } = "1.4.0";
+        public static string VERSION { get; } = "1.4.1";
         private bool INIT = false;
         public string FirstRunInfo { get; set; } = "";
         public string UpdateInfo { get; set; } = VERSION;
@@ -133,30 +133,14 @@ namespace sc2dsstats.Data
                 });
 
 
-                if (Conf.NewVersion1_2_0 == true)
+                if (Conf.NewVersion1_4_1 == true)
                 {
                     FirstRunInfo = "<h3>Patchnotes</h3><br />";
                     FirstRunInfo += "<p>" +
-                        "- Version 1.2.0 is fixing some Gametime / Unit count issues. We have to rescan all replays to solve this." + "<br />" +
-                        "- In the game info you can now review each players spawn with 'Show map (beta)'" + "<br />" +
-                        "- Port to .NET Core v3.0.0-rc1"
-                        + "</p>";
-                    if (File.Exists(Program.myJson_file))
-                    {
-                        try
-                        {
-                            File.Move(Program.myJson_file, Program.myJson_file + "_bakV1_2_0");
-                        }
-                        catch { }
-                    }
-
-                    try
-                    {
-                        File.Create(Program.myJson_file).Dispose();
-                    }
-                    catch { }
-                    Conf.FullSend = true;
-                    Conf.NewVersion1_2_0 = false;
+                        "- Version 1.4.1 New feature: A-Move simulator" + "<br />" +
+                        "<iframe width=\"560\" height=\"315\" src=\"https://www.youtube.com/embed/M6noTYbdSp4\" frameborder=\"0\" allow=\"autoplay; encrypted-media\" allowfullscreen></iframe>";
+                    
+                    Conf.NewVersion1_4_1 = false;
                     Save();
                 }
 
@@ -425,6 +409,14 @@ namespace sc2dsstats.Data
             lock (GameIDObject)
             {
                 return ++GameID;
+            }
+        }
+
+        public double GetPlayerID()
+        {
+            lock (GameIDObject)
+            {
+                return ++PlayerID;
             }
         }
 

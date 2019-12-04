@@ -38,6 +38,10 @@ namespace paxgame3.Client.Models
         [IgnoreDataMember]
         [NotMapped]
         public Dictionary<int, M_stats> Stats { get; set; } = new Dictionary<int, M_stats>();
+        [JsonIgnore]
+        [IgnoreDataMember]
+        [NotMapped]
+        public int Gameloop { get; set; } = 0;
 
         public Player()
         {
@@ -64,6 +68,7 @@ namespace paxgame3.Client.Models
             pl.Game = Game; // no deepcopy
             pl.Mode = Mode; // no deepcopy
             pl.Stats = new Dictionary<int, M_stats>(Stats);
+            pl.Gameloop = Gameloop;
 
             return pl;
         }

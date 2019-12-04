@@ -606,7 +606,7 @@
 
   <ItemGroup>
     <Reference Include="pax.s2decode">
-      <HintPath>..\..\pax.s2decode\pax.s2decode\bin\Debug\netcoreapp3.1\pax.s2decode.dll</HintPath>
+      <HintPath>..\..\pax.s2decode\pax.s2decode\bin\Release\netcoreapp3.1\pax.s2decode.dll</HintPath>
     </Reference>
   </ItemGroup>
 

@@ -16,6 +16,33 @@
         border-color: darkblue !important;
         box-shadow: 3px 3px 2px black;
     }
+    
+    .unitclass_notenoughmoney {
+        background: #ff0000;
+        color: #adb2b4;
+        width: 120px;
+        border-width: 2px !important;
+        border-color: darkblue !important;
+        box-shadow: 3px 3px 2px black;
+    }
+
+    .unitclass_researched {
+        background: #0b7427;
+        color: #adb2b4;
+        width: 120px;
+        border-width: 2px !important;
+        border-color: darkblue !important;
+        box-shadow: 3px 3px 2px black;
+    }
+
+    .unitclass_availablesoon {
+        background: #39403f;
+        color: #adb2b4;
+        width: 120px;
+        border-width: 2px !important;
+        border-color: darkblue !important;
+        box-shadow: 3px 3px 2px black;
+    }
 
     .unitcontainerclass {
         background: #191365;
@@ -26,9 +53,9 @@
     }
 
     .buildarea {
-        width: 1500px;
-        min-width: 1500px;
-        height: 450px;
+        width: 1250px;
+        min-width: 1250px;
+        height: 490px;
         background-color: black;
         white-space: nowrap !important;
     }
@@ -47,7 +74,7 @@
         display: inline-block !important;
         border: 1px dashed #75868a;
         background: transparent;
-        background-color: burlywood;
+        background-color: #a6a4ca;
         text-decoration: none;
         color: burlywood;
         overflow: hidden;
@@ -77,23 +104,7 @@
         height: 65px;
         transform: rotate(-45deg);
     }
-/*
-    .unitbuildclass_sizetwo:after { content: '';
-        position: absolute;
-        border-left: 2px red solid;
-        height: 70px;
-        width: 70px;
-        transform: translateX(-50%);
-    }
 
-    .unitbuildclass_sizetwo:before { content: '';
-        position: absolute;
-        border-bottom: 2px green solid;
-        height: 70px;
-        width: 70px;
-        transform: translateY(-50%);
-    }
-*/
     .unitbuildclass_sizethree {
         height: 105px !important;
         width: 105px !important;
@@ -101,7 +112,7 @@
         display: inline-block !important;
         border: 1px dashed #75868a;
         background: transparent;
-        background-color: burlywood;
+        background-color: #a6a4ca;
         text-decoration: none;
         color: burlywood;
         overflow: hidden;
@@ -124,27 +135,6 @@
 
     .cannotbuild:hover {
         background-color: darkblue;
-    }
-
-    .unitclass_notenoughmoney {
-        background: #ff0000;
-        color: #adb2b4;
-        width: 120px;
-        box-shadow: 5px 5px 2px blue;
-    }
-
-    .unitclass_researched {
-        background: #0b7427;
-        color: #adb2b4;
-        width: 120px;
-        box-shadow: 5px 5px 2px blue;
-    }
-
-    .unitclass_availablesoon {
-        background: #39403f;
-        color: #adb2b4;
-        width: 120px;
-        box-shadow: 5px 5px 2px blue;
     }
 
     .canbuild:hover {
@@ -195,57 +185,76 @@
                 @foreach (UnitUpgrades upgrade in UpgradesAvailable)
                 {
                     (int cost, int lvl) = @GetUpgradeCost(upgrade);
-                    <div>
-                        @if (BestBuildMode == false && _player.MineralsCurrent < cost)
-                        {
-                            <div class="rounded border p-2 m-2 unitclass_notenoughmoney" title="@upgrade">
-                                <p>@upgrade Minerals: @cost</p>
-                            </div>
-                        }
-                        else
-                        {
-                            <div class="rounded border p-2 m-2 unitclass" title="@upgrade" @onclick="@(() => UpgradeUnit(upgrade))">
-                                <p>@upgrade Minerals: @cost</p>
-                            </div>
-                        }
-                    </div>
-                }
+                <div>
+                    @if (BestBuildMode == false && _player.MineralsCurrent < cost)
+                    {
+                        <div class="rounded border p-2 m-2 unitclass_notenoughmoney" title="@upgrade">
+                            @upgrade
+                            Lvl @lvl <img src="images/pax_mins.png" /> @cost
+                        </div>
+                    }
+                    else if (lvl <= 3 && _player.Tier >= lvl)
+                    {
+                        <div class="rounded border p-2 m-2 unitclass" title="@upgrade" @onclick="@(() => UpgradeUnit(upgrade))">
+                            @upgrade
+                            Lvl @lvl <img class="m-0 p-0" src="images/pax_mins.png" /> @cost
+                        </div>
+                    }
+                    else if (lvl == 4)
+                    {
+                        <div class="rounded border p-2 m-2 unitclass_researched" title="@upgrade">
+                            @upgrade
+                            Lvl 3
+                        </div>
 
+                    }
+                    else
+                    {
+                        <div class="rounded border p-2 m-2 unitclass_availablesoon" title="@upgrade">
+                            @upgrade
+                            Lvl @lvl <img class="m-0 p-0" src="images/pax_mins.png" /> @cost
+                        </div>
+                    }
+                </div>
+                }
 
             </div>
             <div class="row">
                 <h6>Ability Upgrades</h6>
             </div>
             <div class="row">
-                <!-- TODO Tier -->
-                @foreach (UnitAbility ability in AbilityPool.AbilitiesAvailable[_player.Race])
+                @foreach (UnitAbility ability in AbilityPool.AbilitiesAvailable[_player.Race].Where(x => x.Tier <= _player.Tier))
                 {
                     @if (_player.AbilityUpgrades.SingleOrDefault(x => x.Ability == ability.Ability) != null)
                     {
                         <div class="rounded border p-2 m-2 unitclass_researched" title="@ability.Ability">
-                            <p>@ability.Ability Minerals: @ability.Cost</p>
+                            @ability.Ability
+                            <img src="images/pax_mins.png" /> @ability.Cost
                         </div>
                     }
-                    else if (!AbilityUpgradesAvailable.Contains(ability.Ability))
+                    else if (!AbilityUpgradesAvailable.Contains(ability.Ability) && ability.Ability != UnitAbilities.Tier2 && ability.Ability != UnitAbilities.Tier3)
                     {
                         <div class="rounded border p-2 m-2 unitclass_availablesoon" title="@ability.Ability">
-                            <p>@ability.Ability Minerals: @ability.Cost</p>
+                            @ability.Ability
+                            <img src="images/pax_mins.png" /> @ability.Cost
                         </div>
                     }
-                    else if (ability.Cost > 0 && AbilityUpgradesAvailable.Contains(ability.Ability) && _player.AbilityUpgrades.SingleOrDefault(x => x.Ability == ability.Ability) == null)
+                    else if (ability.Cost > 0 && (AbilityUpgradesAvailable.Contains(ability.Ability) || ability.Ability == UnitAbilities.Tier2 || ability.Ability == UnitAbilities.Tier3) && _player.AbilityUpgrades.SingleOrDefault(x => x.Ability == ability.Ability) == null)
                     {
                         <div>
                             @if (BestBuildMode == false && _player.MineralsCurrent < ability.Cost)
                             {
-                                <div class="rounded border p-2 m-2 unitclass_notenoughmoney" title="@ability.Ability">
-                                    <p>@ability.Ability Minerals: @ability.Cost</p>
-                                </div>
+                            <div class="rounded border p-2 m-2 unitclass_notenoughmoney" title="@ability.Ability">
+                                @ability.Ability
+                                <img src="images/pax_mins.png" /> @ability.Cost
+                            </div>
                             }
                             else
                             {
-                                <div class="rounded border p-2 m-2 unitclass" title="@ability.Ability" @onclick="@(() => AbilityUpgradeUnit(ability))">
-                                    <p>@ability.Ability Minerals: @ability.Cost</p>
-                                </div>
+                            <div class="rounded border p-2 m-2 unitclass" title="@ability.Ability" @onclick="@(() => AbilityUpgradeUnit(ability))">
+                                @ability.Ability
+                                <img src="images/pax_mins.png" /> @ability.Cost
+                            </div>
                             }
                         </div>
                     }
@@ -264,8 +273,8 @@
                     {
                         <div class="px-2 mx-2">
                             <div class="rounded border border-primary p-2 m-2 unitclass_notenoughmoney" title="@unit.Name" @ondblclick="@(() => OpenDialog(unit))">
-                                <p>@unit.Name @unit.Cost</p>
-                                <img src="@unit.Image" />
+                                @unit.Name<br>
+                                <img src="@unit.Image" width="20" height="20" style="background-color: #a6a4ca;" /> <img src="images/pax_mins.png" /> @unit.Cost
                             </div>
                         </div>
                     }
@@ -273,26 +282,24 @@
                     {
                         <div class="rounded border p-2 m-2 unitclass">
                             <div title="@unit.Name" @onclick="@(() => BuyUnit(unit))" @ondblclick="@(() => OpenDialog(unit))">
-                                <p>@unit.Name @unit.Cost</p>
-                                <div style="background-color: burlywood;">
-                                    <img src="@unit.Image" width="20" height="20" />
-                                </div>
+                                @unit.Name<br>
+                                <img src="@unit.Image" width="20" height="20" style="background-color: #a6a4ca;"/> <img src="images/pax_mins.png"/> @unit.Cost
                             </div>
                         </div>
                     }
                 }
                 <div>
                     <h5>Sell Unit(s)</h5>
-                    <div class="unitbuildclass" @onclick="@(() => SellUnit())">
+                    <div class="unitbuildclass_sizetwo ml-3" @onclick="@(() => SellUnit())">
 
                     </div>
                 </div>
             </div>
         }
     </div>
-    @if (dsPlayer != null)
+    @if (dsPlayer != null && !dsPlayer.STATS.Where(x => x.Key >= _player.Gameloop).FirstOrDefault().Equals(default(KeyValuePair<int, M_stats>)))
     {
-        <h5>Build area Player @dsPlayer.REALPOS <span class="badge badge-info">Minerals: @_player.MineralsCurrent</span></h5>
+        <h5>Build area Player @dsPlayer.REALPOS <span class="badge badge-info">Gas: @(dsPlayer.STATS.Where(x => x.Key >= _player.Gameloop).First().Value.Gas / 1000)</span> <span class="badge badge-info">Minerals: @_player.MineralsCurrent</span></h5>
     }
     else
     {
@@ -375,7 +382,7 @@
                 }
 
                 <div class="row flex-nowrap" style="margin-top: @(mtop)px !important; margin-left: @(mleft)px !important;">
-                    @for (int j = 0; j < Battlefield.Ymax / 2; j++)
+                    @for (int j = 0; j < (Battlefield.Ymax / 2) - 3; j++)
                     {
                         if (i % 2 == 0 && j == (Battlefield.Ymax / 2) - 1)
                         {
@@ -387,7 +394,7 @@
 
 
                         float X = (float)i + 1;
-                        float Y = (j * 2) + 1.5f;
+                        float Y = (j * 2) + 1.5f + 2;
                         if (i % 2 != 0)
                         {
                             Y -= 1;
@@ -434,14 +441,14 @@
                     mleft = diagone / 2;
                 }
                 <div class="row flex-nowrap" style="margin-top: @(mtop)px !important; margin-left: @(mleft)px !important;">
-                    @for (int j = 0; j < Battlefield.Ymax; j++)
+                    @for (int j = 0; j < Battlefield.Ymax - 5; j++)
                     {
                         float mcellleft = 0;
                         if (j > 0)
                             mcellleft = diagone - sizeone;
 
                         float X = ((float)i / 2) + 0.5f;
-                        float Y = j + 0.5f;
+                        float Y = j + 0.5f + 2;
                         if (i % 2 != 0)
                             Y -= 0.5f;
 

@@ -5,13 +5,13 @@ using System.ComponentModel;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
+using pax.s2decode.Models;
 
 namespace paxgame3.Client.Data
 {
     public class RefreshPl : INotifyPropertyChanged
     {
         private bool Update_value = false;
-        private BBuild BestBuild_value;
 
         public event PropertyChangedEventHandler PropertyChanged;
 
@@ -21,6 +21,7 @@ namespace paxgame3.Client.Data
         }
 
         public Dictionary<int, Player> Players { get; set; } = new Dictionary<int, Player>();
+        public Dictionary<int, dsplayer> dsPlayers { get; set; } = new Dictionary<int, dsplayer>();
 
         public bool Update
         {

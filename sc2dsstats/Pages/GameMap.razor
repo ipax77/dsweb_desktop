@@ -13,6 +13,7 @@
 
 @inject DSreplays _dsData
 @inject IDSdata_cache _dataname;
+@inject StartUp  _startUp;
 
 @if (replay.ID != replayid)
 {
@@ -81,8 +82,8 @@ else
         else
         {
         }
-
-        (Spawns, plSpawns) = BestBuildService.GetUnits(replay, 0);
+        _startUp.GameID += replay.ID;
+        (Spawns, plSpawns) = BestBuildService.GetUnits(replay, replay.ID);
         Upgrades = BestBuildService.GetUpgrades(replay);
         AbilityUpgrades = BestBuildService.GetAbilityUpgrades(replay);
         loading = false;

@@ -29,6 +29,8 @@ namespace paxgame3.Client.Data
                         abilities.Add(ability.Ability);
 
                 AbilitiesAvailable[race] = new List<UnitAbility>();
+                AbilitiesAvailable[race].Add(Abilities.SingleOrDefault(x => x.Ability == UnitAbilities.Tier2));
+                AbilitiesAvailable[race].Add(Abilities.SingleOrDefault(x => x.Ability == UnitAbilities.Tier3));
                 foreach (UnitAbilities unitability in abilities)
                     AbilitiesAvailable[race].Add(AbilityPool.Abilities.Single(x => x.Ability == unitability));
             }
@@ -150,7 +152,7 @@ namespace paxgame3.Client.Data
             k1.Ability = UnitAbilities.KnockBack;
             k1.Type.Add(UnitAbilityTypes.Pos);
             k1.PosModifier = 1 / StartUp.Battlefieldmodifier;
-            k1.Radius = 2 / StartUp.Battlefieldmodifier;
+            k1.Radius = 2 / (StartUp.Battlefieldmodifier / 2);
             k1.Tier = 1;
             k1.Triggers.Add(UnitAbilityTrigger.FightEnd);
             k1.Cost = 0;
@@ -243,6 +245,40 @@ namespace paxgame3.Client.Data
             Haluzination.EnergyCost = 75;
             Haluzination.isActive = false;
 
+            UnitAbility Charge = new UnitAbility();
+            Charge.Ability = UnitAbilities.Charge;
+            Charge.Type.Add(UnitAbilityTypes.Speed);
+            Charge.Type.Add(UnitAbilityTypes.Attacdamage);
+            Charge.Tier = 1;
+            Charge.Duration = new TimeSpan(0, 0, 0, 2, 500);
+            Charge.Triggers.Add(UnitAbilityTrigger.EnemyInVision);
+            Charge.Radius = 4;
+            Charge.MoveSpeedModifier = 9.1f;
+            Charge.Cooldown = new TimeSpan(0, 0, 7);
+            Charge.Cost = 50;
+            Charge.Tandem = new List<UnitAbilities>();
+            Charge.Tandem.Add(UnitAbilities.ChargeBase);
+            Charge.isActive = false;
+
+            UnitAbility ChargeImpact = new UnitAbility();
+            ChargeImpact.Ability = UnitAbilities.SunderingImpact;
+            ChargeImpact.Type.Add(UnitAbilityTypes.Attacdamage);
+            ChargeImpact.Tier = 1;
+            ChargeImpact.AttacDamageModifier = 8;
+            ChargeImpact.Triggers.Add(UnitAbilityTrigger.FightStart);
+            ChargeImpact.Cost = 50;
+            ChargeImpact.isActive = false;
+
+
+            UnitAbility ChargeBase = new UnitAbility();
+            ChargeBase.Ability = UnitAbilities.ChargeBase;
+            ChargeBase.Type.Add(UnitAbilityTypes.Speed);
+            ChargeBase.MoveSpeedModifier = 1.31f;
+            ChargeBase.Tier = 1;
+            ChargeBase.isActive = false;
+            ChargeBase.Triggers.Add(UnitAbilityTrigger.Always);
+            ChargeBase.Cost = 0;
+
             UnitAbility LifeTime = new UnitAbility();
             LifeTime.Ability = UnitAbilities.LifeTime;
             LifeTime.Type.Add(UnitAbilityTypes.Suicide);
@@ -289,6 +325,19 @@ namespace paxgame3.Client.Data
             CentrifugalHooks.Triggers.Add(UnitAbilityTrigger.Always);
             CentrifugalHooks.Cost = 125;
 
+            UnitAbility tier2 = new UnitAbility();
+            tier2.Ability = UnitAbilities.Tier2;
+            tier2.Cost = 250;
+            tier2.Tier = 1;
+            tier2.Triggers.Add(UnitAbilityTrigger.Never);
+
+            UnitAbility tier3 = new UnitAbility();
+            tier3.Ability = UnitAbilities.Tier3;
+            tier3.Cost = 450;
+            tier3.Tier = 2;
+            tier3.Triggers.Add(UnitAbilityTrigger.Never);
+
+
             Abilities.Add(stim);
             Abilities.Add(shield);
             Abilities.Add(z1);
@@ -314,6 +363,11 @@ namespace paxgame3.Client.Data
             Abilities.Add(Transfusion);
             Abilities.Add(TransfusionRegeneration);
             Abilities.Add(CentrifugalHooks);
+            Abilities.Add(Charge);
+            Abilities.Add(ChargeBase);
+            Abilities.Add(ChargeImpact);
+            Abilities.Add(tier2);
+            Abilities.Add(tier3);
 
             IAbilities.AddRange(Abilities);
 
@@ -339,6 +393,14 @@ namespace paxgame3.Client.Data
                 myabilities = UnitAbilities.AdrenalGlands;
             else if (abString == "CentrificalHooks")
                 myabilities = UnitAbilities.CentrifugalHooks;
+            else if (abString == "PunisherGrenades")
+                myabilities = UnitAbilities.ConcussiveShells;
+            else if (abString == "Charge")
+                myabilities = UnitAbilities.Charge;
+            else if (abString == "Tier2")
+                myabilities = UnitAbilities.Tier2;
+            else if (abString == "Tier3")
+                myabilities = UnitAbilities.Tier3;
             else
                 return null;
 

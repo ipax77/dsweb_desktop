@@ -16,6 +16,7 @@
         <!--<button class="btn btn-sm btn-secondary mb-1" @onclick="@(() => CopyToClipboard())">Copy to clipboard</button>-->
         <button class="btn btn-sm btn-secondary mb-1" @onclick="@(() => showDetails = !showDetails)">Show details</button>
         <button class="btn btn-sm btn-secondary mb-1" @onclick="@(() => showMap = !showMap)">Show map (beta)</button>
+        <!--<span class="btn btn-sm btn-secondary mb-1"><a href="gamemap/@replay.ID" target="_blank">Show Map (beta)</a></span>-->
     </div>
     <div id="copyme" class="container-fluid">
         <div>
@@ -28,9 +29,9 @@
                 <!--
                     <GameMap replay="@replay" />
                 -->
-                NavigationManager.NavigateTo("/gamemap/" + replay.ID);
-            }
-        </div>
+        NavigationManager.NavigateTo("/gamemap/" + replay.ID);
+    }
+    </div>
         <div class="row">
             <div>
                 <div>

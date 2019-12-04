@@ -83,7 +83,10 @@ namespace sc2dsstats.Pages
         protected override Task OnInitializedAsync()
         {
             if (_player == null && PlayerID != 0)
+            {
                 _player = _startUp.Players[PlayerID];
+                ResetUpgrades();
+            }
             else
             {
                 _player = new Player();
@@ -316,12 +319,7 @@ namespace sc2dsstats.Pages
 
         public EventCallback AbilityUpgradeUnit(UnitAbility ability)
         {
-            _player.MineralsCurrent -= ability.Cost;
-            _player.AbilityUpgrades.Add(ability);
-
-            if (ability.Type.Contains(UnitAbilityTypes.Image))
-                foreach (Unit unit in _player.Units.Where(x => x.Abilities.SingleOrDefault(y => y.Ability == ability.Ability) != null))
-                    unit.Image = ability.Image;
+            _player.MineralsCurrent -= BestBuildService.AbilityUpgradeUnit(ability, _player);
 
             return new EventCallback();
         }
@@ -339,10 +337,10 @@ namespace sc2dsstats.Pages
                 {
                     if (plup.Level == 3)
                     {
-                        return (0, plup.Level);
+                        return (0, 4);
                     }
                     else
-                        return (myupgrade.Cost.SingleOrDefault(x => x.Key == plup.Level + 1).Value, plup.Level);
+                        return (myupgrade.Cost.SingleOrDefault(x => x.Key == plup.Level + 1).Value, plup.Level + 1);
                 }
             }
 
@@ -490,38 +488,7 @@ namespace sc2dsstats.Pages
                 {
                     _refreshBB.BestBuild.SetBuild(_player).GetAwaiter().GetResult();
                     _startUp.Players[_player.ID] = _player;
-                    // -----
-                    UpgradesAvailable.Clear();
-                    AbilityUpgradesAvailable.Clear();
-                    foreach (Unit myunit in _player.Units)
-                    {
-                        UpgradesAvailable.Add(myunit.AttacType);
-                        UpgradesAvailable.Add(myunit.ArmorType);
-                        if (myunit.Shieldpoints > 0)
-                            UpgradesAvailable.Add(UnitUpgrades.ShieldArmor);
-
-                        AbilitiesSingleDeactivated.Clear();
-                        AbilitiesSingleDeactivated[myunit.ID] = new Dictionary<UnitAbilities, bool>();
-                        foreach (UnitAbility ability in myunit.Abilities)
-                        {
-                            AbilityUpgradesAvailable.Add(ability.Ability);
-                            if (!AbilitiesGlobalDeactivated.ContainsKey(ability.Ability))
-                                AbilitiesGlobalDeactivated[ability.Ability] = false;
-                            else
-                                ability.Deactivated = AbilitiesGlobalDeactivated[ability.Ability];
-
-                            if (!AbilitiesSingleDeactivated[myunit.ID].ContainsKey(ability.Ability))
-                                AbilitiesSingleDeactivated[myunit.ID][ability.Ability] = false;
-                            else
-                                ability.Deactivated = AbilitiesSingleDeactivated[myunit.ID][ability.Ability];
-                        }
-
-                        UnitAbility imageability = myunit.Abilities.SingleOrDefault(x => x.Type.Contains(UnitAbilityTypes.Image));
-                        if (imageability != null)
-                            if (_player.AbilityUpgrades.SingleOrDefault(x => x.Ability == imageability.Ability) != null)
-                                myunit.Image = imageability.Image;
-                    }
-                    // -----
+                    ResetUpgrades();
 
                     doUpdateBB = false;
                 }
@@ -532,8 +499,14 @@ namespace sc2dsstats.Pages
         public void UpdatePl(object sender, PropertyChangedEventArgs e)
         {
             _player = _refreshPl.Players[_player.Pos];
+            if (_refreshPl.dsPlayers.ContainsKey(_player.Pos))
+                dsPlayer = _refreshPl.dsPlayers[_player.Pos];
+            ResetUpgrades();
+            InvokeAsync(() => StateHasChanged());
+        }
 
-            // -----
+        public void ResetUpgrades()
+        {
             UpgradesAvailable.Clear();
             AbilityUpgradesAvailable.Clear();
             foreach (Unit myunit in _player.Units)
@@ -564,9 +537,6 @@ namespace sc2dsstats.Pages
                     if (_player.AbilityUpgrades.SingleOrDefault(x => x.Ability == imageability.Ability) != null)
                         myunit.Image = imageability.Image;
             }
-            // -----
-
-            InvokeAsync(() => StateHasChanged());
         }
 
         public void Dispose()
