@@ -1,4 +1,8 @@
 
+v1.4.2
+
+- s2protocol v77535 'preview'
+
 v1.4.1
 
 -Game Map v2 p3
