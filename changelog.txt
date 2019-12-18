@@ -1,4 +1,9 @@
 
+v 1.4.3
+
+- Feature request 'Player Filter' added
+- Improved BestBuild/BestPosition in GameMap speed and memeory usage
+
 v1.4.2
 
 - s2protocol v77535 'preview'

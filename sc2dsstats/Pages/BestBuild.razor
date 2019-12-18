@@ -139,7 +139,7 @@
                 </div>
                 <div class="container-fluid mt-3 mb-5">
                     <div>
-                        @if (BestBuildService.Running == false)
+                        @if (BBService.Running == false)
                         {
                             <MatSlideToggle @bind-Checked="@bestPosition" Label="best Position"></MatSlideToggle>
                             <button class="btn btn-primary" @onclick="Swap">Swap Player/Opponent</button>
@@ -154,7 +154,7 @@
                         }
                         else
                         {
-                            <button class="btn btn-primary" @onclick="@(() => BestBuildService.StopIt())">Stop Calculating</button>
+                            <button class="btn btn-primary" @onclick="@(() => BBService.StopIt())">Stop Calculating</button>
                         }
                         <button class="btn btn-primary" @onclick="@(() => StartFight())">Show Fight</button>
                         @if (_refreshBB.BestBuild != null && _refreshBB.WorstBuild != null)
@@ -175,9 +175,9 @@
                                     <h4 class="col"><span class="badge badge-success">@_refreshBB.BestStats.MineralValueKilled</span> / <span class="badge badge-danger">@_refreshBB.BestStatsOpp.MineralValueKilled</span></h4>
                                     <h4 class="col"><span class="badge badge-danger">@_refreshBB.WorstStats.MineralValueKilled</span></h4>
                                     <h4 class="col"><span class="badge badge-info">@_refreshBB.TOTAL_DONE / @_refreshBB.TOTAL</span></h4>
-                                    @if (BestBuildService.END != DateTime.MinValue)
+                                    @if (BBService.END != DateTime.MinValue)
                                     {
-                                        <h4 class="col">@((BestBuildService.END - BestBuildService.START).TotalSeconds)s</h4>
+                                        <h4 class="col">@((BBService.END - BBService.START).TotalSeconds)s</h4>
                                     }
                                     <h4 class="col"></h4>
                                 </div>
@@ -377,7 +377,7 @@ else
         foreach (Unit unit in _opp.Units.Where(x => x.Status != UnitStatuses.Available))
         {
             //unit.BuildPos = new Vector2(unit.BuildPos.X + Battlefield.Xmax - 10, unit.BuildPos.Y);
-            unit.BuildPos = BestBuildService.mirrorImage(unit.BuildPos);
+            unit.BuildPos = BBService.mirrorImage(unit.BuildPos);
             unit.Owner = 4;
             unit.Ownerplayer = _opp;
         }
@@ -386,7 +386,7 @@ else
         {
             // TODO justify move direction!
             //unit.BuildPos = new Vector2(unit.BuildPos.X - Battlefield.Xmax + 10, unit.BuildPos.Y);
-            unit.BuildPos = BestBuildService.mirrorImage(unit.BuildPos);
+            unit.BuildPos = BBService.mirrorImage(unit.BuildPos);
             unit.Owner = 1;
             unit.Ownerplayer = _player;
         }
@@ -562,14 +562,14 @@ else
             if (dic.Key > gameloop)
                 break;
             foreach (UnitUpgrade upgrade in dic.Value)
-                player.MineralsCurrent -= BestBuildService.UpgradeUnit(upgrade.Upgrade, player);
+                player.MineralsCurrent -= BBService.UpgradeUnit(upgrade.Upgrade, player);
         }
         foreach (var dic in AbilityUpgrades[pos].OrderBy(x => x.Key))
         {
             if (dic.Key > gameloop)
                 break;
             foreach (UnitAbility upgrade in dic.Value)
-                player.MineralsCurrent -= BestBuildService.AbilityUpgradeUnit(upgrade, player);
+                player.MineralsCurrent -= BBService.AbilityUpgradeUnit(upgrade, player);
         }
         _playerds = pl;
         _refreshPl.dsPlayers[player.Pos] = pl;
@@ -595,7 +595,7 @@ else
         _opp.GameID = _player.Game.ID;
         Task.Run(async () =>
         {
-            await BestBuildService.GetBestBuild(_player.Game, _startUp, _refreshBB, (int)builds, (int)positions);
+            await BBService.GetBestBuild(_player, _opp, _startUp, _refreshBB, (int)builds, (int)positions, (int)cores);
         });
         StateHasChanged();
     }
@@ -616,7 +616,7 @@ else
 
         Task.Run(async () =>
         {
-            await BestBuildService.GetBestPosition(_player.Game, _startUp, _refreshBB, (int)positions);
+            await BBService.GetBestPosition(_player, _opp, _startUp, _refreshBB, (int)builds, (int)positions, (int)cores);
         });
         StateHasChanged();
     }

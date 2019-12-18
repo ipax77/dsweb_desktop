@@ -19,8 +19,8 @@ namespace paxgame3.Client.Data
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
-
-        
+        public BBuild Bplayer { get; set; }
+        public BBuild Bopp { get; set; }
         public BBuild WorstBuild { get; set; }
         public Stats BestStats { get; set; }
         public Stats WorstStats { get; set; }

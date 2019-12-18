@@ -3,7 +3,9 @@
 @using sc2dsstats.Models
 @using sc2dsstats.Data
 @inject DSdyn_filteroptions  _options
-
+@inject StartUp  _startUp
+@inject IDSdata_cache _data
+@inject DSreplays _replays
 
 <h3>Filter</h3>
 <div class="row">
@@ -121,14 +123,51 @@
             </div>
                 -->
             <div class="col-sm form-group">
-                <h5>Gamemodes</h5>
-                @foreach (var ent in DSdata.s_gamemodes)
-                {
-                    <div class="custom-control custom-checkbox mr-2">
-                        <input type="checkbox" class="custom-control-input" name="cb_gamemodes" id="cb_gamemodes_@ent" @bind="@_options.Gamemodes[ent]" />
-                        <label class="custom-control-label" for="cb_gamemodes_@ent">@ent</label>
+                <div class="row">
+                    <div class="col-sm">
+                        <h5>Gamemodes</h5>
+                        @foreach (var ent in DSdata.s_gamemodes)
+                        {
+                            <div class="custom-control custom-checkbox mr-2">
+                                <input type="checkbox" class="custom-control-input" name="cb_gamemodes" id="cb_gamemodes_@ent" @bind="@_options.Gamemodes[ent]" />
+                                <label class="custom-control-label" for="cb_gamemodes_@ent">@ent</label>
+                            </div>
+                        }
                     </div>
-                }
+                    <div class="col-sm">
+                        <h5>Players</h5>
+                        @foreach (var ent in _startUp.StatPlayers)
+                        {
+
+                            if (_startUp.Conf.Players.Contains(ent))
+                            {
+                                <div class="custom-control custom-checkbox mr-2">
+                                    <input type="checkbox" class="custom-control-input" name="cb_players" id="cb_players_@ent" checked="checked" @onclick="@(async () => await SetPlayer(ent))" />
+                                    <label class="custom-control-label" for="cb_players_@ent">@ent</label>
+                                </div>
+                            }
+                            else
+                            {
+                                <div class="custom-control custom-checkbox mr-2">
+                                    <input type="checkbox" class="custom-control-input" name="cb_players" id="cb_players_@ent" @onclick="@(async () => await SetPlayer(ent))" />
+                                    <label class="custom-control-label" for="cb_players_@ent">@ent</label>
+                                </div>
+                            }
+                        }
+                    </div>
+                    <!--
+    <div class="col-sm">
+        <h5>Players</h5>
+        @foreach (var ent in _startUp.StatFolders)
+        {
+            <div class="custom-control custom-checkbox mr-2">
+                <input type="checkbox" class="custom-control-input" name="cb_folders" id="cb_folders_@ent" @onclick="@SetFolders(ent)" />
+                <label class="custom-control-label" for="cb_folders_@ent">@ent</label>
+            </div>
+        }
+    </div>
+    -->
+                </div>
             </div>
         </div>
     </div>
@@ -174,6 +213,20 @@
         }
         _options.Interest = String.Empty;
         _options.Vs = String.Empty;
+        _options.BeginAtZero = !_options.BeginAtZero;
+        _options.DOIT = true;
+        _options.BeginAtZero = !_options.BeginAtZero;
+    }
+
+    async Task SetPlayer(string name)
+    {
+        if (_startUp.Conf.Players.Contains(name))
+            _startUp.Conf.Players.Remove(name);
+        else
+            _startUp.Conf.Players.Add(name);
+
+        await _data.Init(_replays.Replays);
+        _options.DOIT = false;
         _options.BeginAtZero = !_options.BeginAtZero;
         _options.DOIT = true;
         _options.BeginAtZero = !_options.BeginAtZero;

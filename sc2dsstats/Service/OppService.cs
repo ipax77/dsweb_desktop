@@ -156,7 +156,7 @@ namespace paxgame3.Client.Service
                 {
                     Unit myunit = unit.DeepCopy();
                     _opp.MineralsCurrent -= myunit.Cost;
-                    myunit.ID = UnitID.GetID(_opp.GameID);
+                    myunit.ID = UnitID.GetID(_opp.Game.ID);
                     myunit.Status = UnitStatuses.Placed;
                     myunit.Owner = _opp.Pos;
                     myunit.Ownerplayer = _opp;
@@ -236,10 +236,14 @@ namespace paxgame3.Client.Service
 
         public static async Task PositionRandom1(List<Unit> Units, int pos)
         {
-            int[,] Pos = new int[10, Battlefield.Ymax];
+            int[][] Pos = new int[10][];
+            //int[,] Pos = new int[10, Battlefield.Ymax];
             for (int i = 0; i < 10; i++)
+            {
+                Pos[i] = new int[Battlefield.Ymax];
                 for (int j = 0; j < Battlefield.Ymax; j++)
-                    Pos[i, j] = 0;
+                    Pos[i][j] = 0;
+            }
 
             int mod = 0;
             if (pos > 3)
@@ -256,7 +260,7 @@ namespace paxgame3.Client.Service
                     int i = rnd.Next(0, 9);
                     int j = rnd.Next(0, Battlefield.Ymax);
                     int d = rnd.Next(7, 33);
-                    if (Pos[i, j] == 0)
+                    if (Pos[i][j] == 0)
                     {
                         vec = new Vector2(i + mod, j);
                         if (lastvec != Vector2.Zero)
@@ -268,7 +272,7 @@ namespace paxgame3.Client.Service
                                 {
                                     i = rnd.Next(0, 9);
                                     j = rnd.Next(0, Battlefield.Ymax);
-                                } while (Pos[i, j] == 1);
+                                } while (Pos[i][j] == 1);
 
                                 float distance = Vector2.DistanceSquared(new Vector2(i + mod, j), lastvec);
 
@@ -278,7 +282,7 @@ namespace paxgame3.Client.Service
                                 lastdistance = distance;
                             }
                         }
-                        Pos[(int)vec.X - mod, (int)vec.Y] = 1;
+                        Pos[(int)vec.X - mod][(int)vec.Y] = 1;
 
                         if (lastvec == Vector2.Zero)
                             lastvec = new Vector2(vec.X, vec.Y);
@@ -314,7 +318,7 @@ namespace paxgame3.Client.Service
                 Vector2 vec = Vector2.Zero;
 
                 while (vec == Vector2.Zero)
-                { 
+                {
                     Random rnd = new Random();
                     int i = rnd.Next(0, 19);
                     int j = rnd.Next(0, Battlefield.Ymax + 9);
@@ -324,9 +328,10 @@ namespace paxgame3.Client.Service
                         float newi = i;
                         float newj = j;
                         float X = 0;
-                        float Y = 0;    
+                        float Y = 0;
 
-                        if (j > 0 && j % 4 == 0) {
+                        if (j > 0 && j % 4 == 0)
+                        {
                             newj = j % 4;
                             newi = i / 2;
 
@@ -336,16 +341,18 @@ namespace paxgame3.Client.Service
                             {
                                 Y -= 1;
 
-                            }                           
-                        } else {
+                            }
+                        }
+                        else
+                        {
                             newj -= j % 4;
                             X = ((float)newi / 2) + 0.5f;
                             Y = newj + 0.5f;
                             if (newi % 2 != 0)
-                                Y -= 0.5f;  
+                                Y -= 0.5f;
                         }
 
-  
+
 
                         vec = new Vector2(i + mod, j);
                         if (lastvec != Vector2.Zero)
@@ -387,15 +394,23 @@ namespace paxgame3.Client.Service
 
         public static async Task PositionRandom(List<Unit> Units, int pos)
         {
-            int[,] Pos = new int[20, Battlefield.Ymax - 5];
+            //int[,] Pos = new int[20, Battlefield.Ymax - 5];
+            int[][] Pos = new int[20][];
             for (int i = 0; i < 20; i++)
+            {
+                Pos[i] = new int[Battlefield.Ymax - 5];
                 for (int j = 0; j < Battlefield.Ymax - 5; j++)
-                    Pos[i, j] = 0;
+                    Pos[i][j] = 0;
+            }
 
-            int[,] PosTwo = new int[9, (Battlefield.Ymax / 2) - 3];
+            //int[,] PosTwo = new int[9, (Battlefield.Ymax / 2) - 3];
+            int[][] PosTwo = new int[9][];
             for (int i = 0; i < 9; i++)
+            {
+                PosTwo[i] = new int[(Battlefield.Ymax / 2) - 3];
                 for (int j = 0; j < (Battlefield.Ymax / 2) - 3; j++)
-                    PosTwo[i, j] = 0;
+                    PosTwo[i][j] = 0;
+            }
 
             int mod = 0;
             if (pos > 3)
@@ -404,7 +419,8 @@ namespace paxgame3.Client.Service
             Vector2 lastvec = Vector2.Zero;
             foreach (Unit myunit in Units.Where(x => x.Status == UnitStatuses.Placed || x.Status == UnitStatuses.Spawned))
             {
-                if (myunit.BuildSize == 1) {
+                if (myunit.BuildSize == 1)
+                {
                     Vector2 vec = Vector2.Zero;
 
                     while (vec == Vector2.Zero)
@@ -413,7 +429,7 @@ namespace paxgame3.Client.Service
                         int i = rnd.Next(0, 19);
                         int j = rnd.Next(0, Battlefield.Ymax - 5);
                         int d = rnd.Next(7, 33);
-                        if (Pos[i, j] == 0)
+                        if (Pos[i][j] == 0)
                         {
                             float X = ((float)i / 2) + 0.5f;
                             float Y = j + 0.5f + 2;
@@ -427,14 +443,14 @@ namespace paxgame3.Client.Service
                             vec = new Vector2(X, Y);
                             if (lastvec != Vector2.Zero)
                             {
-                                float lastdistance = Vector2.DistanceSquared(vec, lastvec); 
+                                float lastdistance = Vector2.DistanceSquared(vec, lastvec);
                                 for (int k = 0; k <= d; k++)
                                 {
                                     do
                                     {
                                         i = rnd.Next(0, 9);
                                         j = rnd.Next(0, Battlefield.Ymax - 5);
-                                    } while (Pos[i, j] == 1);
+                                    } while (Pos[i][j] == 1);
                                     float Xd = ((float)i / 2) + 0.5f;
                                     float Yd = j + 0.5f + 2;
                                     if (i % 2 != 0)
@@ -445,14 +461,14 @@ namespace paxgame3.Client.Service
                                         Xd = Xd + (float)Battlefield.Xmax - 10;
                                     }
                                     float distance = Vector2.DistanceSquared(new Vector2(Xd, Yd), lastvec);
-                                    
+
                                     if (distance < lastdistance)
                                         vec = new Vector2(Xd, Yd);
-                                    
+
                                     lastdistance = distance;
                                 }
                             }
-                            Pos[i, j] = 1;
+                            Pos[i][j] = 1;
 
                             int itwo = 0;
                             int jtwo = 0;
@@ -465,7 +481,8 @@ namespace paxgame3.Client.Service
                                         jtwo = (j + 1) / 4;
                                         itwo = i / 2;
                                     }
-                                } else
+                                }
+                                else
                                 {
                                     if (j % 4 == 0)
                                     {
@@ -475,7 +492,7 @@ namespace paxgame3.Client.Service
                                 }
                             }
                             if (itwo < 9 && jtwo < Battlefield.Ymax / 2)
-                                PosTwo[itwo, jtwo] = 1;
+                                PosTwo[itwo][jtwo] = 1;
 
                             if (lastvec == Vector2.Zero)
                                 lastvec = new Vector2(vec.X, vec.Y);
@@ -490,7 +507,9 @@ namespace paxgame3.Client.Service
                     myunit.SerPos.x = myunit.BuildPos.X;
                     myunit.SerPos.y = myunit.BuildPos.Y;
                     myunit.RelPos = MoveService.GetRelPos(myunit.RealPos);
-                } else if (myunit.BuildSize == 2) {
+                }
+                else if (myunit.BuildSize == 2)
+                {
                     Vector2 vec = Vector2.Zero;
 
                     while (vec == Vector2.Zero)
@@ -499,7 +518,7 @@ namespace paxgame3.Client.Service
                         int i = rnd.Next(0, 8);
                         int j = rnd.Next(0, (Battlefield.Ymax / 2) - 1 - 3);
                         int d = rnd.Next(7, 33);
-                        if (PosTwo[i, j] == 0)
+                        if (PosTwo[i][j] == 0)
                         {
                             if (i % 2 == 0 && j == (Battlefield.Ymax / 2) - 1 - 3)
                             {
@@ -519,14 +538,14 @@ namespace paxgame3.Client.Service
                             vec = new Vector2(X, Y);
                             if (lastvec != Vector2.Zero)
                             {
-                                float lastdistance = Vector2.DistanceSquared(vec, lastvec); 
+                                float lastdistance = Vector2.DistanceSquared(vec, lastvec);
                                 for (int k = 0; k <= d; k++)
                                 {
                                     do
                                     {
                                         i = rnd.Next(0, 8);
                                         j = rnd.Next(0, (Battlefield.Ymax / 2) - 1 - 3);
-                                    } while ((i % 2 == 0 && j == (Battlefield.Ymax / 2) - 1) && PosTwo[i, j] == 1);
+                                    } while ((i % 2 == 0 && j == (Battlefield.Ymax / 2) - 1) && PosTwo[i][j] == 1);
 
 
                                     float Xd = (float)i + 1;
@@ -542,14 +561,14 @@ namespace paxgame3.Client.Service
                                     vec = new Vector2(X, Y);
 
                                     float distance = Vector2.DistanceSquared(new Vector2(Xd, Yd), lastvec);
-                                    
+
                                     if (distance < lastdistance)
                                         vec = new Vector2(Xd, Yd);
-                                    
+
                                     lastdistance = distance;
                                 }
                             }
-                            PosTwo[i, j] = 1;
+                            PosTwo[i][j] = 1;
 
                             /* 
                             0|0 => 0|3, 1|2, 1|4, 2|3
@@ -557,10 +576,10 @@ namespace paxgame3.Client.Service
                             2|7 => 4|15, 5|14, 5|16, 6|15
                              */
 
-                            Pos[i * 2, j * 2 + 1] = 1;
-                            Pos[i * 2 + 1, j * 2] = 1;
-                            Pos[i * 2 + 1, j * 2 + 2] = 1;
-                            Pos[i * 2 + 2, j * 2 + 1] = 1;
+                            Pos[i * 2][j * 2 + 1] = 1;
+                            Pos[i * 2 + 1][j * 2] = 1;
+                            Pos[i * 2 + 1][j * 2 + 2] = 1;
+                            Pos[i * 2 + 2][j * 2 + 1] = 1;
 
                             if (lastvec == Vector2.Zero)
                                 lastvec = new Vector2(vec.X, vec.Y);
@@ -574,7 +593,7 @@ namespace paxgame3.Client.Service
                     myunit.SerPos = new Vector2Ser();
                     myunit.SerPos.x = myunit.BuildPos.X;
                     myunit.SerPos.y = myunit.BuildPos.Y;
-                    myunit.RelPos = MoveService.GetRelPos(myunit.RealPos);                   
+                    myunit.RelPos = MoveService.GetRelPos(myunit.RealPos);
                 }
             }
         }
@@ -797,7 +816,8 @@ namespace paxgame3.Client.Service
             {
                 while (_opp.MineralsCurrent > 0)
                     _opp.MineralsCurrent -= AddUnit(gameid, "Zergling", GetPos(Pos, _opp.Pos), _opp);
-            }else if (queens < 5) 
+            }
+            else if (queens < 5)
             {
                 while (_opp.MineralsCurrent > 0)
                     _opp.MineralsCurrent -= AddUnit(gameid, "Queen", GetPos(Pos, _opp.Pos), _opp);
@@ -806,14 +826,18 @@ namespace paxgame3.Client.Service
             {
                 while (_opp.MineralsCurrent > 0)
                     _opp.MineralsCurrent -= AddUnit(gameid, "Baneling", GetPos(Pos, _opp.Pos), _opp);
-            } else if (reaper >= marines && marines >= marauder) {
+            }
+            else if (reaper >= marines && marines >= marauder)
+            {
                 while (_opp.MineralsCurrent > 0)
                     _opp.MineralsCurrent -= AddUnit(gameid, "Roach", GetPos(Pos, _opp.Pos), _opp);
-            } else if (marauder >= marines && marines >= reaper)
+            }
+            else if (marauder >= marines && marines >= reaper)
             {
                 while (_opp.MineralsCurrent > 0)
                     _opp.MineralsCurrent -= AddUnit(gameid, "Zergling", GetPos(Pos, _opp.Pos), _opp);
-            } else
+            }
+            else
             {
                 while (_opp.MineralsCurrent > 0)
                 {
@@ -858,7 +882,7 @@ namespace paxgame3.Client.Service
             int roaches = 0;
             int queens = 0;
 
-            
+
             foreach (Unit unit in _player.Units.Where(x => x.Status == UnitStatuses.Spawned))
             {
                 if (unit.Name == "Zergling")
@@ -956,7 +980,7 @@ namespace paxgame3.Client.Service
             }
         }
 
-        public static Vector2 GetPos (int[,] Pos, int playerpos)
+        public static Vector2 GetPos(int[,] Pos, int playerpos)
         {
             int mod = 0;
             if (playerpos > 3)
@@ -1068,6 +1092,315 @@ namespace paxgame3.Client.Service
             }
 
             return (myupgrade.Cost[0].Value, 1);
+        }
+
+        public static async Task BPRandom(Player player)
+        {
+            List<Unit> Units = new List<Unit>(UnitPool.Units.Where(x => x.Cost > 0 && x.Race == player.Race));
+            HashSet<UnitUpgrades> Upgrades = new HashSet<UnitUpgrades>();
+            HashSet<UnitAbilities> Abilities = new HashSet<UnitAbilities>();
+            Dictionary<UnitAbilities, int> AbilityCount = new Dictionary<UnitAbilities, int>();
+            int minerals = player.MineralsCurrent;
+            Random rnd = new Random();
+            while (player.MineralsCurrent > 0)
+            {
+                Units = new List<Unit>(Units.Where(x => x.Cost <= player.MineralsCurrent));
+                if (!Units.Any())
+                    break;
+
+                int doups = rnd.Next(0, Units.Count);
+                Unit unit = Units.ElementAt(doups);
+                if (player.MineralsCurrent >= unit.Cost)
+                {
+                    Unit myunit = unit.DeepCopy();
+                    player.MineralsCurrent -= myunit.Cost;
+                    myunit.Status = UnitStatuses.Placed;
+                    player.Units.Add(myunit);
+
+                    UnitAbility imageability = myunit.Abilities.SingleOrDefault(x => x.Type.Contains(UnitAbilityTypes.Image));
+                    if (imageability != null)
+                        if (player.AbilityUpgrades.SingleOrDefault(x => x.Ability == imageability.Ability) != null)
+                            myunit.Image = imageability.Image;
+
+                }
+            }
+            int armyvalue = 0;
+            foreach (Unit unit in player.Units.Where(x => x.Status != UnitStatuses.Available))
+            {
+                Upgrades.Add(unit.ArmorType);
+                Upgrades.Add(unit.AttacType);
+                foreach (UnitAbility ability in unit.Abilities.Where(x => x.Cost > 0))
+                {
+                    Abilities.Add(ability.Ability);
+                    if (player.AbilityUpgrades.SingleOrDefault(s => s.Ability == ability.Ability) == null)
+                        if (!AbilityCount.ContainsKey(ability.Ability))
+                            AbilityCount[ability.Ability] = unit.Cost;
+                        else
+                            AbilityCount[ability.Ability] += unit.Cost;
+
+                }
+                armyvalue += unit.Cost;
+            }
+
+            int UpgradesPossible = Upgrades.Count * 3;
+            foreach (UnitUpgrade upgrade in player.Upgrades)
+            {
+                UpgradesPossible -= upgrade.Level;
+                if (upgrade.Level == 4)
+                    Upgrades.Remove(upgrade.Upgrade);
+            }
+
+            int AbilityUpgradesPossible = Abilities.Count;
+            foreach (UnitAbility ability in player.AbilityUpgrades)
+            {
+                AbilityUpgradesPossible -= 1;
+                Abilities.Remove(ability.Ability);
+            }
+            int rndi = rnd.Next(20);
+            double upgrademod = (double)rndi / 100;
+            int minsavailableforupgrades = (int)(armyvalue * upgrademod);
+            if (minsavailableforupgrades > 0)
+            {
+                while (minsavailableforupgrades > 0)
+                {
+                    if (rnd.Next(100) < 50)
+                        break;
+
+                    if (AbilityUpgradesPossible > 0 && AbilityCount.Any())
+                    {
+                        AbilityCount = new Dictionary<UnitAbilities, int>(AbilityCount.OrderBy(o => o.Value));
+
+                        UnitAbility ability1 = AbilityPool.Abilities.SingleOrDefault(x => x.Ability == AbilityCount.Last().Key).DeepCopy();
+
+                        List<Unit> RemoveUnits = new List<Unit>(player.Units.Where(x => x.Status == UnitStatuses.Placed && x.Abilities.SingleOrDefault(s => s.Ability == ability1.Ability) == null));
+                        if (RemoveUnits.Sum(s => s.Cost) <= ability1.Cost)
+                            while (RemoveUnits.Sum(s => s.Cost) <= ability1.Cost)
+                                RemoveUnits.Add(player.Units.Where(x => x.Status == UnitStatuses.Placed && x.Abilities.SingleOrDefault(s => s.Ability == ability1.Ability) != null).First());
+
+                        while (player.MineralsCurrent <= ability1.Cost)
+                        {
+                            player.Units.Remove(RemoveUnits.First());
+                            player.MineralsCurrent += RemoveUnits.First().Cost;
+                            RemoveUnits.Remove(RemoveUnits.First());
+                        }
+                        AbilityCount.Remove(AbilityCount.Single(s => s.Key == ability1.Ability).Key);
+                        AbilityUpgradeUnit(ability1, player);
+                        minsavailableforupgrades -= ability1.Cost;
+                    }
+                    else
+                        break;
+                }
+            }
+            await PositionRandom(player.Units.Where(x => x.Status == UnitStatuses.Placed).ToList(), player.Pos).ConfigureAwait(false);
+        }
+
+        public static async Task<Player> PRandom(Player player, BBuild build)
+        {
+            //int[,] Pos = new int[20, Battlefield.Ymax - 5];
+            int[][] Pos = new int[20][];
+            for (int i = 0; i < 20; i++)
+            {
+                Pos[i] = new int[Battlefield.Ymax - 5];
+                for (int j = 0; j < Battlefield.Ymax - 5; j++)
+                    Pos[i][j] = 0;
+            }
+
+            //int[,] PosTwo = new int[9, (Battlefield.Ymax / 2) - 3];
+            int[][] PosTwo = new int[9][];
+            for (int i = 0; i < 9; i++)
+            {
+                PosTwo[i] = new int[(Battlefield.Ymax / 2) - 3];
+                for (int j = 0; j < (Battlefield.Ymax / 2) - 3; j++)
+                    PosTwo[i][j] = 0;
+            }
+            await build.SetBuild(player).ConfigureAwait(false);
+            int pos = player.Pos;
+
+            int mod = 0;
+            if (pos > 3)
+                mod = Battlefield.Xmax - 10;
+
+            Vector2 lastvec = Vector2.Zero;
+            foreach (Unit myunit in player.Units.Where(x => x.Status == UnitStatuses.Placed || x.Status == UnitStatuses.Spawned))
+            {
+                if (myunit.BuildSize == 1)
+                {
+                    Vector2 vec = Vector2.Zero;
+
+                    while (vec == Vector2.Zero)
+                    {
+                        Random rnd = new Random();
+                        int i = rnd.Next(0, 19);
+                        int j = rnd.Next(0, Battlefield.Ymax - 5);
+                        int d = rnd.Next(7, 33);
+                        if (Pos[i][j] == 0)
+                        {
+                            float X = ((float)i / 2) + 0.5f;
+                            float Y = j + 0.5f + 2;
+                            if (i % 2 != 0)
+                                Y -= 0.5f;
+
+                            if (pos > 3)
+                            {
+                                X = X + (float)Battlefield.Xmax - 10;
+                            }
+                            vec = new Vector2(X, Y);
+                            if (lastvec != Vector2.Zero)
+                            {
+                                float lastdistance = Vector2.DistanceSquared(vec, lastvec);
+                                for (int k = 0; k <= d; k++)
+                                {
+                                    do
+                                    {
+                                        i = rnd.Next(0, 9);
+                                        j = rnd.Next(0, Battlefield.Ymax - 5);
+                                    } while (Pos[i][j] == 1);
+                                    float Xd = ((float)i / 2) + 0.5f;
+                                    float Yd = j + 0.5f + 2;
+                                    if (i % 2 != 0)
+                                        Yd -= 0.5f;
+
+                                    if (pos > 3)
+                                    {
+                                        Xd = Xd + (float)Battlefield.Xmax - 10;
+                                    }
+                                    float distance = Vector2.DistanceSquared(new Vector2(Xd, Yd), lastvec);
+
+                                    if (distance < lastdistance)
+                                        vec = new Vector2(Xd, Yd);
+
+                                    lastdistance = distance;
+                                }
+                            }
+                            Pos[i][j] = 1;
+
+                            int itwo = 0;
+                            int jtwo = 0;
+                            if (i > 0 && j > 0)
+                            {
+                                if (i % 2 == 0)
+                                {
+                                    if ((j + 1) % 4 == 0)
+                                    {
+                                        jtwo = (j + 1) / 4;
+                                        itwo = i / 2;
+                                    }
+                                }
+                                else
+                                {
+                                    if (j % 4 == 0)
+                                    {
+                                        jtwo = j / 4;
+                                        itwo = (i - 1) / 2;
+                                    }
+                                }
+                            }
+                            if (itwo < 9 && jtwo < Battlefield.Ymax / 2)
+                                PosTwo[itwo][jtwo] = 1;
+
+                            if (lastvec == Vector2.Zero)
+                                lastvec = new Vector2(vec.X, vec.Y);
+                        }
+                    }
+
+
+                    myunit.BuildPos = new Vector2(vec.X, vec.Y);
+                    myunit.RealPos = myunit.BuildPos;
+                    myunit.Pos = myunit.BuildPos;
+                    myunit.SerPos = new Vector2Ser();
+                    myunit.SerPos.x = myunit.BuildPos.X;
+                    myunit.SerPos.y = myunit.BuildPos.Y;
+                    myunit.RelPos = MoveService.GetRelPos(myunit.RealPos);
+                }
+                else if (myunit.BuildSize == 2)
+                {
+                    Vector2 vec = Vector2.Zero;
+
+                    while (vec == Vector2.Zero)
+                    {
+                        Random rnd = new Random();
+                        int i = rnd.Next(0, 8);
+                        int j = rnd.Next(0, (Battlefield.Ymax / 2) - 1 - 3);
+                        int d = rnd.Next(7, 33);
+                        if (PosTwo[i][j] == 0)
+                        {
+                            if (i % 2 == 0 && j == (Battlefield.Ymax / 2) - 1 - 3)
+                            {
+                                continue;
+                            }
+                            float X = (float)i + 1;
+                            float Y = (j * 2) + 1.5f + 2;
+                            if (i % 2 != 0)
+                            {
+                                Y -= 1;
+
+                            }
+                            if (pos > 3)
+                            {
+                                X = X + (float)Battlefield.Xmax - 10;
+                            }
+                            vec = new Vector2(X, Y);
+                            if (lastvec != Vector2.Zero)
+                            {
+                                float lastdistance = Vector2.DistanceSquared(vec, lastvec);
+                                for (int k = 0; k <= d; k++)
+                                {
+                                    do
+                                    {
+                                        i = rnd.Next(0, 8);
+                                        j = rnd.Next(0, (Battlefield.Ymax / 2) - 1 - 3);
+                                    } while ((i % 2 == 0 && j == (Battlefield.Ymax / 2) - 1) && PosTwo[i][j] == 1);
+
+
+                                    float Xd = (float)i + 1;
+                                    float Yd = (j * 2) + 1.5f + 2;
+                                    if (i % 2 != 0)
+                                    {
+                                        Yd -= 1;
+                                    }
+                                    if (pos > 3)
+                                    {
+                                        Xd = Xd + (float)Battlefield.Xmax - 10;
+                                    }
+                                    vec = new Vector2(X, Y);
+
+                                    float distance = Vector2.DistanceSquared(new Vector2(Xd, Yd), lastvec);
+
+                                    if (distance < lastdistance)
+                                        vec = new Vector2(Xd, Yd);
+
+                                    lastdistance = distance;
+                                }
+                            }
+                            PosTwo[i][j] = 1;
+
+                            /* 
+                            0|0 => 0|3, 1|2, 1|4, 2|3
+                            1|4 => 2|9, 3|8, 3|10, 4|9
+                            2|7 => 4|15, 5|14, 5|16, 6|15
+                             */
+
+                            Pos[i * 2][j * 2 + 1] = 1;
+                            Pos[i * 2 + 1][j * 2] = 1;
+                            Pos[i * 2 + 1][j * 2 + 2] = 1;
+                            Pos[i * 2 + 2][j * 2 + 1] = 1;
+
+                            if (lastvec == Vector2.Zero)
+                                lastvec = new Vector2(vec.X, vec.Y);
+                        }
+                    }
+
+
+                    myunit.BuildPos = new Vector2(vec.X, vec.Y);
+                    myunit.RealPos = myunit.BuildPos;
+                    myunit.Pos = myunit.BuildPos;
+                    myunit.SerPos = new Vector2Ser();
+                    myunit.SerPos.x = myunit.BuildPos.X;
+                    myunit.SerPos.y = myunit.BuildPos.Y;
+                    myunit.RelPos = MoveService.GetRelPos(myunit.RealPos);
+                }
+            }
+            return player;
         }
     }
 }

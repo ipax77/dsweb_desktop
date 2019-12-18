@@ -23,11 +23,13 @@ namespace sc2dsstats.Data
         public UserConfig Conf { get; set; } = new UserConfig();
         public bool FIRSTRUN { get; set; } = false;
         public bool SAMPLEDATA { get; set; } = false;
-        public static string VERSION { get; } = "1.4.2";
+        public static string VERSION { get; } = "1.4.3";
         private bool INIT = false;
         public string FirstRunInfo { get; set; } = "";
         public string UpdateInfo { get; set; } = VERSION;
         public bool Resized { get; set; } = false;
+        public List<string> StatPlayers { get; set; } = new List<string>();
+        public List<string> StatFolders { get; set; } = new List<string>();
 
         // paxgame
         public static bool DEBUG = false;
@@ -145,7 +147,8 @@ namespace sc2dsstats.Data
                 }
 
             }
-
+            StatPlayers = new List<string>(Conf.Players);
+            StatFolders = new List<string>(Conf.Replays);
             await Resize();
         }
 

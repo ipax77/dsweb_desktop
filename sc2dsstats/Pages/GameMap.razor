@@ -83,9 +83,9 @@ else
         {
         }
         _startUp.GameID += replay.ID;
-        (Spawns, plSpawns) = BestBuildService.GetUnits(replay, replay.ID);
-        Upgrades = BestBuildService.GetUpgrades(replay);
-        AbilityUpgrades = BestBuildService.GetAbilityUpgrades(replay);
+        (Spawns, plSpawns) = BBService.GetUnits(replay, replay.ID);
+        Upgrades = BBService.GetUpgrades(replay);
+        AbilityUpgrades = BBService.GetAbilityUpgrades(replay);
         loading = false;
         if (replay.PLAYERS.FirstOrDefault().STATS.Count() == 0)
             loadFailed = true;

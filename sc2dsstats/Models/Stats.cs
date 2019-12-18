@@ -64,4 +64,21 @@ namespace paxgame3.Client.Models
         public float ArmyValue { get; set; } = 0;
         public float Upgrades { get; set; } = 0;
     }
+
+    [Serializable]
+    public class RandomResult
+    {
+        public float MineralValueKilled { get; set; }
+        public float DamageDone { get; set; }
+    }
+
+    [Serializable]
+    public class RandomGame
+    {
+        public BBuild player1 { get; set; }
+        public BBuild player2 { get; set; }
+        public int Result { get; set; }
+        public RandomResult result1 { get; set; }
+        public RandomResult result2 { get; set; }
+    }
 }

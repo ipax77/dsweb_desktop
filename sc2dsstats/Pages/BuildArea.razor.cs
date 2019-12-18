@@ -319,7 +319,7 @@ namespace sc2dsstats.Pages
 
         public EventCallback AbilityUpgradeUnit(UnitAbility ability)
         {
-            _player.MineralsCurrent -= BestBuildService.AbilityUpgradeUnit(ability, _player);
+            _player.MineralsCurrent -= BBService.AbilityUpgradeUnit(ability, _player);
 
             return new EventCallback();
         }
