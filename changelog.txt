@@ -1,4 +1,8 @@
 
+v 1.4.4
+
+- s2protocol v77331 
+
 v 1.4.3
 
 - Feature request 'Player Filter' added
