@@ -136,23 +136,12 @@
                     </div>
                     <div class="col-sm">
                         <h5>Players</h5>
-                        @foreach (var ent in _startUp.StatPlayers)
+                        @foreach (var ent in _options.Players.Keys)
                         {
-
-                            if (_startUp.Conf.Players.Contains(ent))
-                            {
-                                <div class="custom-control custom-checkbox mr-2">
-                                    <input type="checkbox" class="custom-control-input" name="cb_players" id="cb_players_@ent" checked="checked" @onclick="@(async () => await SetPlayer(ent))" />
-                                    <label class="custom-control-label" for="cb_players_@ent">@ent</label>
-                                </div>
-                            }
-                            else
-                            {
-                                <div class="custom-control custom-checkbox mr-2">
-                                    <input type="checkbox" class="custom-control-input" name="cb_players" id="cb_players_@ent" @onclick="@(async () => await SetPlayer(ent))" />
-                                    <label class="custom-control-label" for="cb_players_@ent">@ent</label>
-                                </div>
-                            }
+                            <div class="custom-control custom-checkbox mr-2">
+                                <input type="checkbox" class="custom-control-input" name="cb_players" id="cb_players_@ent" checked="_options.Players[ent]" @onchange="@(() => SetPlayer(ent))" />
+                                <label class="custom-control-label" for="cb_players_@ent">@ent</label>
+                            </div>
                         }
                     </div>
                     <!--
@@ -175,6 +164,13 @@
 
 
 @code {
+
+    protected override void OnInitialized()
+    {
+        foreach (var ent in _startUp.Conf.Players)
+            _options.Players[ent] = true;
+    }
+
     void ShowFilter()
     {
         _options.Filter = !_options.Filter;
@@ -188,7 +184,7 @@
 
     void DefaultFilter()
     {
-        _options.DefaultFilter();
+        _options.DefaultFilter(_startUp);
         _options.DOIT = false;
         _options.BeginAtZero = !_options.BeginAtZero;
         _options.DOIT = true;
@@ -218,14 +214,9 @@
         _options.BeginAtZero = !_options.BeginAtZero;
     }
 
-    async Task SetPlayer(string name)
+    void SetPlayer(string name)
     {
-        if (_startUp.Conf.Players.Contains(name))
-            _startUp.Conf.Players.Remove(name);
-        else
-            _startUp.Conf.Players.Add(name);
-
-        await _data.Init(_replays.Replays);
+        _options.Players[name] = !_options.Players[name];
         _options.DOIT = false;
         _options.BeginAtZero = !_options.BeginAtZero;
         _options.DOIT = true;

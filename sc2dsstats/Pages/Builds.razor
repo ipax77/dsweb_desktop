@@ -9,6 +9,7 @@
 @inject DSdyn_filteroptions  _options
 @inject IDSdata_cache _DSdata
 @inject ChartStateChange chartChanged
+@inject StartUp _startUp
 @implements IDisposable
 
 <div class="container-fluid">
@@ -508,7 +509,7 @@
         options.BREAKPOINT = "MIN10";
 
         
-        _options.DefaultFilter();
+        _options.DefaultFilter(_startUp);
         _options.DOIT = false;
         _options.Player = true;
         _options.Build = options.BUILD;

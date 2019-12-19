@@ -56,6 +56,7 @@ namespace sc2dsstats.Models
         public ChartJS Chart { get; set; } = new ChartJS();
         public int Total { get; set; } = 0;
         public Dictionary<string, bool> Gamemodes { get; set; } = new Dictionary<string, bool>();
+        public Dictionary<string, bool> Players { get; set; } = new Dictionary<string, bool>();
 
         public int Duration
         {
@@ -289,6 +290,14 @@ namespace sc2dsstats.Models
                         opthash += gm[ent].ToString();
                     }
                 }
+                else if (prop.Name == "Players")
+                {
+                    Dictionary<string, bool> gm = prop.GetValue(this, null) as Dictionary<string, bool>;
+                    foreach (var ent in gm.Keys)
+                    {
+                        opthash += gm[ent].ToString();
+                    }
+                }
                 else
                 {
                     opthash += prop.Name + prop.GetValue(this, null).ToString();
@@ -299,7 +308,7 @@ namespace sc2dsstats.Models
             return System.BitConverter.ToString(md5.ComputeHash(plainTextBytes));
         }
 
-        public void DefaultFilter()
+        public void DefaultFilter(StartUp _startUp)
         {
             DSdyn_filteroptions defoptions = new DSdyn_filteroptions();
             this.DOIT = false;
@@ -315,6 +324,9 @@ namespace sc2dsstats.Models
             this.Vs = defoptions.Vs;
             this.Player = defoptions.Player;
             this.Gamemodes = new Dictionary<string, bool>(defoptions.Gamemodes);
+            this.Players = new Dictionary<string, bool>();
+            foreach (var ent in _startUp.StatPlayers)
+                this.Players[ent] = true;
             this.DOIT = true;
         }
     }

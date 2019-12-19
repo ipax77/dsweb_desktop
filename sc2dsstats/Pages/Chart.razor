@@ -8,6 +8,7 @@
 @inject ChartStateChange chartChanged
 @inject DSdyn_filteroptions  _options
 @inject ScanStateChange _scan
+@inject StartUp _startUp
 @implements IDisposable
 
 <div id="dv_head" class="container-fluid">
@@ -182,7 +183,7 @@
     {
         _lock = new object();
         cmdricons = new List<string>();
-        _options.DefaultFilter();
+        _options.DefaultFilter(_startUp);
         _options.Build = "ALL";
         if (!_options.Cmdrinfo.ContainsKey("ALL"))
         { _options.Cmdrinfo.Add("ALL", new CmdrInfo()); }

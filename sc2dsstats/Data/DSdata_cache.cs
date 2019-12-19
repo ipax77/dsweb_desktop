@@ -429,7 +429,12 @@ namespace sc2dsstats.Data
 
             List<dsreplay> replays = new List<dsreplay>();
             FilterInfo FIL = new FilterInfo();
+            _startUp.Conf.Players = new List<string>();
+            foreach (var ent in fil.Players.Where(x => x.Value == true))
+                _startUp.Conf.Players.Add(ent.Key);
+
             (replays, FIL) = DBfilter.Filter(REPLAYS.ToList(), fil, _startUp);
+
 
             if (fil.Mode == "Winrate")
             {
