@@ -102,7 +102,7 @@ namespace sc2dsstats.Data
             if (_scanState.Scan.Running == false)
             {
                 _scanState.Scan.Running = true;
-                Decode.Doit(_dsData, _scanState, _startUp.Conf.Cores);
+                Decode.Doit(_dsData, _scanState, _startUp, _startUp.Conf.Cores);
             }
         }
 

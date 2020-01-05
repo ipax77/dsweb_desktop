@@ -1,4 +1,5 @@
-﻿using pax.s2decode.Models;
+﻿using Microsoft.AspNetCore.Components;
+using pax.s2decode.Models;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -35,7 +36,7 @@ namespace sc2dsstats.Data
             });
         }
 
-        public static void Doit(DSreplays Data, ScanStateChange stateChange, int cores = 2)
+        public static void Doit(DSreplays Data, ScanStateChange stateChange, StartUp _startUp, int cores = 2)
         {
             source = new CancellationTokenSource();
             token = source.Token;
@@ -44,7 +45,7 @@ namespace sc2dsstats.Data
             Scan.Done = 0;
             Failed = new List<string>();
             Console.WriteLine("Engine start.");
-            //s2dec.DEBUG = 1;
+            s2dec.DEBUG = _startUp.Conf.Debug;
             s2dec.JsonFile = Program.myJson_file;
             s2dec.REPID = Data.ID;
             s2dec.ReplayFolder = Data.ReplayFolder;

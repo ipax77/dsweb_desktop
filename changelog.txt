@@ -1,4 +1,8 @@
 
+v 1.4.5
+
+- bugfix
+
 v 1.4.4
 
 - s2protocol v77331 

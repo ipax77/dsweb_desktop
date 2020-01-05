@@ -21,5 +21,6 @@ namespace sc2dsstats.Models
         public DateTime MMDeleted { get; set; } = new DateTime(2018, 1, 1);
         public bool NewVersion1_4_1 { get; set; } = true;
         public bool FullSend { get; set; } = false;
+        public int Debug { get; set; } = 0;
     }
 }

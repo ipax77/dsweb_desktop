@@ -124,7 +124,7 @@ else
             {
                 _stateChange.Scan.Running = true;
                 SCAN = "Decoding replays ...";
-                Decode.Doit(_DSdata, _stateChange, _startUp.Conf.Cores);
+                Decode.Doit(_DSdata, _stateChange, _startUp, _startUp.Conf.Cores);
             }
             else
             {
