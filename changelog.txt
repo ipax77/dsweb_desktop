@@ -1,4 +1,12 @@
 
+v 1.4.7
+
+- Exception handling corrupted replays - ty @ToxicApollo for reporting
+
+v 1.4.6
+
+- Debug option
+
 v 1.4.5
 
 - bugfix
