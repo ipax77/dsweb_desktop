@@ -90,6 +90,7 @@ namespace sc2dsstats.Data
                 string exedir = new FileInfo(Assembly.GetExecutingAssembly().Location).DirectoryName;
                 Conf.ExeDir = exedir;
                 Conf.Version = VERSION;
+                Conf.Autoscan = false;
                 Save();
                 FirstRun();
             }
