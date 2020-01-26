@@ -1,4 +1,10 @@
 
+v 1.5.0
+
+- Update Electron to v7.30.2
+- StartUp Time improved
+- A-Move / Map update to new BuildArea 
+
 v 1.4.7
 
 - Exception handling corrupted replays - ty @ToxicApollo for reporting

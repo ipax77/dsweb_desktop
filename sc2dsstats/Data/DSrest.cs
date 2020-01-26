@@ -1,6 +1,7 @@
 ﻿using Newtonsoft.Json;
 using pax.s2decode.Models;
 using RestSharp;
+using sc2dsstats_rc2;
 using System;
 using System.Collections.Generic;
 using System.IO;

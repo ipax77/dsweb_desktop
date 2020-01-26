@@ -7,6 +7,7 @@
 @inject ScanStateChange stateChanged
 @implements IDisposable
 
+
 <h1>sc2dsstats</h1>
 
 @if (StartUp.FIRSTRUN == true)
@@ -55,9 +56,7 @@ else
     }
 }
 
-<!--
-<button name="btn_mode" class="btn btn-sm btn-primary" @onclick="@UpdateApp">Update</button>
--->
+
 @code {
     TimeSpan t;
     bool Loading = true;
@@ -66,9 +65,6 @@ else
 
     protected override async Task OnInitializedAsync()
     {
-        await StartUp.Init();
-        await DSdata.Init();
-
         t = DateTime.Now - StartUp.Conf.LastUpload;
         Task.Run(() => { CheckUpdates(); });
         Loading = false;
@@ -94,14 +90,13 @@ else
         await StartUp.QuitAndInstall();
     }
 
-    private async void Update(object sender, PropertyChangedEventArgs e)
+    private void Update(object sender, PropertyChangedEventArgs e)
     {
-        await InvokeAsync(() => StateHasChanged());
+        InvokeAsync(() => StateHasChanged()).GetAwaiter();
     }
 
     public void Dispose()
     {
         stateChanged.PropertyChanged -= Update;
     }
-
 }

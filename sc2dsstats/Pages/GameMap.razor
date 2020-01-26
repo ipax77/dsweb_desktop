@@ -1,21 +1,25 @@
 ﻿@page "/gamemap"
-@page "/gamemap/{replayid:int}"
-@layout BattleLayout
+@page "/gamemap/{GameID:int}"
+@page "/gamemap/{GameID:int}/{PlayerPos:int}/{Gameloop:int}"
 @using System.IO;
-@using Blazor.Extensions;
-@using Blazor.Extensions.Canvas.Canvas2D;
-@using sc2dsstats.Models;
+@using System.Collections.Concurrent;
 @using sc2dsstats.Data;
+@using paxgamelib.Models;
 @using pax.s2decode.Models;
-@using System.Text.Json;
-@using paxgame3.Client.Service;
-@using paxgame3.Client.Models;
+@using sc2dsstats.Service;
+@using paxgamelib;
+@using paxgamelib.Data;
+@using sc2dsstats.Models;
+@using paxgameweb.Data;
+@using paxgamelib.Service;
+@inject NavigationManager _nav
 
 @inject DSreplays _dsData
 @inject IDSdata_cache _dataname;
 @inject StartUp  _startUp;
+@inject Refresh _refresh;
 
-@if (replay.ID != replayid)
+@if (replay.ID != GameID)
 {
     <div class="d-none">
         @NewReplay()
@@ -32,8 +36,76 @@ else if (loadFailed == true)
 }
 else
 {
+    <div class="container-fluid">
+        <div class="row">
+            <div>
+                <div style="margin-top: 350px;">
+                    @foreach (var ent in replay.PLAYERS.OrderBy(o => o.REALPOS))
+                    {
+                        if (ent.REALPOS == _player.Pos)
+                        {
+                            <div class="custom-control custom-radio">
+                                <input type="radio"
+                                       class="custom-control-input"
+                                       name="repPlayers"
+                                       value="@ent.REALPOS"
+                                       id="cb_@ent.REALPOS"
+                                       checked="checked"
+                                       @onchange="NewPlayer" />
+                                <label class="custom-control-label" for="cb_@ent.REALPOS">
+                                    Player @ent.REALPOS (@ent.NAME)
+                                </label>
+                            </div>
 
-    <BestBuild plSpawns="plSpawns" Spawns="Spawns" replay="replay" Upgrades="Upgrades" AbilityUpgrades="AbilityUpgrades"/>
+                        }
+                        else
+                        {
+                            <div class="custom-control custom-radio">
+                                <input type="radio"
+                                       class="custom-control-input"
+                                       name="repPlayers"
+                                       value="@ent.REALPOS"
+                                       id="cb_@ent.REALPOS"
+                                       @onchange="NewPlayer" />
+                                <label class="custom-control-label" for="cb_@ent.REALPOS">
+                                    Player @ent.REALPOS (@ent.NAME)
+                                </label>
+                            </div>
+                        }
+                    }
+                </div>
+                <div>
+                    <label class="mt-2">Spawns</label>
+                    <select class="custom-select" id="inputGroupSelect01" @onchange="@NewSpawn">
+                        @foreach (var ent in _map.plSpawns[_player.Pos].OrderBy(o => o))
+                        {
+                            @if (Gameloop == ent)
+                            {
+                                <option value="@ent" selected="selected">@ent</option>
+                            }
+                            else
+                            {
+                                <option value="@ent">@ent</option>
+                            }
+                        }
+                    </select>
+                </div>
+                <div>
+                    <button type="button" class="btn btn-warning mt-3" @onclick="StartCleanFight">Start Fight!</button>
+                </div>
+            </div>
+            <div>
+                <BuildArea PlayerID="(long)_player.ID" />
+                <h5 style="margin-top: 450px;">Opponent Build<button type="button" class="btn btn-primary ml-3" @onclick="@(() => ShowHide = !ShowHide)">Show/Hide</button></h5>
+                @if (ShowHide)
+                {
+                    <div>
+                        <BuildArea PlayerID="(long)_opp.ID" locked="true" />
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
 
 }
 
@@ -43,23 +115,38 @@ else
     public dsreplay replay { get; set; }
 
     [Parameter]
-    public int replayid { get; set; } = 0;
+    public int GameID { get; set; } = 0;
 
+    [Parameter]
+    public int PlayerPos { get; set; } = 0;
+
+    [Parameter]
+    public int Gameloop { get; set; } = 0;
+
+
+
+    GameHistory _game;
+    Player _player;
+    Player _opp;
+    long PlayerID = 0;
+    ILibData _store = LibData.Instance;
 
     bool loading = true;
     bool loadFailed = false;
+    bool ShowHide = false;
 
-    public Dictionary<int, List<Unit>> Spawns = new Dictionary<int, List<Unit>>();
-    public Dictionary<int, HashSet<int>> plSpawns = new Dictionary<int, HashSet<int>>();
-    public Dictionary<int, Dictionary<int, List<UnitUpgrade>>> Upgrades = new Dictionary<int, Dictionary<int, List<UnitUpgrade>>>();
-    public Dictionary<int, Dictionary<int, List<UnitAbility>>> AbilityUpgrades = new Dictionary<int, Dictionary<int, List<UnitAbility>>>();
+    GameMapModel _map = new GameMapModel();
 
     protected override async Task OnInitializedAsync()
     {
-        if (replay == null && replayid != 0)
-            replay = _dsData.Replays.Where(x => x.ID == replayid).FirstOrDefault();
+        if (replay == null && GameID != 0)
+        {
+            replay = _dsData.Replays.Where(x => x.ID == GameID).FirstOrDefault();
+        }
         else
-            replayid = replay.ID;
+        {
+            GameID = replay.ID;
+        }
 
         await NewReplay();
     }
@@ -69,7 +156,16 @@ else
     {
         loading = true;
         loadFailed = false;
-        replayid = replay.ID;
+        GameID = replay.ID;
+
+        if (PlayerPos == 0)
+        {
+            _game = new GameHistory();
+            _game.ID = (ulong)replay.ID;
+            _store.SetGame(_game);
+        }
+        else
+            _game = _store.GetGame((ulong)GameID);
 
         if (replay.PLAYERS.FirstOrDefault().STATS.Count() == 0)
         {
@@ -82,13 +178,55 @@ else
         else
         {
         }
-        _startUp.GameID += replay.ID;
-        (Spawns, plSpawns) = BBService.GetUnits(replay, replay.ID);
-        Upgrades = BBService.GetUpgrades(replay);
-        AbilityUpgrades = BBService.GetAbilityUpgrades(replay);
+        _map = new GameMapModel();
+        (_map.Spawns, _map.plSpawns) = DSpaxgame.GetUnits(replay, _game);
+        _map.Upgrades = DSpaxgame.GetUpgrades(replay);
+        _map.AbilityUpgrades = DSpaxgame.GetAbilityUpgrades(replay);
         loading = false;
         if (replay.PLAYERS.FirstOrDefault().STATS.Count() == 0)
             loadFailed = true;
+
+        if (PlayerPos == 0)
+        {
+            _player = new Player();
+            _player.inGame = true;
+            _player.Pos = 1;
+            _player.ID = paxgame.GetPlayerID();
+            _player.Game = _game;
+            _game.Players.Add(_player);
+            _store.SetPlayer(_player);
+        }
+        else
+        {
+            _player = _game.Players.SingleOrDefault(x => x.Pos == PlayerPos);
+            _opp = _game.Players.SingleOrDefault(x => x.Pos != PlayerPos);
+        }
+        Gameloop = DSpaxgame.GetPlayer(_map, replay, _player, Gameloop);
+
+
+        if (_opp == null)
+        {
+            dsplayer opp = replay.GetOpp(_player.Pos);
+            if (opp != null)
+            {
+                _opp = new Player();
+                _opp.inGame = true;
+                _opp.ID = paxgame.GetPlayerID();
+                _opp.Game = _game;
+                _game.Players.Add(_opp);
+                _opp.Pos = opp.REALPOS;
+                Gameloop = DSpaxgame.GetPlayer(_map, replay, _opp, Gameloop);
+                _store.SetPlayer(_opp);
+            }
+            else
+            {
+                _opp = _player.Deepcopy();
+                _opp.ID = paxgame.GetPlayerID();
+                _store.SetPlayer(_opp);
+            }
+        }
+
+        PlayerID = (long)_player.ID;
 
         StateHasChanged();
     }
@@ -99,7 +237,7 @@ else
         dsreplay myreplay = await Decode.ScanRep(file, _dsData, true);
         if (myreplay == null) return;
         myreplay.REPLAY = repid;
-        myreplay.ID = replayid;
+        myreplay.ID = GameID;
         int index = _dsData.Replays.FindIndex(x => x.ID == replay.ID);
         _dsData.Replays[index] = myreplay;
         replay = myreplay;
@@ -111,5 +249,59 @@ else
 
         //await DrawSpawn(5024);
         //StateHasChanged();
+    }
+
+    void NewSpawn(ChangeEventArgs e)
+    {
+        int spawn = 0;
+        int.TryParse(e.Value.ToString(), out spawn);
+        Gameloop = spawn;
+
+        DSpaxgame.GetPlayer(_map, replay, _player, Gameloop);
+        DSpaxgame.GetPlayer(_map, replay, _opp, Gameloop);
+        _refresh.Update = !_refresh.Update;
+    }
+
+    void NewPlayer(ChangeEventArgs e)
+    {
+        int pos = 0;
+        int.TryParse(e.Value.ToString(), out pos);
+        _player.Name = "";
+        _player.Pos = pos;
+        Gameloop = DSpaxgame.GetPlayer(_map, replay, _player);
+
+        dsplayer opp = replay.GetOpp(_player.Pos);
+        if (opp != null)
+        {
+            _opp.Name = "";
+            _opp.Pos = opp.REALPOS;
+            Gameloop = DSpaxgame.GetPlayer(_map, replay, _opp);
+        }
+        else
+        {
+            _opp = _player.Deepcopy();
+            _opp.ID = paxgame.GetPlayerID();
+            _store.SetPlayer(_opp);
+        }
+
+
+        _refresh.Update = !_refresh.Update;
+    }
+
+    async Task StartCleanFight()
+    {
+        //if (_player.Mode.Mode == "Terran vs Terran AI")
+        //    await BuildAreaService.BotTerranAI(_opp);
+
+        ConcurrentDictionary<int, AddUnit> addunits;
+        addunits = await GameService.GenFight(_player.Game);
+        _player.Game.Units = new List<Unit>(_player.Game.battlefield.Units);
+        _player.Game.Style = await GameService.GenStyle(_player.Game, addunits);
+        //_player.Game.Units.AddRange(temp);
+
+        _nav.NavigateTo("gamefight/" + _player.ID.ToString() + "/" + Gameloop);
+        await paxgamelib.Service.StatsService.GenRoundStats(_player.Game);
+
+
     }
 }

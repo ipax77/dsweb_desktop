@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Components;
 using pax.s2decode.Models;
+using sc2dsstats_rc2;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;

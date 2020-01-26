@@ -7,7 +7,7 @@ using Serilog;
 using System;
 using System.IO;
 
-namespace sc2dsstats
+namespace sc2dsstats_rc2
 {
     public class Program
     {
@@ -43,11 +43,9 @@ namespace sc2dsstats
                 })
                 .ConfigureWebHostDefaults(webBuilder =>
                 {
-                    //webBuilder.UseStartup<Startup>();
                     webBuilder
                         .UseStartup<Startup>()
                         .UseElectron(args);
                 });
-
     }
 }

@@ -9,11 +9,10 @@ https://github.com/ipax77/dsweb_desktop/releases/download/latest/sc2dsstats-Setu
 
 ![sample graph](/images/dsweb_desktop.png)
 
-# Dependencies / Links
-dsmm - Matchmaking Server (https://github.com/ipax77/dsmm)
-dsweb - Global stats (https://github.com/ipax77/dsweb)
+# Dependencies
 s2decode - Decoding Starcraft 2 Direct Strike Replays (https://github.com/ipax77/s2decode)
-
+pax.s2decode - IronPython Parser using s2decode https://git.scytec.de/pax77/paxgame
+paxgamelib - Basic simulation of game mechanics https://git.scytec.de/pax77/paxgame
 
 # Acknowledgements
 Chart.js (https://github.com/chartjs) used for the radar Chart

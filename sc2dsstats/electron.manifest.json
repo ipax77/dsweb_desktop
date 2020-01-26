@@ -1,50 +1,32 @@
 {
-  "executable": "sc2dsstats",
-  "singleInstance": false,
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/ipax77/dsweb_desktop.git"
+  "executable": "sc2dsstats_rc2",
+  "splashscreen": {
+    "imageFile": ""
   },
+  "singleInstance": false,
   "build": {
-    "win": {
-      "publish": [ "github" ],
-      "target": [
-        {
-          "target": "nsis",
-          "arch": [
-            "x64"
-          ]
-        }
-      ],
-      "icon": "wwwroot/images/icon-512x512.png"
-    },
-    "appId": "com.github.ipax77.sc2dsstats",
-    "productName": "sc2dsstats",
-    "copyright": "Copyright © 2019 Philipp Hetzner",
-    "buildVersion": "1.0.4",
+    "appId": "com.sc2dsstats_rc2.app",
+    "productName": "sc2dsstats_rc2",
+    "copyright": "Copyright © 2019",
+    "buildVersion": "1.0.0",
     "compression": "maximum",
     "directories": {
-      "output": "../../bin/Desktop",
-      "buildResources": "../../../build"
+      "output": "../../../bin/Desktop"
     },
     "extraResources": [
       {
         "from": "./bin",
         "to": "bin",
-        "filter": [ "**/*" ]
+        "filter": ["**/*"]
       }
     ],
     "files": [
       {
         "from": "./ElectronHostHook/node_modules",
         "to": "ElectronHostHook/node_modules",
-        "filter": [ "**/*" ]
+        "filter": ["**/*"]
       },
       "**/*"
     ]
-  },
-  "user": "ipax77",
-  "project": "dsweb_desktop",
-  "author": "Philipp Hetzner",
-  "license": "GPL3"
+  }
 }

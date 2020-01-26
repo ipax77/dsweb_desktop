@@ -1,17 +1,30 @@
 @page "/scan"
 @using sc2dsstats.Data
 @using System.ComponentModel
+@using System.Threading.Tasks
 @inject StartUp _startUp
 @inject ScanStateChange _stateChange
 @inject DSreplays  _DSdata
 
 <h3>Scan</h3>
-<div class="jumbotron">
-    New replays found: @_DSdata.Todo.Count <br />
-    Expected time needed: @(string.Format("{0:0.00}", (_DSdata.Todo.Count * 7.2 / _startUp.Conf.Cores / 60 / 60))) h <br />
-    <br />
-    You can always quit the process, next time it will continue at the last position. <br />
-</div>
+@if (Scanning == false)
+{
+    <div class="jumbotron">
+        New replays found: @newreplays <br />
+        Expected time needed: @(string.Format("{0:0.00}", (_DSdata.Todo.Count * 7.2 / _startUp.Conf.Cores / 60 / 60))) h <br />
+        <br />
+        You can always quit the process, next time it will continue at the last position. <br />
+    </div>
+}
+else
+{
+    <div class="jumbotron">
+        New replays found: Scanning ... <br />
+        Expected time needed: @(string.Format("{0:0.00}", 0)) h <br />
+        <br />
+        You can always quit the process, next time it will continue at the last position. <br />
+    </div>
+}
 <div class="form-group">
     <label for="sel1">CPU Cores</label>
     <select class="form-control w-auto" id="sel1" @bind="@_startUp.Conf.Cores">
@@ -86,6 +99,117 @@ else
     string INFO = "";
     string SCAN = "";
     bool CheckUploadCredential = false;
+    bool Scanning = true;
+    int newreplays = 0;
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (INFO.Length > 0)
+        {
+            SCAN = "Decoding replays ...";
+            INFO = _stateChange.Scan.Info;
+        }
+
+        if (_startUp.Conf.Autoscan == true)
+        {
+            await ScanReps();
+        }
+        else
+        {
+            await FindReps();
+        }
+
+        _stateChange.PropertyChanged += Update;
+    }
+
+    private async void Update(object sender, PropertyChangedEventArgs e)
+    {
+        await InvokeAsync(() =>
+        {
+            if (_stateChange.Scan.Running == true)
+            {
+                SCAN = "Decoding replays ..";
+                INFO = _stateChange.Scan.Info;
+            }
+            else
+            {
+                SCAN = "Jobs done.";
+                INFO = _stateChange.Scan.Info;
+                INFO += " Elapsed time: " + Decode.Elapsed.ToString("c");
+                newreplays = 0;
+            }
+            StateHasChanged();
+        });
+    }
+
+    private async Task FindReps()
+    {
+        Scanning = true;
+        StateHasChanged();
+        Task scan = Task.Run(() => {
+            if (_DSdata.INITdone == false)
+            {
+                while (_DSdata.INITdone == false)
+                    Task.Delay(50);
+            } else
+            {
+                newreplays = _DSdata.NewReplays().GetAwaiter().GetResult();
+            }
+        });
+        await scan.ContinueWith(antecedent => {
+            Scanning = false;
+            InvokeAsync(() => StateHasChanged()).GetAwaiter().GetResult();
+        });
+    }
+
+    async Task ScanReps()
+    {
+        if (_startUp.SAMPLEDATA == true) _startUp.SAMPLEDATA = false;
+
+        StateHasChanged();
+        Task scan = Task.Run(() => {
+            if (_DSdata.INITdone == false)
+            {
+                while (_DSdata.INITdone == false)
+                    Task.Delay(50);
+            }
+            else
+            {
+                if (Scanning == true)
+                {
+                    while (Scanning == true)
+                        Task.Delay(50);
+                }
+                else
+                {
+                    Scanning = true;
+                    newreplays = _DSdata.NewReplays().GetAwaiter().GetResult();
+                }
+            }
+        });
+
+        await scan.ContinueWith(antecedent => {
+            if (_DSdata.Todo.Count > 0)
+            {
+                if (_stateChange.Scan.Running == false)
+                {
+                    _stateChange.Scan.Running = true;
+                    SCAN = "Decoding replays ...";
+                    Decode.Doit(_DSdata, _stateChange, _startUp, _startUp.Conf.Cores);
+                }
+                else
+                {
+                    SCAN = "Scan already running.";
+                }
+            }
+            else
+            {
+                SCAN = "No new replays found.";
+            }
+            Scanning = false;
+            InvokeAsync(() => StateHasChanged()).GetAwaiter().GetResult();
+        });
+    }
 
     async Task ScanRepsPre()
     {
@@ -113,78 +237,4 @@ else
         StateHasChanged();
         await ScanReps();
     }
-
-    async Task ScanReps()
-    {
-        if (_startUp.SAMPLEDATA == true) _startUp.SAMPLEDATA = false;
-        await _DSdata.NewReplays();
-        if (_DSdata.Todo.Count > 0)
-        {
-            if (_stateChange.Scan.Running == false)
-            {
-                _stateChange.Scan.Running = true;
-                SCAN = "Decoding replays ...";
-                Decode.Doit(_DSdata, _stateChange, _startUp, _startUp.Conf.Cores);
-            }
-            else
-            {
-                SCAN = "Scan already running.";
-            }
-        }
-        else
-        {
-            SCAN = "No new replays found.";
-        }
-    }
-
-    private async void Update(object sender, PropertyChangedEventArgs e)
-    {
-        await InvokeAsync(() =>
-        {
-            if (_stateChange.Scan.Running == true)
-            {
-                SCAN = "Decoding replays ..";
-                INFO = _stateChange.Scan.Info;
-            }
-            else
-            {
-                SCAN = "Jobs done.";
-                INFO = _stateChange.Scan.Info;
-                INFO += " Elapsed time: " + Decode.Elapsed.ToString("c");
-            }
-            StateHasChanged();
-        });
-    }
-
-    protected override async Task OnInitializedAsync()
-    {
-        if (INFO.Length > 0)
-        {
-            SCAN = "Decoding replays ...";
-            INFO = _stateChange.Scan.Info;
-        }
-
-        if (_startUp.Conf.Autoscan == true)
-        {
-            await ScanReps();
-        }
-        else
-        {
-            await FindReps();
-        }
-
-        _stateChange.PropertyChanged += Update;
-    }
-
-    private async Task FindReps()
-    {
-        await _DSdata.NewReplays();
-        StateHasChanged();
-    }
-
-    public void Dispose()
-    {
-        //_stateChange.PropertyChanged -= Update;
-    }
-
 }

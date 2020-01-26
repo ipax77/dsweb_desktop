@@ -5,7 +5,7 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 
-namespace paxgame3.Client.Data
+namespace paxgameweb.Data
 {
     public class Refresh : INotifyPropertyChanged
     {

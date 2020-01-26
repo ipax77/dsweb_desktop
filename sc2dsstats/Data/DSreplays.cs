@@ -1,4 +1,5 @@
 ﻿using pax.s2decode.Models;
+using sc2dsstats_rc2;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -19,6 +20,7 @@ namespace sc2dsstats.Data
 
         public int ID { get; set; } = 0;
         public bool INIT = false;
+        public bool INITdone = false;
 
         public StartUp _startUp;
         IDSdata_cache _dsdata;
@@ -27,6 +29,7 @@ namespace sc2dsstats.Data
         {
             _startUp = startUp;
             _dsdata = dsdata;
+            Init();
         }
 
         public async Task Init()
@@ -46,6 +49,7 @@ namespace sc2dsstats.Data
                 string reppath_md5 = BitConverter.ToString(md5.ComputeHash(plainTextBytes));
                 ReplayFolder[reppath] = reppath_md5;
             }
+            INITdone = true;
         }
 
         public async Task LoadData(bool DoUpload = false)
@@ -88,8 +92,8 @@ namespace sc2dsstats.Data
                     }
                 });
                 ID = maxid;
-                await NewReplays();
                 await _dsdata.Init(Replays);
+                await NewReplays();
 
                 if (DoUpload == true)
                 {
@@ -160,15 +164,15 @@ namespace sc2dsstats.Data
             });
         }
 
-        public async Task NewReplays()
+        public async Task<int> NewReplays()
         {
-            await Task.Run(() =>
+            return await Task.Run(() =>
             {
                 lock (Todo)
                 {
                     Todo.Clear();
 
-                    if (_startUp.SAMPLEDATA == true) return;
+                    if (_startUp.SAMPLEDATA == true) return 0;
 
                     HashSet<string> replist = new HashSet<string>();
 
@@ -197,6 +201,7 @@ namespace sc2dsstats.Data
                         }
                     }
                 }
+                return Todo.Count();
             });
         }
     }

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using sc2dsstats_rc2;
+using System;
 using System.Collections.Generic;
 
 namespace sc2dsstats.Models

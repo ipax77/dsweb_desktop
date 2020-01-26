@@ -1,10 +1,9 @@
 ﻿@page "/battlearea"
-@page "/battlearea/{GameID:double}/{PlayerID:double}"
-@layout BattleLayout
-@using paxgame3.Client.Models
-@using paxgame3.Client.Data
-@using paxgame3.Client.Service
+@page "/battlearea/{GameID:long}/{PlayerID:long}"
+@using paxgamelib.Models
+@using paxgamelib.Service
 @using System.Numerics;
+@using paxgameweb.Data;
 @inject Refresh _refresh
 @inject IJSRuntime JsRuntime
 

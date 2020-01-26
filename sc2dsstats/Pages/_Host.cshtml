@@ -1,31 +1,45 @@
 ﻿@page "/"
-@using EmbeddedBlazorContent
-@namespace sc2dsstats.Pages
+@namespace sc2dsstats_rc2.Pages
 @addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@{
+    Layout = null;
+}
 
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>sc2dsstats</title>
+    <title>sc2dsstats_rc2</title>
     <base href="~/" />
     <link rel="stylesheet" href="css/bootstrap/bootstrap.min.css" />
     <link href="css/site.css" rel="stylesheet" />
-    @Html.EmbeddedBlazorContent()
+    <script src="_content/MatBlazor/dist/matBlazor.js"></script>
 </head>
 <body>
     <app>
-        @(await Html.RenderComponentAsync<App>(RenderMode.ServerPrerendered))
+        <component type="typeof(App)" render-mode="ServerPrerendered" />
     </app>
 
+    <!--
+    <div id="blazor-error-ui">
+        <environment include="Staging,Production">
+            An error has occurred. This application may no longer respond until reloaded.
+        </environment>
+
+        <environment include="Development">
+            An unhandled exception has occurred. See browser dev tools for details.
+        </environment>
+
+        <a href="" class="reload">Reload</a>
+        <a class="dismiss">🗙</a>
+    </div>
+    -->
     <script src="_framework/blazor.server.js"></script>
     <script src="~/js/Chart.min.js"></script>
     <script src="~/js/chartjs-plugin-datalabels.min.js"></script>
     <script src="~/js/chartjs-plugin-labels.min.js"></script>
-    <script src="~/js/html2canvas.min.js"></script>
     <script src="~/js/dschart.js"></script>
-    <script src="_content/Blazor.Extensions.Canvas/blazor.extensions.canvas.js"></script>
 </body>
 </html>
 <script>
@@ -49,4 +63,13 @@
             }
         }
     }
+    function getPosition() {
+        var element = document.getElementById('BuildArea');
+        if (element != null) {
+            var rect = element.getBoundingClientRect();
+            return rect.top.toString() + "|" + rect.right.toString() + "|" + rect.bottom.toString() + "|" + rect.left.toString();
+        } else {
+            return "";
+        }
+    };
 </script>
