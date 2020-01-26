@@ -150,7 +150,7 @@ else
             if (_DSdata.INITdone == false)
             {
                 while (_DSdata.INITdone == false)
-                    Task.Delay(50);
+                    Task.Delay(50).GetAwaiter();
             } else
             {
                 newreplays = _DSdata.NewReplays().GetAwaiter().GetResult();
@@ -171,7 +171,7 @@ else
             if (_DSdata.INITdone == false)
             {
                 while (_DSdata.INITdone == false)
-                    Task.Delay(50);
+                    Task.Delay(50).GetAwaiter();
             }
             else
             {

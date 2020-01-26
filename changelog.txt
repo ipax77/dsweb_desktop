@@ -1,4 +1,8 @@
 
+v 1.5.2
+
+- bugfix ty @jbfy986t654eyi90oknj for reporting!
+
 v 1.5.0
 
 - Update Electron to v7.30.2

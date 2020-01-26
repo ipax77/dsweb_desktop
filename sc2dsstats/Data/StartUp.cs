@@ -22,7 +22,7 @@ namespace sc2dsstats.Data
         public UserConfig Conf { get; set; } = new UserConfig();
         public bool FIRSTRUN { get; set; } = false;
         public bool SAMPLEDATA { get; set; } = false;
-        public static string VERSION { get; } = "1.5.1";
+        public static string VERSION { get; } = "1.5.2";
         private bool INIT = false;
         public string FirstRunInfo { get; set; } = "";
         public string UpdateInfo { get; set; } = VERSION;
@@ -125,7 +125,8 @@ namespace sc2dsstats.Data
             }
             StatPlayers = new List<string>(Conf.Players);
             StatFolders = new List<string>(Conf.Replays);
-
+            // todo
+            Conf.Autoscan = false;
             Task.Run(() => { paxgame.Init(); });
 
             await Resize();
@@ -134,22 +135,30 @@ namespace sc2dsstats.Data
         public async Task<bool> CheckForUpdate()
         {
             if (Resized == false) return false;
+            bool success = false;
             UpdateCheckResult result = new UpdateCheckResult();
             try
             {
                 result = await Electron.AutoUpdater.CheckForUpdatesAsync();
             }
-            catch { }
-            Console.WriteLine(result.UpdateInfo.Version);
-            Console.WriteLine(result.UpdateInfo.ReleaseDate);
-
-            if (VERSION == result.UpdateInfo.Version)
-                return false;
-            else
+            catch (Exception e)
             {
-                UpdateInfo = String.Format("{0} ({1}): {2}", result.UpdateInfo.Version, result.UpdateInfo.ReleaseDate, result.UpdateInfo.ReleaseNotes.FirstOrDefault());
-                return true;
+                Console.WriteLine(e.Message);
             }
+            finally
+            {
+                Console.WriteLine(result.UpdateInfo.Version);
+                Console.WriteLine(result.UpdateInfo.ReleaseDate);
+
+                if (VERSION == result.UpdateInfo.Version)
+                    success = false;
+                else
+                {
+                    UpdateInfo = String.Format("{0} ({1}): {2}", result.UpdateInfo.Version, result.UpdateInfo.ReleaseDate, result.UpdateInfo.ReleaseNotes.FirstOrDefault());
+                    success = true;
+                }
+            }
+            return success;
         }
 
         public async Task QuitAndInstall()
@@ -165,8 +174,9 @@ namespace sc2dsstats.Data
             {
                 Electron.AutoUpdater.QuitAndInstall(false, true);
             }
-            catch
+            catch (Exception e)
             {
+                Console.WriteLine(e.Message);
                 Electron.AutoUpdater.OnUpdateDownloaded -= AutoUpdater_OnUpdateDownloaded;
             }
         }
