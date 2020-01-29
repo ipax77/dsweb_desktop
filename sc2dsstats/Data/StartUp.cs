@@ -22,7 +22,7 @@ namespace sc2dsstats.Data
         public UserConfig Conf { get; set; } = new UserConfig();
         public bool FIRSTRUN { get; set; } = false;
         public bool SAMPLEDATA { get; set; } = false;
-        public static string VERSION { get; } = "1.5.2";
+        public static string VERSION { get; } = "1.5.3";
         private bool INIT = false;
         public string FirstRunInfo { get; set; } = "";
         public string UpdateInfo { get; set; } = VERSION;

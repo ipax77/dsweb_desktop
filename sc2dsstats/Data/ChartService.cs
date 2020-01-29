@@ -72,6 +72,7 @@ namespace sc2dsstats.Data
             if (oldchart.data.datasets.Count() == 1 && oldchart.data.datasets[0].label == "global")
             {
                 oldchart.data.datasets.RemoveAt(0);
+                s_races_ordered = DSdata.s_races.ToList();
                 await GetData(oldchart);
                 //if (oldchart.type == "bar") oldchart.options.title.text = oldchart.options.title.text + " - " + _options.Interest + " vs ...";
                 SortChart(oldchart, ref s_races_ordered);
