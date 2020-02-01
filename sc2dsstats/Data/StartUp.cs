@@ -1,5 +1,4 @@
 ﻿using ElectronNET.API;
-using ElectronNET.API.Entities;
 using Microsoft.Extensions.Configuration;
 using sc2dsstats.Models;
 using System;
@@ -22,7 +21,7 @@ namespace sc2dsstats.Data
         public UserConfig Conf { get; set; } = new UserConfig();
         public bool FIRSTRUN { get; set; } = false;
         public bool SAMPLEDATA { get; set; } = false;
-        public static string VERSION { get; } = "1.5.3";
+        public static string VERSION { get; } = "1.5.4";
         private bool INIT = false;
         public string FirstRunInfo { get; set; } = "";
         public string UpdateInfo { get; set; } = VERSION;
@@ -131,55 +130,6 @@ namespace sc2dsstats.Data
             Task.Run(() => { paxgame.Init(); });
 
             await Resize();
-        }
-
-        public async Task<bool> CheckForUpdate()
-        {
-            if (Resized == false) return false;
-            bool success = false;
-            UpdateCheckResult result = new UpdateCheckResult();
-            try
-            {
-                result = await Electron.AutoUpdater.CheckForUpdatesAsync();
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine(e.Message);
-            }
-            finally
-            {
-                Console.WriteLine(result.UpdateInfo.Version);
-                Console.WriteLine(result.UpdateInfo.ReleaseDate);
-
-                if (VERSION == result.UpdateInfo.Version)
-                    success = false;
-                else
-                {
-                    UpdateInfo = String.Format("{0} ({1}): {2}", result.UpdateInfo.Version, result.UpdateInfo.ReleaseDate, result.UpdateInfo.ReleaseNotes.FirstOrDefault());
-                    success = true;
-                }
-            }
-            return success;
-        }
-
-        public async Task QuitAndInstall()
-        {
-            UpdateCheckResult result = await Electron.AutoUpdater.CheckForUpdatesAndNotifyAsync();
-
-            Electron.AutoUpdater.OnUpdateDownloaded += AutoUpdater_OnUpdateDownloaded;
-        }
-
-        private void AutoUpdater_OnUpdateDownloaded(UpdateInfo obj)
-        {
-            try
-            {
-                Electron.AutoUpdater.QuitAndInstall(false, true);
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine(e.Message);
-                Electron.AutoUpdater.OnUpdateDownloaded -= AutoUpdater_OnUpdateDownloaded;
-            }
         }
 
         async Task Resize()

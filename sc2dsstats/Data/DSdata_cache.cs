@@ -348,6 +348,14 @@ namespace sc2dsstats.Data
             // Terrran thor
             if (unit == "ThorAP") return "Thor";
 
+            foreach (string cmdr in DSdata.s_races_cmdr)
+            {
+                if (unit.EndsWith(cmdr))
+                    return unit.Replace(cmdr, "");
+                if (unit.StartsWith(cmdr))
+                    return unit.Replace(cmdr, "");
+            }
+
             Match m = rx_star.Match(unit);
             if (m.Success)
                 return m.Groups[1].ToString() + m.Groups[2].ToString();

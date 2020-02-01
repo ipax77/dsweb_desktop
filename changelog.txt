@@ -1,4 +1,9 @@
 
+v 1.5.4
+
+- Unit naming adjusted for latest ds-map version
+- App update to js (for now)
+
 v 1.5.3
 
 - bugfix single cmdr chart ty @jbfy986t654eyi90oknj for reporting!
