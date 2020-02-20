@@ -30,10 +30,10 @@ namespace sc2dsstats.Data
                 hash = GetHash(sha256Hash, names);
                 hash2 = GetHash(sha256Hash, Program.myJson_file);
             }
-            //var client = new RestClient("https://www.pax77.org:9126");
+            var client = new RestClient("https://www.pax77.org:9126");
             //var client = new RestClient("https://192.168.178.28:9001");
             //var client = new RestClient("http://192.168.178.28:9000");
-            var client = new RestClient("https://localhost:5000");
+            //var client = new RestClient("https://localhost:5000");
 
             List<dsreplay> temp = new List<dsreplay>(dsData.Replays);
             string lastrep = "";
