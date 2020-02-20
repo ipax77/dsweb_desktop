@@ -181,13 +181,13 @@ namespace sc2dsstats.Data
                         replist.Add(rep.REPLAY);
                     }
 
-
+                    MD5 md5 = new MD5CryptoServiceProvider();
                     foreach (var dir in _startUp.Conf.Replays)
                     {
                         if (Directory.Exists(dir))
                         {
+                            
                             var plainTextBytes = Encoding.UTF8.GetBytes(dir);
-                            MD5 md5 = new MD5CryptoServiceProvider();
                             string reppath_md5 = BitConverter.ToString(md5.ComputeHash(plainTextBytes));
 
                             foreach (var fileName in Directory.GetFiles(dir, "Direct Strike*.SC2Replay", SearchOption.AllDirectories))
