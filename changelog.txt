@@ -1,4 +1,12 @@
 
+v 1.5.8
+
+- update info for new version
+
+v 1.5.7
+
+- upload bugfix 
+
 v 1.5.6
 
 - s2protocol v78285 

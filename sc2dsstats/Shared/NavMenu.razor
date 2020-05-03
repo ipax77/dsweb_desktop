@@ -80,8 +80,7 @@
                 <br />
                 <div class="btn-group-vertical ml-3">
                     <div class="form-group mr-2">
-                        <MatTooltip Tooltip="Autodecodes your replay as soon as your game is finished." Position="@MatTooltipPosition.Right">
-                            <div class="custom-control custom-checkbox" @ref="context.Current">
+                            <div class="custom-control custom-checkbox">
                                 <input type="checkbox"
                                        class="custom-control-input"
                                        name="otf"
@@ -92,11 +91,10 @@
                                     on the fly scan
                                 </label>
                             </div>
-                        </MatTooltip>
+
                     </div>
                     <div class="form-group mr-2">
-                        <MatTooltip Tooltip="Fills your database with ~1.5k replay stats (uncheck to switch back to your data)" Position="@MatTooltipPosition.Right">
-                            <div class="custom-control custom-checkbox" @ref="@context.Current">
+                            <div class="custom-control custom-checkbox">
                                 <input type="checkbox"
                                        class="custom-control-input"
                                        name="sample"
@@ -107,7 +105,7 @@
                                     use sample data
                                 </label>
                             </div>
-                        </MatTooltip>
+                        
                     </div>
                 </div>
             </li>

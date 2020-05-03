@@ -32,18 +32,18 @@
                 <button name="btn_mode" class="btn btn-sm btn-primary btn-block" @onclick="@(() => _options.Mode = "Timeline")">Timeline</button>
             </div>
         </div>
-        <MatTooltip Tooltip="Check for replay creater/uploader matchup only or uncheck for all matchups in the replays" Position="@MatTooltipPosition.Bottom">
-            <div class="custom-control custom-checkbox mr-2" @ref="context.Current">
+        
+            <div class="custom-control custom-checkbox mr-2">
                 <input type="checkbox" class="custom-control-input" name="cb_player" id="cb_player" @bind="@_options.Player" />
                 <label class="custom-control-label" for="cb_player">Player</label>
             </div>
-        </MatTooltip>
-        <MatTooltip Tooltip="Start the y-axis of the chart at zero" Position="@MatTooltipPosition.Bottom">
-            <div class="custom-control custom-checkbox mr-2" @ref="context.Current">
+        
+        
+            <div class="custom-control custom-checkbox mr-2">
                 <input type="checkbox" class="custom-control-input" name="cb_zero" id="cb_zero" @bind="@_options.BeginAtZero" />
                 <label class="custom-control-label" for="cb_zero">BeginatZero</label>
             </div>
-        </MatTooltip>
+        
     </div>
     <div class="row">
         <div class="btn-group">
