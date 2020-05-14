@@ -5,7 +5,9 @@ VisualStudioVersion = 16.0.29709.97
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "sc2dsstats_rc2", "sc2dsstats_rc2.csproj", "{0825BCBB-2E1E-4031-8386-4F9EA613DB66}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "pax.s2decode", "..\paxgame5\pax.s2decode\pax.s2decode.csproj", "{FBEB4D0E-1890-460C-855D-2D964F132AE6}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "pax.s2decode", "..\..\paxgame\pax.s2decode\pax.s2decode.csproj", "{FBEB4D0E-1890-460C-855D-2D964F132AE6}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "paxgamelib", "..\..\paxgame\paxgamelib\paxgamelib.csproj", "{61E57FF3-D28B-4937-92E6-DE64BDD04D00}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -21,6 +23,10 @@ Global
 		{FBEB4D0E-1890-460C-855D-2D964F132AE6}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{FBEB4D0E-1890-460C-855D-2D964F132AE6}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{FBEB4D0E-1890-460C-855D-2D964F132AE6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{61E57FF3-D28B-4937-92E6-DE64BDD04D00}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{61E57FF3-D28B-4937-92E6-DE64BDD04D00}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{61E57FF3-D28B-4937-92E6-DE64BDD04D00}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{61E57FF3-D28B-4937-92E6-DE64BDD04D00}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
